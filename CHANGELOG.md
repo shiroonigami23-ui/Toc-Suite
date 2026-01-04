@@ -1,3 +1,6 @@
+## [2026-01-04] - Data Ingestion
+- Imported **NFA for strings containing 'aba'** into NFA Library
+
 # 🕒 Project Changelog
 All notable changes to the Automata Practice Studio will be documented in this file.
 
