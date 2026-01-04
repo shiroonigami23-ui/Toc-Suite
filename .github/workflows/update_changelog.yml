@@ -19,8 +19,7 @@ jobs:
           fetch-depth: 2 
 
       - name: Identify New Machines
-        # ADDED shell: python here to handle the import statements
-        shell: python
+        shell: python # CRITICAL: This must be here to run Python code
         run: |
           import subprocess, datetime, pathlib, json
           
@@ -28,7 +27,7 @@ jobs:
           cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
           try:
               added_files = subprocess.check_output(cmd).decode("utf-8").splitlines()
-          except subprocess.CalledProcessError:
+          except Exception:
               added_files = []
           
           if not added_files:
@@ -39,7 +38,6 @@ jobs:
           for f in added_files:
               try:
                   data = json.loads(pathlib.Path(f).read_text())
-                  # Standardized log format
                   log_entries.append(f"Added **{data.get('title', f)}** ({data.get('type', 'FA')})")
               except: continue
 
@@ -53,7 +51,7 @@ jobs:
               cl_path.write_text(header + entry + old_content)
 
       - name: Commit log
-        # Removed shell: python here because these are git/bash commands
+        # No 'shell: python' here because these are standard Git commands
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
