@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "automata/**"
+      - "!README.md" # Prevent self-triggering loops
 
 jobs:
   summary:
@@ -35,16 +36,27 @@ jobs:
 
           new_table = "\n".join(rows)
           readme_path = pathlib.Path("README.md")
-          content = readme_path.read_text()
+          
+          if not readme_path.exists():
+              print("README.md missing, skipping...")
+              exit(0)
+              
+          content = readme_path.read_text(encoding="utf-8")
 
-          # Replace content between architectural placeholders
-          updated_content = re.sub(
-              r".*?",
-              f"\n{new_table}\n",
-              content,
-              flags=re.DOTALL
-          )
-          readme_path.write_text(updated_content)
+          # --- CRITICAL FIX: Explicit Literal Tags ---
+          start_tag = ""
+          end_tag = ""
+          
+          # The regex now specifically looks for the tags and everything in between
+          pattern = re.escape(start_tag) + r".*?" + re.escape(end_tag)
+          replacement = f"{start_tag}\n{new_table}\n{end_tag}"
+          
+          if start_tag in content and end_tag in content:
+              updated_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+              readme_path.write_text(updated_content, encoding="utf-8")
+              print("README metrics updated successfully.")
+          else:
+              print("Placeholders not found in README.md. No update performed.")
 
       - name: Commit Changes
         run: |
