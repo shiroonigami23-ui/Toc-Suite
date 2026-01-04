@@ -1,0 +1,19 @@
+{
+  "type": "DFA",
+  "id": "dfa_starts_a",
+  "title": "DFA: Starts with 'a'",
+  "description": "Accepts any string from {a, b} that begins with the letter 'a'.",
+  "states": [
+    { "id": "q0", "x": 100, "y": 200, "initial": true, "accepting": false },
+    { "id": "q1", "x": 300, "y": 200, "initial": false, "accepting": true },
+    { "id": "q2", "x": 300, "y": 400, "initial": false, "accepting": false }
+  ],
+  "transitions": [
+    { "from": "q0", "to": "q1", "symbol": "a" },
+    { "from": "q0", "to": "q2", "symbol": "b" },
+    { "from": "q1", "to": "q1", "symbol": "a" },
+    { "from": "q1", "to": "q1", "symbol": "b" },
+    { "from": "q2", "to": "q2", "symbol": "a" },
+    { "from": "q2", "to": "q2", "symbol": "b" }
+  ]
+}
