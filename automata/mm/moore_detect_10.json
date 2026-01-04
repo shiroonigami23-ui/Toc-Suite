@@ -1,0 +1,19 @@
+{
+  "type": "MOORE",
+  "id": "moore_sequence_10",
+  "title": "Moore: Detect '10' Sequence",
+  "description": "Outputs 1 when the sequence '10' is detected.",
+  "states": [
+    { "id": "S0", "x": 100, "y": 100, "initial": true, "output": "0" },
+    { "id": "S1", "x": 300, "y": 100, "initial": false, "output": "0" },
+    { "id": "S2", "x": 500, "y": 100, "initial": false, "output": "1" }
+  ],
+  "transitions": [
+    { "from": "S0", "to": "S0", "symbol": "0" },
+    { "from": "S0", "to": "S1", "symbol": "1" },
+    { "from": "S1", "to": "S2", "symbol": "0" },
+    { "from": "S1", "to": "S1", "symbol": "1" },
+    { "from": "S2", "to": "S0", "symbol": "0" },
+    { "from": "S2", "to": "S1", "symbol": "1" }
+  ]
+}
