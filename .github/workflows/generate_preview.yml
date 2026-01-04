@@ -1,0 +1,72 @@
+name: Generate Machine Preview
+
+on:
+  push:
+    paths:
+      - "automata/**"
+      - "!PREVIEW.md"
+
+jobs:
+  visualize:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Render ASCII Diagram
+        shell: python
+        run: |
+          import json, pathlib, subprocess
+
+          # 1. Identify the most recent machine
+          cmd = ["git", "diff", "--name-only", "HEAD~1", "HEAD", "automata/**/*.json"]
+          try:
+              files = subprocess.check_output(cmd).decode("utf-8").splitlines()
+              target_file = pathlib.Path(files[0]) if files else None
+          except:
+              target_file = None
+
+          if not target_file or not target_file.exists():
+              print("No new machine to visualize.")
+              exit(0)
+
+          # 2. Parse machine data (handles nested NFA/ENFA)
+          data = json.loads(target_file.read_text(encoding="utf-8"))
+          m = data.get("machine", data)
+          title = data.get("title", target_file.name)
+          m_type = (data.get("type") or m.get("type", "FA")).upper()
+
+          # 3. Build the ASCII Diagram
+          lines = [f"# 🎨 Latest Machine Preview: {title}", f"**Type:** {m_type}", "```text"]
+          
+          states = {s["id"]: s for s in m.get("states", [])}
+          for t in m.get("transitions", []):
+              src = t['from']
+              dest = t['to']
+              sym = t['symbol']
+              
+              # Beautiful State Markers
+              src_label = f"({src}*)" if states.get(src, {}).get("accepting") else f"[{src}]"
+              dest_label = f"({dest}*)" if states.get(dest, {}).get("accepting") else f"[{dest}]"
+              
+              lines.append(f"{src_label:^10} -- {sym} --> {dest_label:^10}")
+          
+          lines.append("```")
+          lines.append("\n*Markers: [q] = Normal State, (q*) = Accepting State*")
+          
+          # 4. Save to PREVIEW.md (Overwrites to keep it fresh)
+          pathlib.Path("PREVIEW.md").write_text("\n".join(lines), encoding="utf-8")
+          print(f"Preview generated for {title}")
+
+      - name: Commit Preview
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add PREVIEW.md
+          git commit -m "Docs: Updated ASCII machine preview" || echo "No changes"
+          git push
