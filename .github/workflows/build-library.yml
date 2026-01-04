@@ -4,12 +4,11 @@ on:
   push:
     paths:
       - "automata/**"
-      - "Data/**" # Triggers when you upload files to the Data folder
+      - "Data/**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     permissions:
       contents: write
 
@@ -27,17 +26,20 @@ jobs:
           import json, pathlib
           
           def validate_structure(data):
-              """Basic sanity check for Automata structure."""
-              if not isinstance(data, dict): return False
-              if "states" not in data or "transitions" not in data:
+              """Checks both root and nested 'machine' objects for validity."""
+              # Extract the actual machine data (handles nested structure)
+              m_data = data.get("machine", data)
+              
+              if not isinstance(m_data, dict): return False
+              if "states" not in m_data or "transitions" not in m_data:
                   return False
-              state_ids = {s["id"] for s in data["states"]}
-              for t in data["transitions"]:
+              
+              state_ids = {s["id"] for s in m_data["states"]}
+              for t in m_data["transitions"]:
                   if t["from"] not in state_ids or t["to"] not in state_ids:
-                      return False # Broken link found
+                      return False 
               return True
 
-          # Mapping machine types to their target subfolders
           type_to_folder = {
               "DFA": "automata/fa", "NFA": "automata/fa", "ENFA": "automata/fa",
               "PDA": "automata/pda",
@@ -45,7 +47,6 @@ jobs:
               "TM": "automata/tm"
           }
           
-          # Mapping folders to their aggregated library files
           libraries = {
               "automata/fa": "library.json",
               "automata/pda": "pda_library.json",
@@ -59,46 +60,40 @@ jobs:
               for file in data_dir.glob("*.json"):
                   try:
                       content = json.loads(file.read_text(encoding="utf-8"))
-                      # Determine the specific folder based on machine type
-                      m_type = content.get("type", "DFA").upper()
+                      # Check root 'type' or nested 'machine.type'
+                      m_type = (content.get("type") or content.get("machine", {}).get("type", "DFA")).upper()
                       target_folder = type_to_folder.get(m_type, "automata/fa")
                       
-                      # Move to target folder (overwrites if filename exists)
                       target_path = pathlib.Path(target_folder) / file.name
                       target_path.parent.mkdir(parents=True, exist_ok=True)
                       target_path.write_text(json.dumps(content, indent=2), encoding="utf-8")
                       
-                      # Clean up the Data folder
                       file.unlink()
                       print(f"Sorted {file.name} into {target_folder}")
                   except Exception as e:
                       print(f"Error processing {file.name}: {e}")
 
-          # --- Step 2: Rebuild Libraries with Deduplication & Validation ---
+          # --- Step 2: Rebuild Libraries ---
           for folder, target in libraries.items():
               auto_dir = pathlib.Path(folder)
-              if not auto_dir.exists(): 
-                  print(f"Directory {folder} not found, skipping...")
-                  continue
+              if not auto_dir.exists(): continue
               
               unique_entries = {}
               for file in auto_dir.glob("*.json"):
                   try:
                       data = json.loads(file.read_text(encoding="utf-8"))
                       
-                      # --- INTEGRATION POINT: Check structure before adding ---
+                      # Validation now handles nested NFA/ENFA structures
                       if validate_structure(data):
                           key = data.get("id") or data.get("title")
                           if key:
                               unique_entries[key] = data
                       else:
                           print(f"CRITICAL ERROR: {file.name} has a broken structure and was EXCLUDED.")
-                      # -------------------------------------------------------
 
                   except Exception as e:
                       print(f"Skipping {file.name}: {e}")
               
-              # Write unique, validated entries to the aggregate library
               pathlib.Path(target).write_text(
                   json.dumps(list(unique_entries.values()), indent=2), 
                   encoding="utf-8"
@@ -111,5 +106,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add automata/ *.json Data/
-          git commit -m "Auto-sort Data and rebuild libraries with deduplication & validation" || echo "No changes"
+          git commit -m "Auto-sort Data and rebuild libraries (FA/NFA/ENFA Support)" || echo "No changes"
           git push
