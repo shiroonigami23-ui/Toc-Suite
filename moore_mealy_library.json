@@ -1,63 +1,48 @@
 [
   {
+    "type": "MEALY",
+    "id": "mealy_parity_generator",
+    "title": "Mealy: Even/Odd Parity",
+    "description": "Outputs 1 if the number of 1s received is odd, else 0.",
+    "alphabet": ["0", "1"],
+    "output_alphabet": ["0", "1"],
+    "machine": {
+      "states": [
+        { "id": "S_even", "x": 200, "y": 250, "initial": true },
+        { "id": "S_odd", "x": 500, "y": 250, "initial": false }
+      ],
+      "transitions": [
+        { "from": "S_even", "to": "S_even", "symbol": "0", "output": "0" },
+        { "from": "S_even", "to": "S_odd", "symbol": "1", "output": "1" },
+        { "from": "S_odd", "to": "S_odd", "symbol": "0", "output": "1" },
+        { "from": "S_odd", "to": "S_even", "symbol": "1", "output": "0" }
+      ]
+    }
+  },
+  {
     "type": "MOORE",
-    "id": "moore_sequence_10",
-    "title": "Moore: Detect '10' Sequence",
-    "description": "Outputs 1 when the sequence '10' is detected.",
-    "states": [
-      {
-        "id": "S0",
-        "x": 100,
-        "y": 100,
-        "initial": true,
-        "output": "0"
-      },
-      {
-        "id": "S1",
-        "x": 300,
-        "y": 100,
-        "initial": false,
-        "output": "0"
-      },
-      {
-        "id": "S2",
-        "x": 500,
-        "y": 100,
-        "initial": false,
-        "output": "1"
-      }
-    ],
-    "transitions": [
-      {
-        "from": "S0",
-        "to": "S0",
-        "symbol": "0"
-      },
-      {
-        "from": "S0",
-        "to": "S1",
-        "symbol": "1"
-      },
-      {
-        "from": "S1",
-        "to": "S2",
-        "symbol": "0"
-      },
-      {
-        "from": "S1",
-        "to": "S1",
-        "symbol": "1"
-      },
-      {
-        "from": "S2",
-        "to": "S0",
-        "symbol": "0"
-      },
-      {
-        "from": "S2",
-        "to": "S1",
-        "symbol": "1"
-      }
-    ]
+    "id": "moore_3_ones_detector",
+    "title": "Moore: 111 Sequence Detector",
+    "description": "State-based detector that outputs 'A' when 111 is detected.",
+    "alphabet": ["0", "1"],
+    "output_alphabet": ["N", "A"],
+    "machine": {
+      "states": [
+        { "id": "q0", "x": 100, "y": 300, "initial": true, "output": "N" },
+        { "id": "q1", "x": 300, "y": 300, "initial": false, "output": "N" },
+        { "id": "q2", "x": 500, "y": 300, "initial": false, "output": "N" },
+        { "id": "q3", "x": 700, "y": 300, "initial": false, "output": "A" }
+      ],
+      "transitions": [
+        { "from": "q0", "to": "q0", "symbol": "0" },
+        { "from": "q0", "to": "q1", "symbol": "1" },
+        { "from": "q1", "to": "q0", "symbol": "0" },
+        { "from": "q1", "to": "q2", "symbol": "1" },
+        { "from": "q2", "to": "q0", "symbol": "0" },
+        { "from": "q2", "to": "q3", "symbol": "1" },
+        { "from": "q3", "to": "q0", "symbol": "0" },
+        { "from": "q3", "to": "q1", "symbol": "1" }
+      ]
+    }
   }
 ]
