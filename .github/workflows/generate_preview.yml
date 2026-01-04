@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "automata/**"
-      - "!PREVIEW.md"
+      - "!PREVIEW.md" # Prevent documentation recursion
 
 jobs:
   visualize:
@@ -18,13 +18,13 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Render ASCII Diagram
+      - name: Render Machine Logic
         shell: python
         run: |
           import json, pathlib, subprocess
 
-          # 1. Identify the most recent machine
-          cmd = ["git", "diff", "--name-only", "HEAD~1", "HEAD", "automata/**/*.json"]
+          # 1. Detect latest machine
+          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
           try:
               files = subprocess.check_output(cmd).decode("utf-8").splitlines()
               target_file = pathlib.Path(files[0]) if files else None
@@ -32,41 +32,48 @@ jobs:
               target_file = None
 
           if not target_file or not target_file.exists():
-              print("No new machine to visualize.")
+              print("No new machine file detected.")
               exit(0)
 
-          # 2. Parse machine data (handles nested NFA/ENFA)
-          data = json.loads(target_file.read_text(encoding="utf-8"))
-          m = data.get("machine", data)
-          title = data.get("title", target_file.name)
-          m_type = (data.get("type") or m.get("type", "FA")).upper()
+          # 2. Parse machine data (handling nested 'machine' objects)
+          raw_data = json.loads(target_file.read_text(encoding="utf-8"))
+          m = raw_data.get("machine", raw_data)
+          title = raw_data.get("title", target_file.name)
+          m_type = (raw_data.get("type") or m.get("type", "FA")).upper()
 
-          # 3. Build the ASCII Diagram
-          lines = [f"# 🎨 Latest Machine Preview: {title}", f"**Type:** {m_type}", "```text"]
+          # 3. Generate Transition Table Logic
+          states = m.get("states", [])
+          transitions = m.get("transitions", [])
+          alphabet = sorted(list(set(t['symbol'] for t in transitions)))
           
-          states = {s["id"]: s for s in m.get("states", [])}
-          for t in m.get("transitions", []):
-              src = t['from']
-              dest = t['to']
-              sym = t['symbol']
-              
-              # Beautiful State Markers
-              src_label = f"({src}*)" if states.get(src, {}).get("accepting") else f"[{src}]"
-              dest_label = f"({dest}*)" if states.get(dest, {}).get("accepting") else f"[{dest}]"
-              
-              lines.append(f"{src_label:^10} -- {sym} --> {dest_label:^10}")
+          table = ["### 📋 Transition Table", "| State | " + " | ".join(alphabet) + " |", "| :--- | " + " | ".join([":---:"] * len(alphabet)) + " |"]
           
-          lines.append("```")
-          lines.append("\n*Markers: [q] = Normal State, (q*) = Accepting State*")
-          
-          # 4. Save to PREVIEW.md (Overwrites to keep it fresh)
-          pathlib.Path("PREVIEW.md").write_text("\n".join(lines), encoding="utf-8")
-          print(f"Preview generated for {title}")
+          for s in states:
+              row = [f"**{s['id']}**" + (" (Start)" if s.get("initial") else "") + (" (Final)" if s.get("accepting") else "")]
+              for symbol in alphabet:
+                  # Find all possible destinations for NFA support
+                  dest = [t['to'] for t in transitions if t['from'] == s['id'] and t['symbol'] == symbol]
+                  row.append(", ".join(dest) if dest else "-")
+              table.append("| " + " | ".join(row) + " |")
 
-      - name: Commit Preview
+          # 4. Generate ASCII Diagram
+          diagram = ["### 🎨 Visual Logic Diagram", "```text"]
+          for t in transitions:
+              src, dest, sym = t['from'], t['to'], t['symbol']
+              src_box = f"({src}*)" if any(s['id'] == src and s.get('accepting') for s in states) else f"[{src}]"
+              dest_box = f"({dest}*)" if any(s['id'] == dest and s.get('accepting') for s in states) else f"[{dest}]"
+              diagram.append(f"{src_box:^12} -- {sym} --> {dest_box:^12}")
+          diagram.append("```")
+
+          # 5. Assemble and Write
+          header = [f"# 🌌 Latest Machine: {title}", f"**Machine Type:** {m_type}\n", f"**Source:** `{target_file}`\n"]
+          content = "\n".join(header + table + ["\n"] + diagram + ["\n---", "*Generated automatically by Toc-Suite Visualizer Engine.*"])
+          pathlib.Path("PREVIEW.md").write_text(content, encoding="utf-8")
+        
+      - name: Commit Preview Update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add PREVIEW.md
-          git commit -m "Docs: Updated ASCII machine preview" || echo "No changes"
+          git commit -m "Docs: Update machine preview and transition table" || echo "No changes"
           git push
