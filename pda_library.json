@@ -1,1 +1,54 @@
-[]
+[
+  {
+    "type": "PDA",
+    "id": "pda_balanced_parens",
+    "title": "PDA: Balanced Parentheses",
+    "description": "Accepts strings of balanced brackets ( ) using a stack.",
+    "states": [
+      {
+        "id": "q0",
+        "x": 150,
+        "y": 200,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q1",
+        "x": 400,
+        "y": 200,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "Z",
+        "push": "(Z"
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "(",
+        "push": "(("
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": ")",
+        "pop": "(",
+        "push": "\u03b5"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "\u03b5",
+        "pop": "Z",
+        "push": "Z"
+      }
+    ]
+  }
+]
