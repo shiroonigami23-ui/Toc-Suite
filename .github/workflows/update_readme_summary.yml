@@ -1,0 +1,56 @@
+name: Update README Summary
+
+on:
+  push:
+    paths:
+      - "automata/**"
+
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Generate Summary Table
+        shell: python
+        run: |
+          import pathlib, re
+
+          # Define paths and icons for the summary
+          folders = {
+              "Finite Automata": "automata/fa",
+              "Pushdown Automata": "automata/pda",
+              "Mealy/Moore": "automata/mm",
+              "Turing Machines": "automata/tm"
+          }
+
+          rows = ["| Studio | Machine Count | Status |", "| :--- | :---: | :--- |"]
+          for name, path in folders.items():
+              p = pathlib.Path(path)
+              count = len(list(p.glob("*.json"))) if p.exists() else 0
+              rows.append(f"| {name} | **{count}** | Ready |")
+
+          new_table = "\n".join(rows)
+          readme_path = pathlib.Path("README.md")
+          content = readme_path.read_text()
+
+          # Replace content between placeholders
+          updated_content = re.sub(
+              r".*?",
+              f"\n{new_table}\n",
+              content,
+              flags=re.DOTALL
+          )
+          readme_path.write_text(updated_content)
+
+      - name: Commit Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Docs: Updated Library Metrics in README" || echo "No changes"
+          git push
