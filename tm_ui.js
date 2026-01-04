@@ -14,6 +14,7 @@ import { generateTmPractice, showTmSolution, checkTmAnswer } from './tm_practice
 import { convertToStandard, handleModeChange } from './tm_modes.js';
 import { validateTm } from './tm_validator.js';
 import { updateLogicDisplay } from './logic_table.js';
+import { initializeTmLibrary } from './tm_library_loader.js'; //
 
 let currentMode = 'move';
 let transFromState = null;
@@ -28,8 +29,7 @@ export function initializeTmUI() {
     setupModeSelector(); 
     setupZoomControls(); 
     initializeShortcuts();
-    
-    // NEW: Activate the Logic Table Toggle
+    initializeTmLibrary();
     setupLogicToggle();
 
     // Global render wrapper - this makes the sidebar dynamic
