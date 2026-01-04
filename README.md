@@ -49,6 +49,7 @@ Advanced stack-based simulation with visual stack tracking and transition logic 
 Standard TM simulation with tape visualization and multi-state logic monitoring.
 
 ---
+### 📊 Library Metrics
 
 ## 📝 Governance & Contributions
 - **📜 [License](./LICENSE)**: MIT Licensed. Open for educational and research use.
