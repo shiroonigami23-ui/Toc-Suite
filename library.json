@@ -1,6 +1,50 @@
 [
   {
     "type": "DFA",
+    "id": "binary_odd_ones",
+    "title": "DFA: Odd Number of 1s",
+    "description": "Accepts binary strings with an odd number of 1s.",
+    "states": [
+      {
+        "id": "q_even",
+        "x": 100,
+        "y": 100,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q_odd",
+        "x": 300,
+        "y": 100,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q_even",
+        "to": "q_even",
+        "symbol": "0"
+      },
+      {
+        "from": "q_even",
+        "to": "q_odd",
+        "symbol": "1"
+      },
+      {
+        "from": "q_odd",
+        "to": "q_odd",
+        "symbol": "0"
+      },
+      {
+        "from": "q_odd",
+        "to": "q_even",
+        "symbol": "1"
+      }
+    ]
+  },
+  {
+    "type": "DFA",
     "title": "DFA: contains substring '010'",
     "description": "Accepts binary strings that contain '010' as a substring. Uses state memory to track partial matches.",
     "alphabet": [
