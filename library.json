@@ -265,5 +265,257 @@
     "difficulty": "medium",
     "category": "string-matching",
     "author": "Algorithms Course"
+  },
+  {
+    "title": "DFA that accepts ending with \"RR\"",
+    "description": "Accepts short strings such as: RR, PRR, RRR. The formal alphabet is {P, R}.",
+    "type": "DFA",
+    "machine": {
+      "type": "DFA",
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "accepting": false,
+          "x": 700,
+          "y": 300
+        },
+        {
+          "id": "q1",
+          "initial": false,
+          "accepting": false,
+          "x": 829.9038105676658,
+          "y": 525
+        },
+        {
+          "id": "q2",
+          "initial": false,
+          "accepting": true,
+          "x": 570.0961894323342,
+          "y": 525
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "P"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "R"
+        },
+        {
+          "from": "q2",
+          "to": "q2",
+          "symbol": "R"
+        },
+        {
+          "from": "q2",
+          "to": "q0",
+          "symbol": "P"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "R"
+        },
+        {
+          "from": "q1",
+          "to": "q0",
+          "symbol": "P"
+        }
+      ],
+      "alphabet": [
+        "P",
+        "R"
+      ],
+      "title": "DFA that accepts ending with \"R\""
+    }
+  },
+  {
+    "id": "nfa_second_to_last_is_a",
+    "title": "NFA for second to last symbol 'a'",
+    "type": "NFA",
+    "description": "Accepts any string from the alphabet {a, b} where the second-to-last symbol is 'a'.",
+    "machine": {
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "x": 150,
+          "y": 200
+        },
+        {
+          "id": "q1",
+          "x": 350,
+          "y": 200
+        },
+        {
+          "id": "q2",
+          "accepting": true,
+          "x": 550,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "a"
+        },
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "b"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "a"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "a"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "b"
+        }
+      ],
+      "alphabet": [
+        "a",
+        "b"
+      ]
+    }
+  },
+  {
+    "id": "nfa_contains_aba",
+    "title": "NFA for strings containing 'aba'",
+    "type": "NFA",
+    "description": "Accepts any string from the alphabet {a, b} that contains 'aba' as a substring.",
+    "machine": {
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "x": 150,
+          "y": 200
+        },
+        {
+          "id": "q1",
+          "x": 350,
+          "y": 200
+        },
+        {
+          "id": "q2",
+          "x": 550,
+          "y": 200
+        },
+        {
+          "id": "q3",
+          "accepting": true,
+          "x": 750,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "a"
+        },
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "b"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "a"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "b"
+        },
+        {
+          "from": "q2",
+          "to": "q3",
+          "symbol": "a"
+        },
+        {
+          "from": "q3",
+          "to": "q3",
+          "symbol": "a"
+        },
+        {
+          "from": "q3",
+          "to": "q3",
+          "symbol": "b"
+        }
+      ],
+      "alphabet": [
+        "a",
+        "b"
+      ]
+    }
+  },
+  {
+    "id": "nfa_ends_with_01",
+    "title": "NFA for strings ending in 01",
+    "type": "NFA",
+    "description": "Accepts any string from the alphabet {0, 1} that ends with the substring '01'.",
+    "machine": {
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "x": 150,
+          "y": 200
+        },
+        {
+          "id": "q1",
+          "x": 350,
+          "y": 200
+        },
+        {
+          "id": "q2",
+          "accepting": true,
+          "x": 550,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "0"
+        },
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "1"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "0"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "1"
+        }
+      ],
+      "alphabet": [
+        "0",
+        "1"
+      ]
+    }
   }
 ]
