@@ -16,15 +16,20 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 2 # Need previous commit to compare
+          fetch-depth: 2 
 
       - name: Identify New Machines
+        # ADDED shell: python here to handle the import statements
+        shell: python
         run: |
           import subprocess, datetime, pathlib, json
           
           # Detect new JSON files added in the automata/ subfolders
           cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
-          added_files = subprocess.check_output(cmd).decode("utf-8").splitlines()
+          try:
+              added_files = subprocess.check_output(cmd).decode("utf-8").splitlines()
+          except subprocess.CalledProcessError:
+              added_files = []
           
           if not added_files:
               print("No new machines detected.")
@@ -34,7 +39,8 @@ jobs:
           for f in added_files:
               try:
                   data = json.loads(pathlib.Path(f).read_text())
-                  log_entries.append(f"Added **{data.get('title', f)}** (${data.get('type', 'FA')}$)")
+                  # Standardized log format
+                  log_entries.append(f"Added **{data.get('title', f)}** ({data.get('type', 'FA')})")
               except: continue
 
           if log_entries:
@@ -47,10 +53,10 @@ jobs:
               cl_path.write_text(header + entry + old_content)
 
       - name: Commit log
+        # Removed shell: python here because these are git/bash commands
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
           git commit -m "Docs: Automated Changelog Update" || echo "No log changes"
           git push
-        shell: python
