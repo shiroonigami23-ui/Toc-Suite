@@ -1,7 +1,17 @@
+/**
+ * moore_mealy_library_loader.js
+ * Specialized loader for Mealy and Moore Machines.
+ * Handles fetching, filtering, and synchronized state ingestion.
+ */
+
 import { animateMachineDrawing } from './animation.js';
+import { addLogMessage } from './utils.js';
 
 const LIB_URL = './moore_mealy_library.json';
 
+/**
+ * Fetches the library JSON from the root directory.
+ */
 async function fetchLibrary() {
   try {
     const response = await fetch(LIB_URL);
@@ -9,14 +19,13 @@ async function fetchLibrary() {
     return await response.json();
   } catch (e) {
     console.error("Error fetching MM Library:", e);
-    return []; // Return empty array so it doesn't crash
+    return [];
   }
 }
 
 /**
  * renderEntry
- * Generates an interactive library item for Mealy and Moore machines.
- * Fixed to ensure machines persist in global state after construction.
+ * Generates an interactive library item with state synchronization.
  */
 function renderEntry(entry) {
     const container = document.createElement('div');
@@ -27,7 +36,6 @@ function renderEntry(entry) {
     const machineData = entry.machine || entry;
     const hasMachineData = machineData && machineData.states && machineData.states.length > 0;
     
-    // Extract alphabets for display
     const inputAlpha = (machineData.alphabet || []).join(', ');
     const outputAlpha = (machineData.output_alphabet || []).join(', ');
 
@@ -52,59 +60,41 @@ function renderEntry(entry) {
 
     if (hasMachineData) {
         openBtn.onclick = async () => {
-            // 1. Dynamic logging and State setup
-            const { addLogMessage } = await import('./utils.js');
-            const { setMachine } = await import('./moore_mealy_state.js'); //
+            const { setMachine } = await import('./moore_mealy_state.js');
+            const { renderAll } = await import('./moore_mealy_renderer.js');
             
-            addLogMessage(`Initializing <strong>${entry.title}</strong> (${entry.type} Machine)...`, 'library');
+            addLogMessage(`Initializing <strong>${entry.title}</strong> (${entry.type})...`, 'library');
             
-            // 2. Sync the UI "Mode Select" dropdown
+            // Sync UI Mode
             const modeSelect = document.getElementById('modeSelect');
-            if (modeSelect) {
-                modeSelect.value = entry.type;
-            }
+            if (modeSelect) modeSelect.value = entry.type;
 
-            // 3. ARCHITECTURAL FIX: Set the global MACHINE state
-            // This ensures that tool changes don't wipe the "ghost" animation
+            // Commit to global state to prevent "ghosting"
             const machineToLoad = { 
                 ...machineData, 
                 type: entry.type || 'MEALY' 
             };
-            setMachine(machineToLoad); //
+            setMachine(machineToLoad);
             
-            // 4. Trigger construction animation
-            // The renderer will now find data in the global MACHINE object
+            // Trigger animation and final render
             await animateMachineDrawing(machineToLoad);
             
-            // 5. Final render pass to ensure UI and Canvas are 100% in sync
-            if (typeof renderAll === 'function') {
-                renderAll(); //
-            }
-            
-            addLogMessage(`${entry.type} construction complete. System ready.`, 'check-circle');
+            if (typeof renderAll === 'function') renderAll();
+            addLogMessage(`${entry.type} system ready.`, 'check-circle');
         };
     }
 
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({ nodes: [container] });
-    }
-
+    if (typeof lucide !== 'undefined') lucide.createIcons({ nodes: [container] });
     return container;
 }
 
-    // Refresh Lucide icons for this specific container
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({ nodes: [container] });
-    }
-
-    return container;
-}
-
+/**
+ * Filters and renders items into the DOM.
+ */
 function renderLibraryItems(data) {
   const listEl = document.getElementById('libraryList');
   if (!listEl) return;
     
-  // Re-check for elements inside the dynamically loaded UI
   const search = document.getElementById('libSearch');
   const filter = document.getElementById('libFilter');
     
@@ -115,24 +105,22 @@ function renderLibraryItems(data) {
   const filtered = data.filter(entry => {
     const typeMatch = entry.type === 'MEALY' || entry.type === 'MOORE';
     if (!typeMatch) return false;
-
     if (f !== 'all' && entry.type !== f) return false;
-    
     if (!q) return true;
     const hay = ((entry.title||'') + ' ' + (entry.description||'')).toLowerCase();
     return hay.includes(q);
   });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<div class="library-message">No Mealy/Moore entries found.</div>';
+    listEl.innerHTML = '<div class="library-message">No matching entries found.</div>';
     return;
   }
-  filtered.forEach(entry => {
-    const el = renderEntry(entry);
-    listEl.appendChild(el);
-  });
+  filtered.forEach(entry => listEl.appendChild(renderEntry(entry)));
 }
 
+/**
+ * Main Initializer for the MM Library.
+ */
 export async function initializeLibrary() {
     const refreshBtn = document.getElementById('libRefresh');
     const search = document.getElementById('libSearch');
@@ -141,10 +129,7 @@ export async function initializeLibrary() {
     const data = await fetchLibrary();
     window._MM_LIB_DATA = data;
 
-    if (refreshBtn) refreshBtn.onclick = async () => {
-        renderLibraryItems(window._MM_LIB_DATA);
-    };
-
+    if (refreshBtn) refreshBtn.onclick = () => renderLibraryItems(window._MM_LIB_DATA || []);
     if (search) search.oninput = () => renderLibraryItems(window._MM_LIB_DATA || []);
     if (filter) filter.onchange = () => renderLibraryItems(window._MM_LIB_DATA || []);
 
