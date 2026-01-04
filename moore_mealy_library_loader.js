@@ -15,13 +15,12 @@ async function fetchLibrary() {
 
 /**
  * renderEntry
- * Generates an interactive library item for Mealy and Moore machines with 
- * animated construction and real-time logging.
+ * Generates an interactive library item for Mealy and Moore machines.
+ * Fixed to ensure machines persist in global state after construction.
  */
 function renderEntry(entry) {
     const container = document.createElement('div');
     container.className = 'library-entry';
-    // Standardizing the look to match the high-end Architect theme
     container.style.padding = "12px";
     container.style.borderBottom = "1px solid #e2e8f0";
 
@@ -53,8 +52,10 @@ function renderEntry(entry) {
 
     if (hasMachineData) {
         openBtn.onclick = async () => {
-            // 1. Dynamic logging for user feedback
+            // 1. Dynamic logging and State setup
             const { addLogMessage } = await import('./utils.js');
+            const { setMachine } = await import('./moore_mealy_state.js'); //
+            
             addLogMessage(`Initializing <strong>${entry.title}</strong> (${entry.type} Machine)...`, 'library');
             
             // 2. Sync the UI "Mode Select" dropdown
@@ -63,19 +64,33 @@ function renderEntry(entry) {
                 modeSelect.value = entry.type;
             }
 
-            // 3. Trigger the step-by-step construction animation
-            // Using the imported animateMachineDrawing function
+            // 3. ARCHITECTURAL FIX: Set the global MACHINE state
+            // This ensures that tool changes don't wipe the "ghost" animation
             const machineToLoad = { 
                 ...machineData, 
                 type: entry.type || 'MEALY' 
             };
+            setMachine(machineToLoad); //
             
+            // 4. Trigger construction animation
+            // The renderer will now find data in the global MACHINE object
             await animateMachineDrawing(machineToLoad);
             
-            // 4. Confirmation message
+            // 5. Final render pass to ensure UI and Canvas are 100% in sync
+            if (typeof renderAll === 'function') {
+                renderAll(); //
+            }
+            
             addLogMessage(`${entry.type} construction complete. System ready.`, 'check-circle');
         };
     }
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({ nodes: [container] });
+    }
+
+    return container;
+}
 
     // Refresh Lucide icons for this specific container
     if (typeof lucide !== 'undefined') {
