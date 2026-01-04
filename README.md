@@ -44,6 +44,6 @@ The **Toc-Suite** uses a "Source of Truth" pipeline. The web app consumes aggreg
 ## 📝 Governance
 - **📜 [License](./LICENSE)**: MIT.
 - **🕒 [Changelog](./CHANGELOG.md)**: Full version history.
-
+- **🎨 [Machine Preview](./PREVIEW.md)**: View the ASCII logic of the latest machine import.
 ---
 *Built with architectural precision and logic by Shiro.*
