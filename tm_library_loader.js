@@ -129,7 +129,7 @@ function createLibraryEntryEl(entry) {
 
         // 2. Clear and Reset the Tape Visualizer
         const initialBlank = machineData.blankSymbol || 'B';
-        updateTapeUI([initialBlank], 0);
+        updateTapeUI([[initialBlank]], [0]);
 
         // 3. Trigger Construction Animation
         // Dynamic import to handle the animation module
