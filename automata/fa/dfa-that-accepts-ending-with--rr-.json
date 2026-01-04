@@ -1,0 +1,68 @@
+{
+  "title": "DFA that accepts ending with \"RR\"",
+  "description": "Accepts short strings such as: RR, PRR, RRR. The formal alphabet is {P, R}.",
+  "type": "DFA",
+  "machine": {
+    "type": "DFA",
+    "states": [
+      {
+        "id": "q0",
+        "initial": true,
+        "accepting": false,
+        "x": 700,
+        "y": 300
+      },
+      {
+        "id": "q1",
+        "initial": false,
+        "accepting": false,
+        "x": 829.9038105676658,
+        "y": 525
+      },
+      {
+        "id": "q2",
+        "initial": false,
+        "accepting": true,
+        "x": 570.0961894323342,
+        "y": 525
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "P"
+      },
+      {
+        "from": "q1",
+        "to": "q2",
+        "symbol": "R"
+      },
+      {
+        "from": "q2",
+        "to": "q2",
+        "symbol": "R"
+      },
+      {
+        "from": "q2",
+        "to": "q0",
+        "symbol": "P"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "R"
+      },
+      {
+        "from": "q1",
+        "to": "q0",
+        "symbol": "P"
+      }
+    ],
+    "alphabet": [
+      "P",
+      "R"
+    ],
+    "title": "DFA that accepts ending with \"R\""
+  }
+}

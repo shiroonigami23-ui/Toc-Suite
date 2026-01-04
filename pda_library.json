@@ -1,0 +1,22 @@
+{
+  "id": "pda_an_bn_test",
+  "title": "PDA: Equality a^n b^n",
+  "type": "PDA",
+  "description": "Standard test case for Build Automata Library. Matches equal number of a's and b's.",
+  "machine": {
+    "states": [
+      { "id": "q0", "initial": true, "accepting": true, "x": 200, "y": 300 },
+      { "id": "q1", "initial": false, "accepting": false, "x": 450, "y": 300 },
+      { "id": "q2", "initial": false, "accepting": true, "x": 700, "y": 300 }
+    ],
+    "transitions": [
+      { "from": "q0", "to": "q1", "symbol": "a", "pop": "Z", "push": "XZ" },
+      { "from": "q1", "to": "q1", "symbol": "a", "pop": "X", "push": "XX" },
+      { "from": "q1", "to": "q2", "symbol": "b", "pop": "X", "push": "" },
+      { "from": "q2", "to": "q2", "symbol": "b", "pop": "X", "push": "" },
+      { "from": "q2", "to": "q2", "symbol": "", "pop": "Z", "push": "Z" }
+    ],
+    "alphabet": ["a", "b"],
+    "stackAlphabet": ["X", "Z"]
+  }
+}

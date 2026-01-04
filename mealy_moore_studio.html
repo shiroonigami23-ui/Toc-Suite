@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mealy/Moore Practice — Interactive Output Machines Studio</title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <!-- NOTE: This studio uses the same base styles as the FA studio -->
+  <link rel="stylesheet" href="style.css"> 
+</head>
+
+<body>
+  <div id="mainApp">
+    <div class="app-container" role="application" aria-label="Mealy and Moore Machine Practice Studio">
+      <header class="header" style="background: linear-gradient(90deg, #ff9800, #ff5722);">
+        <h1>Mealy/Moore Machine Studio</h1>
+        <button id="panelToggleBtn" class="panel-toggle-btn">
+            <i data-lucide="menu"></i>
+        </button>
+      </header>
+      <main class="main-content">
+        <aside id="controlPanel" class="control-panel" aria-label="Controls">
+          <details class="control-section" open>
+            <summary>
+                <i data-lucide="sliders-horizontal"></i>
+                <span>Mode & Interaction</span>
+            </summary>
+            <div class="control-section-content">
+              <div style="display:flex;gap:8px;">
+                <select id="modeSelect" aria-label="Mode select">
+                  <option value="MOORE">Moore Machine</option>
+                  <option value="MEALY">Mealy Machine</option>
+                  <option value="MOORE_TO_MEALY">Moore → Mealy</option>
+                  <!-- We can add MEALY_TO_MOORE later -->
+                </select>
+              </div>
+            </div>
+          </details>
+          <details class="control-section" open>
+            <summary>
+                <i data-lucide="puzzle"></i>
+                <span>Practice Generator</span>
+            </summary>
+            <div class="control-section-content">
+              <div style="margin-bottom:12px">
+                <div style="display:flex;gap:8px">
+                  <select id="practiceMode" style="flex:1;">
+                    <option value="easy">Easy</option>
+                    <option value="basic">Basic</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                  <button class="icon-btn" id="genPracticeBtn">Generate</button>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                  <button class="icon-btn" id="showSolBtn">Show Solution</button>
+                  <button class="icon-btn" id="resetPractice">Reset</button>
+                  <button class="icon-btn" id="checkAnswerBtn">Check Answer</button>
+                </div>
+                <div id="practiceBox">No practice generated yet.</div>
+              </div>
+            </div>
+          </details>
+          <details class="control-section" open>
+  <summary>
+    <i data-lucide="brain-circuit" style="color: #ff9800;"></i> 
+    <span>Machine Intelligence</span>
+  </summary>
+  <div class="control-section-content" style="display: flex; flex-direction: column; gap: 12px;">
+    
+    <div class="intel-block">
+      <div style="font-size: 0.75em; font-weight: bold; margin-bottom: 5px; color: #64748b; display: flex; align-items: center; gap: 5px;">
+        <i data-lucide="activity" style="width: 12px; color: #ff9800;"></i> LIVE I/O TRACE
+      </div>
+      <div id="mmTraceDisplay" style="padding: 10px; border: 1px solid #e2e8f0; background: #fdfaf6; border-radius: 8px; min-height: 40px; font-family: monospace; font-size: 0.85em; color: #ff5722;">
+        Input: <span id="traceInput">...</span><br>
+        Output: <span id="traceOutput" style="font-weight:bold;">...</span>
+      </div>
+    </div>
+
+    <div class="intel-block">
+      <div style="font-size: 0.75em; font-weight: bold; margin-bottom: 5px; color: #64748b; display: flex; align-items: center; gap: 5px;">
+        <i data-lucide="info" style="width: 12px; color: #ff9800;"></i> STATE ROLES
+      </div>
+      <div id="mmDynamicLegend" class="legend-flex" style="display: flex; flex-wrap: wrap; gap: 6px;">
+        </div>
+    </div>
+
+    <button id="toggleMmLogicBtn" class="icon-btn" style="width: 100%; font-size: 0.8em; background: #fff7ed; border: 1px solid #ffedd5; color: #9a3412;">
+      <i data-lucide="table-2" style="width: 14px; color: #ff9800;"></i> View Logic Table
+    </button>
+  </div>
+</details>
+          <details class="control-section">
+            <summary>
+                <i data-lucide="flask-conical"></i>
+                <span>Testing (I/O Trace)</span>
+            </summary>
+             <div class="control-section-content">
+              <div class="controls-group">
+                <div class="test-panel">
+                  <div class="input"><input id="testInput" placeholder="Enter input string (e.g., 0101)" /></div>
+                  <button id="runTestBtn" class="run-btn">Run</button>
+                </div>
+                <div id="randomStringBox">
+                  <i data-lucide="dice-5"></i> <button id="genRandBtn" class="icon-btn">Random</button>
+                </div>
+                <details id="testOptionsCollapse">
+                  <summary><i data-lucide="settings-2"></i> Simulation Options</summary>
+                  <div id="testOptions">
+                    <label><input type="radio" name="simMode" value="auto" checked> Auto</label>
+                    <label><input type="radio" name="simMode" value="manual"> Manual</label>
+                    <label>Speed:
+                      <select id="testSpeed">
+                        <option value="500">Fast</option>
+                        <option value="1500" selected>Normal</option>
+                        <option value="2500">Slow</option>
+                      </select>
+                    </label>
+                    <div id="manualButtons" style="display:none;">
+                      <button id="stepPrev" class="icon-btn">◀ Prev</button>
+                      <button id="stepNext" class="icon-btn">Next ▶</button>
+                      <button id="stepReset" class="icon-btn">⟲ Reset</button>
+                    </div>
+                  </div>
+                </details>
+                <!-- This output is for the final output string/result -->
+                <div id="testOutput" class="output-display">Ready</div>
+              </div>
+            
+              <div style="border-top:1px solid #e6eef8;margin-top:12px;padding-top:12px;">
+                <details id="bulkTestSection">
+                  <summary><i data-lucide="test-tubes"></i> Bulk Testing</summary>
+                  <div>
+                    <textarea id="bulkTestInput" placeholder="Enter input strings (one per line)..."></textarea>
+                    <button id="bulkRunBtn" class="icon-btn" style="margin-top:8px;width:100%;">Run Bulk Test</button>
+                    <!-- This output is for the bulk test results -->
+                    <div id="bulkTestOutput"></div>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </details>
+          <details class="control-section">
+            <summary>
+                <i data-lucide="folder"></i>
+                <span>File</span>
+            </summary>
+            <div class="control-section-content">
+              <div class="control-row">
+                <button id="saveMachineBtn" title="Save machine (JSON)"><i data-lucide="save"></i> Save</button>
+                <button id="loadMachineBtn" title="Load machine (JSON)"><i data-lucide="folder-open"></i> Load</button>
+              </div>
+              <div class="control-row">
+                <button id="exportPngBtn" title="Export canvas as PNG"><i data-lucide="image"></i> Export PNG</button>
+                <!-- Image import is likely less useful for these, but keep for consistency -->
+                <button id="importImageBtn" title="Import from Image" disabled><i data-lucide="scan-line"></i> Import Image</button>
+              </div>
+              <input type="file" id="loadFileInput" accept=".json" style="display:none" />
+              <input type="file" id="importImageInput" accept="image/*" style="display:none" />
+            </div>
+          </details>
+          
+          <!-- NEW: AI Generator Section -->
+          <details class="control-section" id="aiGeneratorSection">
+            <summary>
+                <i data-lucide="wand-2"></i>
+                <span>AI Generator (Mealy/Moore)</span>
+            </summary>
+            <div class="control-section-content">
+              <div>
+                <label for="aiDescInput" style="font-size: 0.9em; font-weight: 500; display: block; margin-bottom: 4px;">Description of I/O Task</label>
+                <textarea id="aiDescInput" placeholder="e.g., A Moore machine that outputs '1' if the number of '0's is even, otherwise '0'." style="height: 60px; resize: vertical;"></textarea>
+                <button id="aiGenerateFromDescBtn" class="icon-btn" style="width:100%; margin-top: 8px;">Generate</button>
+              </div>
+            </div>
+          </details>
+          
+          <details class="control-section" id="librarySection">
+            <summary>
+                <i data-lucide="library"></i>
+                <span>Library</span>
+            </summary>
+            <div class="control-section-content">
+              <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+                <input id="libSearch" placeholder="Search..." />
+                <select id="libFilter">
+                  <option value="all">All Types</option>
+                  <option value="MOORE">Moore</option>
+                  <option value="MEALY">Mealy</option>
+                </select>
+                <button id="libRefresh" class="icon-btn" title="Refresh library"><i data-lucide="refresh-cw"></i></button>
+              </div>
+              <div id="libraryList">
+                <div>Library empty — click Refresh to load.</div>
+              </div>
+            </div>
+          </details>
+          <details class="control-section" open>
+            <summary>
+                <i data-lucide="home"></i>
+                <span>Navigation</span>
+            </summary>
+            <div class="control-section-content">
+              <button id="backToMenuBtn" class="icon-btn" style="width:100%;">
+                <i data-lucide="arrow-left-circle"></i> Back to Main Menu
+              </button>
+            </div>
+          </details>
+        </aside>
+        
+        <!-- NEW: Wrapper for main content column -->
+        <div class="main-column">
+            <section id="visualization-panel" class="visualization-panel" aria-label="Visualization" style="position: relative;">
+              <div class="visualization-header" style="display:flex;align-items:center;gap:12px;">
+                <div style="flex:1"><strong>Automata Visualization</strong>
+                  <div class="kv">Mode: <span id="modeLabel">Moore Machine</span></div>
+                </div>
+              </div>
+              <div class="canvas-wrapper" id="canvasWrapper">
+                <div class="canvas-top">
+                  <div class="canvas-toolbar" role="toolbar" aria-label="Canvas toolbar">
+                    <div class="toolbar-icon" id="tool-addclick" title="Add state on canvas click" data-mode="addclick"><i
+                        data-lucide="plus-circle"></i></div>
+                    <div class="toolbar-icon" id="tool-move" title="Move states" data-mode="move"><i data-lucide="move"
+                        ></i></div>
+                    <div class="toolbar-icon" id="tool-transition" title="Add transition" data-mode="transition"><i
+                        data-lucide="git-branch"></i></div>
+                    <div class="toolbar-icon" id="tool-rename" title="Rename state" data-mode="rename"><i
+                        data-lucide="edit-3"></i></div>
+                    <div class="toolbar-icon" id="tool-delete" title="Delete state/transition" data-mode="delete"><i
+                        data-lucide="trash-2"></i></div>
+                    <div class="toolbar-icon" id="tool-stateprops" title="Set state properties" data-mode="stateprops"><i
+                        data-lucide="settings"></i></div>
+    
+                    <button id="validateBtn" class="toolbar-icon" title="Validate Automaton" style="margin-left:8px"><i
+                        data-lucide="check-circle"></i></button>
+    
+                    <div class="toolbar-icon" id="clearCanvasBtn" title="Clear Canvas"><i data-lucide="file-x"></i></div>
+    
+                    <div id="validationLine" class="validation-box"></div>
+    
+                    <button id="undoBtn" class="toolbar-icon" title="Undo" style="margin-left:auto;"><i
+                        data-lucide="corner-up-left"></i></button>
+                    <button id="redoBtn" class="toolbar-icon" title="Redo"><i data-lucide="corner-up-right"></i></button>
+                  </div>
+                </div>
+                <div class="canvas-area">
+                  <div class="svg-canvas" id="svgWrapper" tabindex="0">
+                    <svg id="dfaSVG" viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg" role="img"
+                      aria-label="Automaton canvas">
+                      <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                          <polygon points="0 0, 10 3.5, 0 7" fill="#ff9800" />
+                        </marker>
+                        <marker id="arrowhead-export" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                          <polygon points="0 0, 10 3.5, 0 7" fill="#000000" />
+                        </marker>
+                      </defs>
+                      <g id="edges"></g>
+                      <g id="states"></g>
+                      <text id="canvasHint" x="700" y="420" text-anchor="middle" fill="#9aa6b2" font-size="18">Tap canvas to
+                        add a state (use ➕ tool)</text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+    
+              <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
+                <button id="zoomInBtn" class="toolbar-icon" title="Zoom In"><i data-lucide="zoom-in"></i></button>
+                <!-- FIX: Added standardized CSS for vertical slider -->
+                <input id="zoomSlider" type="range" min="50" max="200" value="100" style="writing-mode: vertical-lr; direction: rtl;" />
+                <button id="zoomOutBtn" class="toolbar-icon" title="Zoom Out"><i data-lucide="zoom-out"></i></button>
+                <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom"><i data-lucide="refresh-ccw"></i></button>
+              </div>
+            </section>
+            
+            <div id="stepLog">I/O Trace steps appear here.</div>
+        </div>
+        
+      </main>
+    </div>
+    
+    <!-- Loading Overlay for AI processing -->
+    <div id="loadingOverlay" class="modal-overlay" style="display:none; z-index: 1000; background: rgba(0, 0, 0, 0.6);">
+        <div class="modal-box" style="text-align: center;">
+            <h3><i data-lucide="bot" style="vertical-align: middle;"></i> Analyzing...</h3>
+            <p class="modal-description">The AI is converting your prompt into a machine. This may take a moment.</p>
+        </div>
+    </div>
+
+
+    <!-- Modals -->
+    <!-- NEW: Transition Modal for MEALY Machine (Input/Output) -->
+    <div id="mealyTransitionModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Add Mealy Transition</h3>
+            <p class="modal-description">Enter the input symbol and the corresponding output symbol. (e.g., Input: 0, Output: a)</p>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+                <input id="mealyTransFrom" class="modal-input" readonly />
+                <input id="mealyTransTo" class="modal-input" readonly />
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+                <input id="mealyTransSymbol" class="modal-input" placeholder="Input Symbol (e.g., 0)" style="flex:1" />
+                <input id="mealyTransOutput" class="modal-input" placeholder="Output Symbol (e.g., a)" style="flex:1" />
+            </div>
+            <div class="modal-actions">
+                <button id="mealyTransCancel">Cancel</button>
+                <button id="mealyTransSave">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NEW: State Properties Modal for MOORE Machine (Output) -->
+    <div id="mooreStatePropsModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Moore State Properties</h3>
+            <p class="modal-description">Set whether this is the initial state and define the output produced when entering this state.</p>
+            <div class="modal-prop-row">
+                <label><input type="checkbox" id="moorePropInitial"> Initial State</label>
+            </div>
+            <div class="modal-prop-row">
+                <label for="moorePropOutput">Output Symbol $\lambda(q)$:</label>
+                <input id="moorePropOutput" class="modal-input" placeholder="Output (e.g., 0 or a)" />
+            </div>
+            <div class="modal-actions">
+                <button id="moorePropCancel">Cancel</button>
+                <button id="moorePropSave">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Rename Modal (Reused) -->
+    <div id="renameModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Rename State</h3>
+            <p class="modal-description">Enter the new name for the state. It must be unique.</p>
+            <input id="renameInput" class="modal-input" placeholder="New state name" />
+            <div class="modal-actions">
+                <button id="renameCancel">Cancel</button>
+                <button id="renameSave">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modals (Reused) -->
+    <div id="confirmClearModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Clear Canvas</h3>
+            <p class="modal-description">Are you sure you want to clear the entire canvas? This action can be undone.</p>
+            <div class="modal-actions">
+                <button id="confirmClearCancel">Cancel</button>
+                <button id="confirmClearConfirm" class="danger-btn">Clear Canvas</button>
+            </div>
+        </div>
+    </div>
+    <div id="alertModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3 id="alertModalTitle">Alert</h3>
+            <p id="alertModalMessage" class="modal-description"></p>
+            <div class="modal-actions">
+                <button id="alertOk">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save to Library Modal (Reused) -->
+    <div id="saveLibraryModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Save to Library File</h3>
+            <p class="modal-description">Review the auto-generated details for your automaton. This will generate a JSON file ready for your library.</p>
+            <input id="libTitleInput" class="modal-input" placeholder="Title (e.g., Mealy machine for binary increment)" />
+            <textarea id="libDescInput" class="modal-input" placeholder="Custom notes about the machine..." style="height: 60px; resize: vertical;"></textarea>
+            <div id="libAlphabetDisplay" style="background: #f1f5f9; padding: 8px 10px; border-radius: 8px; font-size: 0.9em; color: #475569; margin-top: 8px; display: none;"></div>
+            <select id="libTypeInput" class="modal-input" style="margin-top: 12px;">
+                  <option value="MOORE">Moore Machine</option>
+                  <option value="MEALY">Mealy Machine</option>
+            </select>
+            <div class="modal-actions">
+                <button id="libSaveCancel">Cancel</button>
+                <button id="libSaveConfirm">Save JSON</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export PNG Modal (Reused) -->
+    <div id="exportPngModal" class="modal-overlay" style="display:none">
+        <div class="modal-box">
+            <h3>Export as PNG</h3>
+            <p class="modal-description">Enter a name for the PNG file.</p>
+            <input id="pngNameInput" class="modal-input" placeholder="e.g., moore-even-0s" />
+            <div class="modal-actions">
+                <button id="pngExportCancel">Cancel</button>
+                <button id="pngExportConfirm">Export</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- New Script Imports -->
+  <script src="moore_mealy_practice_bank.js" defer></script>
+  <script type="module" src="utils.js"></script>
+  <script type="module" src="moore_mealy_state.js"></script>
+  <script type="module" src="moore_mealy_renderer.js"></script>
+  <script type="module" src="moore_mealy_automata.js"></script>
+  <script type="module" src="moore_mealy_equivalence.js"></script>
+  <script type="module" src="moore_mealy_simulation.js"></script>
+  <script type="module" src="moore_mealy_practice.js"></script>
+  <script type="module" src="moore_mealy_file.js"></script>
+  <script type="module" src="animation.js"></script> <!-- Reused -->
+  <script type="module" src="moore_mealy_conversion_animation.js"></script>
+  <script type="module" src="moore_mealy_library_loader.js"></script>
+  <script type="module" src="moore_mealy_ui.js"></script>
+  <script type="module" src="moore_mealy_main.js"></script>
+
+</body>
+
+</html>
+

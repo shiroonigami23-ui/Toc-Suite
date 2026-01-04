@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Finite Automata Practice — Enhanced Interactive Studio</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4a90e2">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div id="splashScreen"
+    style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea,#764ba2);z-index:9999;flex-direction:column;gap:20px;color:#fff;transition:opacity 0.8s ease;">
+    <h1 style="font-size:3.5rem;margin:0;text-shadow:0 4px 12px rgba(0,0,0,0.4);">
+      Enhanced Automata Studio
+    </h1>
+    <div style="display:flex; gap: 20px;">
+      <button class="splash-nav-btn" data-target="FA"
+        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
+        Finite Automata
+      </button>
+      <button class="splash-nav-btn" data-target="MM"
+        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
+        Mealy/Moore
+      </button>
+       <button class="splash-nav-btn" data-target="PDA" disabled
+        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.05); cursor:not-allowed; opacity:0.6; font-weight:700;">
+        PDA
+      </button>
+      <button class="splash-nav-btn" data-target="Turing"
+        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
+        Turing Machine
+      </button>
+    </div>
+  </div>
+  
+  <div id="mainApp" style="display:none">
+      <div id="studioContent">
+          </div>
+  </div>
+    
+  <div id="loadingOverlay" class="modal-overlay" style="display:none; z-index: 1000; background: rgba(0, 0, 0, 0.6);">
+      <div class="modal-box" style="text-align: center;">
+          <h3><i data-lucide="bot" style="vertical-align: middle;"></i> Analyzing...</h3>
+          <p class="modal-description">The AI is converting your prompt into a machine. This may take a moment.</p>
+      </div>
+  </div>
+  <div id="transitionModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Add Transition</h3>
+          <p class="modal-description">Enter the symbol for the transition. Use a blank input for an epsilon (ε) transition in an NFA.</p>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="transFrom" class="modal-input" readonly />
+              <input id="transTo" class="modal-input" readonly />
+          </div>
+          <input id="transSymbol" class="modal-input" placeholder="Symbol (blank for ε)" />
+          <div class="modal-actions">
+              <button id="transCancel">Cancel</button>
+              <button id="transSave">Save</button>
+          </div>
+      </div>
+  </div>
+  <div id="statePropsModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>State Properties</h3>
+          <p class="modal-description">Set whether this state is an initial or a final (accepting) state.</p>
+          <div class="modal-prop-row">
+              <label><input type="checkbox" id="propInitial"> Initial State</label>
+          </div>
+          <div class="modal-prop-row">
+              <label><input type="checkbox" id="propFinal"> Final State</label>
+          </div>
+          <div class="modal-actions">
+              <button id="propCancel">Cancel</button>
+              <button id="propSave">Save</button>
+          </div>
+      </div>
+  </div>
+  <div id="renameModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Rename State</h3>
+          <p class="modal-description">Enter the new name for the state. It must be unique.</p>
+          <input id="renameInput" class="modal-input" placeholder="New state name" />
+          <div class="modal-actions">
+              <button id="renameCancel">Cancel</button>
+              <button id="renameSave">Save</button>
+          </div>
+      </div>
+  </div>
+  <div id="confirmClearModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Clear Canvas</h3>
+          <p class="modal-description">Are you sure you want to clear the entire canvas? This action can be undone.</p>
+          <div class="modal-actions">
+              <button id="confirmClearCancel">Cancel</button>
+              <button id="confirmClearConfirm" class="danger-btn">Clear Canvas</button>
+          </div>
+      </div>
+  </div>
+  <div id="alertModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3 id="alertModalTitle">Alert</h3>
+          <p id="alertModalMessage" class="modal-description"></p>
+          <div class="modal-actions">
+              <button id="alertOk">OK</button>
+          </div>
+      </div>
+  </div>
+  
+    <div id="aiAuthModal" class="modal-overlay" style="display:none; z-index: 900;">
+      <div class="modal-box" style="text-align: center;">
+          <h3><i data-lucide="lock" style="vertical-align: middle;"></i> AI Generator Access</h3>
+          <p class="modal-description">Please enter the one-time password to unlock AI generation features for this session.</p>
+          <input id="aiPasswordInput" class="modal-input" type="password" placeholder="One-Time Password" />
+          <div class="modal-actions">
+              <button id="aiAuthCancel">Cancel</button>
+              <button id="aiAuthConfirm">Unlock</button>
+          </div>
+      </div>
+  </div>
+
+  <div id="mealyTransitionModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Add Mealy Transition</h3>
+          <p class="modal-description">Enter the input symbol and the corresponding output symbol. (e.g., Input: 0, Output: a)</p>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+              <input id="mealyTransFrom" class="modal-input" readonly />
+              <input id="mealyTransTo" class="modal-input" readonly />
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input id="mealyTransSymbol" class="modal-input" placeholder="Input Symbol (e.g., 0)" style="flex:1" />
+              <input id="mealyTransOutput" class="modal-input" placeholder="Output Symbol (e.g., a)" style="flex:1" />
+          </div>
+          <div class="modal-actions">
+              <button id="mealyTransCancel">Cancel</button>
+              <button id="mealyTransSave">Save</button>
+          </div>
+      </div>
+  </div>
+  <div id="mooreStatePropsModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Moore State Properties</h3>
+          <p class="modal-description">Set whether this is the initial state and define the output produced when entering this state.</p>
+          <div class="modal-prop-row">
+              <label><input type="checkbox" id="moorePropInitial"> Initial State</label>
+          </div>
+          <div class="modal-prop-row">
+              <label for="moorePropOutput">Output Symbol $\lambda(q)$:</label>
+              <input id="moorePropOutput" class="modal-input" placeholder="Output (e.g., 0 or a)" />
+          </div>
+          <div class="modal-actions">
+              <button id="moorePropCancel">Cancel</button>
+              <button id="moorePropSave">Save</button>
+          </div>
+      </div>
+  </div>
+  
+  <div id="saveLibraryModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Save to Library File</h3>
+          <p class="modal-description">Review the auto-generated details for your automaton. This will generate a JSON file ready for your library.</p>
+          <input id="libTitleInput" class="modal-input" placeholder="Title (e.g., DFA for even number of 0s)" />
+          <textarea id="libDescInput" class="modal-input" placeholder="Custom notes about the machine..." style="height: 60px; resize: vertical;"></textarea>
+          <div id="libAlphabetDisplay" style="background: #f1f5f9; padding: 8px 10px; border-radius: 8px; font-size: 0.9em; color: #475569; margin-top: 8px; display: none;"></div>
+          <select id="libTypeInput" class="modal-input" style="margin-top: 12px;">
+                <option value="DFA">DFA</option>
+                <option value="NFA">NFA</option>
+                <option value="ENFA">ε-NFA</option>
+                <option value="MOORE">Moore Machine</option>
+                <option value="MEALY">Mealy Machine</option>
+          </select>
+          <div class="modal-actions">
+              <button id="libSaveCancel">Cancel</button>
+              <button id="libSaveConfirm">Save JSON</button>
+          </div>
+      </div>
+  </div>
+  <div id="exportPngModal" class="modal-overlay" style="display:none">
+      <div class="modal-box">
+          <h3>Export as PNG</h3>
+          <p class="modal-description">Enter a name for the PNG file.</p>
+          <input id="pngNameInput" class="modal-input" placeholder="e.g., dfa-ends-with-0" />
+          <div class="modal-actions">
+              <button id="pngExportCancel">Cancel</button>
+              <button id="pngExportConfirm">Export</button>
+          </div>
+      </div>
+  </div>
+
+  <script src="practice-bank.js" defer></script>
+  <script src="moore_mealy_practice_bank.js" defer></script>
+  
+  <script type="module" src="ai-auth.js"></script>
+  <script type="module" src="unified_main.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then((reg) => console.log('Service Worker Registered'))
+          .catch((err) => console.log('Service Worker Failed', err));
+      });
+    }
+  </script>
+</body>
+
+</html>

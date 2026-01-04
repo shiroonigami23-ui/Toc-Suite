@@ -1,0 +1,20 @@
+{
+  "id": "nfa_ends_with_01",
+  "title": "NFA for strings ending in 01",
+  "type": "NFA",
+  "description": "Accepts any string from the alphabet {0, 1} that ends with the substring '01'.",
+  "machine": {
+    "states": [
+      { "id": "q0", "initial": true, "x": 150, "y": 200 },
+      { "id": "q1", "x": 350, "y": 200 },
+      { "id": "q2", "accepting": true, "x": 550, "y": 200 }
+    ],
+    "transitions": [
+      { "from": "q0", "to": "q0", "symbol": "0" },
+      { "from": "q0", "to": "q0", "symbol": "1" },
+      { "from": "q0", "to": "q1", "symbol": "0" },
+      { "from": "q1", "to": "q2", "symbol": "1" }
+    ],
+    "alphabet": ["0", "1"]
+  }
+}

@@ -1,0 +1,288 @@
+<div class="app-container" id="tm-studio-container">
+  <header class="header" style="background: linear-gradient(90deg, #10b981, #059669);">
+    <h1>Turing Machine Studio</h1>
+    <div id="tmTapeHeader" style="margin-left: auto; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 8px; font-size: 0.9em;">
+        Tape Head: <span id="currentHeadPos" style="font-weight: bold;">0</span>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <aside id="controlPanel" class="control-panel">
+      <details class="control-section" open>
+        <summary><i data-lucide="sliders-horizontal"></i> Mode & Logic</summary>
+        <div class="control-section-content">
+           <div style="display:flex; flex-direction:column; gap:8px;">
+             <div class="kv">
+               <span>Machine Type:</span>
+               <select id="tmModeSelect" style="flex:1; padding:4px; border-radius:4px; border:1px solid #ddd; font-size:0.85em;">
+                 <option value="STANDARD">Standard Single-Tape</option>
+                 <option value="MULTI_TAPE">Multi-Tape (k-Tape)</option>
+                 <option value="STAY_OPTION">Stay-Option Variant</option>
+                 <option value="NON_DET">Non-Deterministic (NTM)</option>
+               </select>
+             </div>
+             <div class="kv">
+               <span>Blank Symbol:</span>
+               <input id="tmBlankInput" value="B" maxlength="1" style="width:30px; text-align:center; border:1px solid #ddd; border-radius:4px;">
+             </div>
+           </div>
+        </div>
+      </details>
+
+      <details class="control-section">
+    <summary>
+        <i data-lucide="brain-circuit" style="color: #10b981;"></i> 
+        <span>Machine Intelligence</span>
+    </summary>
+    <div class="control-section-content" style="display: flex; flex-direction: column; gap: 12px;">
+        
+        <div class="intel-block">
+            <div style="font-size: 0.75em; font-weight: bold; margin-bottom: 5px; color: #64748b; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="columns" style="width: 12px; color: #10b981;"></i> INFINITE TAPE
+            </div>
+            <div id="tmTapeDisplay" class="tape-visualizer" style="display: flex; overflow-x: auto; gap: 4px; padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; min-height: 52px;">
+                </div>
+        </div>
+
+        <div class="intel-block">
+            <div style="font-size: 0.75em; font-weight: bold; margin-bottom: 5px; color: #64748b; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="info" style="width: 12px; color: #10b981;"></i> STATE ROLES
+            </div>
+            <div id="tmDynamicLegend" class="legend-flex" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                </div>
+        </div>
+
+        <button id="toggleLogicBtn" class="icon-btn" style="width: 100%; font-size: 0.8em; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;">
+            <i data-lucide="table-2" style="width: 14px; color: #10b981;"></i> View Transition Table
+        </button>
+    </div>
+</details>
+<div id="logicTableModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-box" style="width: 80%; max-width: 800px; background: white; border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="table-2" style="color: #10b981;"></i> Full Transition Logic
+            </h3>
+            <button id="closeLogicModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        
+        <table class="logic-table" style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                <tr>
+                    <th style="padding: 10px;">From State</th>
+                    <th style="padding: 10px;">Read (Tape/Input)</th>
+                    <th style="padding: 10px;">To State</th>
+                    <th style="padding: 10px;">Write/Push</th>
+                    <th style="padding: 10px;">Move/Pop</th>
+                    <th style="padding: 10px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="tmLogicTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+      <details class="control-section">
+        <summary><i data-lucide="puzzle"></i> Practice</summary>
+        <div class="control-section-content">
+          <div style="display:flex; gap:8px; margin-bottom:8px;">
+            <select id="tmPracticeLevel" style="flex:1; border-radius:4px; border:1px solid #ddd;">
+              <option value="basic">Basic</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+            <button class="icon-btn" id="tmGenPracticeBtn">Generate</button>
+          </div>
+          <div id="practiceBox" style="margin-bottom:12px; min-height: 40px; font-size:0.85em;">No practice loaded.</div>
+          <div style="display:flex; gap:8px;">
+              <button class="icon-btn" id="tmCheckBtn" style="flex:1; background:var(--success); color:white;">Check</button>
+              <button class="icon-btn" id="tmShowSolBtn" style="flex:1;">Solution</button>
+          </div>
+        </div>
+      </details>
+      <details class="control-section">
+  <summary><i data-lucide="folder" style="color: #10b981;"></i> <span>File</span></summary>
+  <div class="control-section-content">
+    <div class="control-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+      <button id="saveTmBtn" class="icon-btn" title="Save machine" type="button" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+        <i data-lucide="save" style="color: #10b981; width: 16px;"></i> Save
+      </button>
+      <button id="loadTmBtn" class="icon-btn" title="Load machine" type="button" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
+        <i data-lucide="folder-open" style="color: #10b981; width: 16px;"></i> Load
+      </button>
+    </div>
+    <div class="control-row">
+      <button id="tmExportPngBtn" class="icon-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" type="button">
+        <i data-lucide="image" style="color: #10b981; width: 18px;"></i> Export PNG
+      </button>
+    </div>
+    <input type="file" id="tmLoadInput" accept=".json" style="display:none" />
+  </div>
+</details>
+
+<style>
+  .legend-flex { display: flex; gap: 10px; margin-bottom: 12px; }
+  .legend-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; color: white; }
+  .legend-badge.initial { background: #10b981; }
+  .legend-badge.halt { background: #059669; border: 1px solid #ffffff; }
+  .legend-badge.trap { background: #ef4444; }
+  
+  .table-scroll-wrapper { max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+  .logic-table { width: 100%; border-collapse: collapse; font-size: 0.8em; }
+  .logic-table th { background: #f8fafc; position: sticky; top: 0; padding: 8px; text-align: left; }
+  .logic-table td { padding: 8px; border-top: 1px solid #f1f5f9; }
+  .symbol-cell { font-family: monospace; color: #10b981; font-weight: bold; }
+  .move-badge { background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+  .table-del-btn { border: none; background: none; color: #ef4444; cursor: pointer; font-size: 1.2em; }
+</style>
+      <details class="control-section">
+        <summary><i data-lucide="flask-conical"></i> Testing</summary>
+        <div class="control-section-content">
+          <div class="test-panel-v2" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+            <div style="display:flex; gap:5px; margin-bottom:10px;">
+              <input id="tmTestInput" class="modal-input" placeholder="Tape input string..." style="flex:1;">
+              <button id="tmRunTestBtn" class="icon-btn" style="background:var(--accent1); color:white;"><i data-lucide="play"></i></button>
+            </div>
+            
+            <div id="tmManualControls" style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-bottom:10px;">
+              <button id="tmStepBtn" class="icon-btn" style="font-size:0.8em;"><i data-lucide="step-forward"></i> Step</button>
+              <button id="tmResetSimBtn" class="icon-btn" style="font-size:0.8em;"><i data-lucide="refresh-ccw"></i> Reset</button>
+            </div>
+
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 10px;">
+              <textarea id="tmBulkInput" placeholder="Bulk input (one per line)..." style="width:100%; height:60px; font-size:0.8em; border-radius:4px; padding:5px; border:1px solid #ddd;"></textarea>
+              <button id="tmBulkRunBtn" class="icon-btn" style="width:100%; margin-top:5px; background:var(--accent2); color:white;">Bulk Test</button>
+              <div id="tmBulkResults" style="margin-top:8px; max-height:100px; overflow-y:auto; font-size:0.75em;"></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+
+      <details class="control-section">
+        <summary><i data-lucide="library"></i> Library</summary>
+        <div class="control-section-content">
+          <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center;">
+            <input id="tmLibSearch" placeholder="Search TM..." style="flex:1; padding:8px; border-radius:4px; border:1px solid #ddd; font-size:0.85em;">
+            <button id="tmLibRefresh" class="toolbar-icon" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center;">
+                <i data-lucide="refresh-cw" style="width:16px;"></i>
+            </button>
+          </div>
+          <div id="tmLibraryList" style="max-height:200px; overflow-y:auto; border-top:1px solid #eee; padding-top:5px;">No entries.</div>
+        </div>
+      </details>
+
+      <details class="control-section">
+        <summary><i data-lucide="home"></i> Navigation</summary>
+        <div class="control-section-content">
+          <button id="tmBackToMenuBtn" class="icon-btn" style="width:100%;">
+            <i data-lucide="arrow-left-circle"></i> Back to Main Menu
+          </button>
+        </div>
+      </details>
+    </aside>
+
+    <div class="main-column">
+  <section class="visualization-panel">
+    <div class="canvas-wrapper">
+      <div class="canvas-top">
+        <div class="canvas-toolbar">
+    <div class="toolbar-icon" data-mode="addclick" id="tm-tool-add" title="Add State">
+        <i data-lucide="plus-circle" style="color: #10b981;"></i>
+    </div>
+    <div class="toolbar-icon active" data-mode="move" id="tm-tool-move" title="Move Tool">
+        <i data-lucide="move" style="color: #6366f1;"></i> </div>
+    <div class="toolbar-icon" data-mode="transition" id="tm-tool-trans" title="Add Transition">
+        <i data-lucide="git-branch" style="color: #10b981;"></i>
+    </div>
+    <div class="toolbar-icon" data-mode="stateprops" id="tm-tool-props" title="State Properties">
+        <i data-lucide="settings" style="color: #64748b;"></i>
+    </div>
+    <div class="toolbar-icon" data-mode="delete" id="tm-tool-del" title="Delete Tool">
+        <i data-lucide="trash-2" style="color: #ef4444;"></i> </div>
+    <div class="toolbar-icon" id="tm-tool-clear" title="Clear Canvas">
+        <i data-lucide="file-x" style="color: #ef4444;"></i>
+    </div>
+          <button id="tmValidateBtn" class="toolbar-icon" title="Validate Machine" style="margin-left:8px"><i data-lucide="check-circle"></i></button>
+          <div id="tmValidationLine" class="validation-box" style="margin-left:10px; font-size:0.75em; display:flex; align-items:center;"></div>
+
+          <div id="tm-history-group" style="margin-left:auto; display:flex; gap:5px;">
+            <button id="tmUndoBtn" class="toolbar-icon" title="Undo"><i data-lucide="undo-2"></i></button>
+            <button id="tmRedoBtn" class="toolbar-icon" title="Redo"><i data-lucide="redo-2"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <svg id="dfaSVG" viewBox="0 0 1400 900" style="background:#fff;">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                  <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+                </marker>
+            </defs>
+            <g id="edges"></g>
+            <g id="states"></g>
+            <text id="canvasHint" x="700" y="450" text-anchor="middle" fill="#94a3b8" font-size="16">Select ➕ and tap to add a state</text>
+        </svg>
+      </div>
+    </div>
+    
+    <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
+      <button id="tmZoomInBtn" class="toolbar-icon" title="Zoom In" type="button"><i data-lucide="zoom-in"></i></button>
+      <input id="tmZoomSlider" type="range" min="50" max="200" value="100" style="writing-mode: bt-lr; -webkit-appearance: slider-vertical; width: 8px; height: 100px; padding: 0 5px;" />
+      <button id="tmZoomOutBtn" class="toolbar-icon" title="Zoom Out" type="button"><i data-lucide="zoom-out"></i></button>
+      <button id="tmZoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
+    </div>
+  </section>
+  <div id="stepLog">TM simulation logs will appear here...</div>
+</div>
+  </main>
+</div>
+
+<div id="tmTransitionModal" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+        <h3>TM Transition: <span id="tmTransFromLabel"></span> → <span id="tmTransToLabel"></span></h3>
+        
+        <div id="tmStandardInputs" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div>
+                <label style="font-size:0.8em;">Read</label>
+                <input id="tmTransRead" class="modal-input" placeholder="0, 1, or B" maxlength="1">
+            </div>
+            <div>
+                <label style="font-size:0.8em;">Write</label>
+                <input id="tmTransWrite" class="modal-input" placeholder="New symbol" maxlength="1">
+            </div>
+            <div>
+                <label style="font-size:0.8em;">Move</label>
+                <select id="tmTransMove" class="modal-input">
+                    <option value="L">L</option><option value="R">R</option><option value="S">S</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="tmMultiTapeInputs"></div>
+
+        <div class="modal-actions">
+            <button id="tmTransCancel">Cancel</button>
+            <button id="tmTransSave" class="primary-btn" style="background:#10b981;">Save Transition</button>
+        </div>
+    </div>
+</div>
+
+<div id="tmStatePropsModal" class="modal-overlay" style="display:none">
+    <div class="modal-box">
+        <h3>State Properties: <span id="tmPropStateName"></span></h3>
+        <p class="modal-description">Turing Machines use a 'Halt' state for acceptance.</p>
+        <div class="modal-prop-row">
+            <label><input type="checkbox" id="tmPropInitial"> Initial State</label>
+        </div>
+        <div class="modal-prop-row">
+            <label><input type="checkbox" id="tmPropHalt"> Halt (Accepting) State</label>
+        </div>
+        <div class="modal-actions">
+            <button id="tmPropCancel">Cancel</button>
+            <button id="tmPropSave" class="primary-btn" style="background:#10b981;">Save Changes</button>
+        </div>
+    </div>
+</div>
+

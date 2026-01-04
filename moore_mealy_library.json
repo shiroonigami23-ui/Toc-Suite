@@ -1,0 +1,39 @@
+[
+    {
+        "type": "MOORE",
+        "title": "Moore: Parity Checker (L mod 2)",
+        "description": "Outputs '1' for even length inputs, '0' for odd length inputs. A classic introductory Moore machine.",
+        "alphabet": ["0", "1"],
+        "output_alphabet": ["0", "1"],
+        "machine": {
+            "type": "MOORE",
+            "states": [
+                {"id": "Even", "x": 150, "y": 300, "initial": true, "output": "1"},
+                {"id": "Odd", "x": 350, "y": 300, "initial": false, "output": "0"}
+            ],
+            "transitions": [
+                {"from": "Even", "to": "Odd", "symbol": "0"},
+                {"from": "Even", "to": "Odd", "symbol": "1"},
+                {"from": "Odd", "to": "Even", "symbol": "0"},
+                {"from": "Odd", "to": "Even", "symbol": "1"}
+            ]
+        }
+    },
+    {
+        "type": "MEALY",
+        "title": "Mealy: Bit-Flipper",
+        "description": "Outputs '0' if input is '1', and '1' if input is '0'. Inverts the input bit.",
+        "alphabet": ["0", "1"],
+        "output_alphabet": ["0", "1"],
+        "machine": {
+            "type": "MEALY",
+            "states": [
+                {"id": "q0", "x": 300, "y": 300, "initial": true}
+            ],
+            "transitions": [
+                {"from": "q0", "to": "q0", "symbol": "0", "output": "1"},
+                {"from": "q0", "to": "q0", "symbol": "1", "output": "0"}
+            ]
+        }
+    }
+]

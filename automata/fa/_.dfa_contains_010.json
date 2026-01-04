@@ -1,0 +1,26 @@
+{
+  "type": "DFA",
+  "title": "DFA: contains substring '010'",
+  "description": "Accepts binary strings that contain '010' as a substring. Uses state memory to track partial matches.",
+  "alphabet": ["0", "1"],
+  "states": [
+    {"id": "q0", "x": 150, "y": 300, "initial": true, "accepting": false},
+    {"id": "q1", "x": 350, "y": 300, "initial": false, "accepting": false},
+    {"id": "q2", "x": 550, "y": 300, "initial": false, "accepting": false},
+    {"id": "q3", "x": 750, "y": 300, "initial": false, "accepting": true}
+  ],
+  "transitions": [
+    {"from": "q0", "to": "q0", "symbol": "1"},
+    {"from": "q0", "to": "q1", "symbol": "0"},
+    {"from": "q1", "to": "q1", "symbol": "0"},
+    {"from": "q1", "to": "q2", "symbol": "1"},
+    {"from": "q2", "to": "q3", "symbol": "0"},
+    {"from": "q2", "to": "q0", "symbol": "1"},
+    {"from": "q3", "to": "q3", "symbol": "0"},
+    {"from": "q3", "to": "q3", "symbol": "1"}
+  ],
+  "tags": ["substring", "pattern-matching", "finite-memory"],
+  "difficulty": "medium",
+  "category": "string-matching",
+  "author": "Algorithms Course"
+}

@@ -1,0 +1,25 @@
+{
+  "id": "nfa_contains_aba",
+  "title": "NFA for strings containing 'aba'",
+  "type": "NFA",
+  "description": "Accepts any string from the alphabet {a, b} that contains 'aba' as a substring.",
+  "machine": {
+    "states": [
+      { "id": "q0", "initial": true, "x": 150, "y": 200 },
+      { "id": "q1", "x": 350, "y": 200 },
+      { "id": "q2", "x": 550, "y": 200 },
+      { "id": "q3", "accepting": true, "x": 750, "y": 200 }
+    ],
+    "transitions": [
+      { "from": "q0", "to": "q0", "symbol": "a" },
+      { "from": "q0", "to": "q0", "symbol": "b" },
+      { "from": "q0", "to": "q1", "symbol": "a" },
+      { "from": "q1", "to": "q2", "symbol": "b" },
+      { "from": "q2", "to": "q3", "symbol": "a" },
+      { "from": "q3", "to": "q3", "symbol": "a" },
+      { "from": "q3", "to": "q3", "symbol": "b" }
+    ],
+    "alphabet": ["a", "b"]
+  }
+}
+

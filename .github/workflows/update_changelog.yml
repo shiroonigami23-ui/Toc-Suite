@@ -1,0 +1,56 @@
+name: Update Changelog
+
+on:
+  push:
+    paths:
+      - "automata/**"
+      - "!CHANGELOG.md"
+
+jobs:
+  log:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # Need previous commit to compare
+
+      - name: Identify New Machines
+        run: |
+          import subprocess, datetime, pathlib, json
+          
+          # Detect new JSON files added in the automata/ subfolders
+          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
+          added_files = subprocess.check_output(cmd).decode("utf-8").splitlines()
+          
+          if not added_files:
+              print("No new machines detected.")
+              exit(0)
+
+          log_entries = []
+          for f in added_files:
+              try:
+                  data = json.loads(pathlib.Path(f).read_text())
+                  log_entries.append(f"Added **{data.get('title', f)}** (${data.get('type', 'FA')}$)")
+              except: continue
+
+          if log_entries:
+              date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+              cl_path = pathlib.Path("CHANGELOG.md")
+              header = f"## [{date_str}] - New Machines\n"
+              entry = "- " + "\n- ".join(log_entries) + "\n\n"
+              
+              old_content = cl_path.read_text() if cl_path.exists() else ""
+              cl_path.write_text(header + entry + old_content)
+
+      - name: Commit log
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "Docs: Automated Changelog Update" || echo "No log changes"
+          git push
+        shell: python

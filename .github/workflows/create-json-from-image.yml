@@ -1,0 +1,80 @@
+name: Create JSON Stub from Image
+
+on:
+  push:
+    paths:
+      - 'automata/images/**'
+
+jobs:
+  create-stub:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Create JSON stubs for new images
+        id: create_json
+        run: |
+          import os
+          import json
+          import pathlib
+
+          # Get list of files changed in the last commit
+          changed_files = os.popen('git diff --name-only HEAD~1 HEAD').read().splitlines()
+          new_images = [f for f in changed_files if f.startswith('automata/images/') and not os.path.exists(f.replace('images/', '').replace('.png', '.json').replace('.jpg', '.json').replace('.jpeg', '.json'))]
+
+          if not new_images:
+            print("No new images found to process.")
+            exit()
+
+          for img_path_str in new_images:
+            img_path = pathlib.Path(img_path_str)
+            base_name = img_path.stem  # e.g., "my-cool-dfa"
+            
+            json_name = f"{base_name}.json"
+            json_path = pathlib.Path("automata") / json_name
+
+            if json_path.exists():
+              print(f"JSON file {json_path} already exists. Skipping.")
+              continue
+
+            # Create the placeholder JSON data
+            stub_data = {
+              "id": base_name,
+              "title": base_name.replace('-', ' ').replace('_', ' ').title(),
+              "type": "DFA",
+              "description": "Auto-generated from image. Please update.",
+              "imageUrl": f"./{img_path_str}",
+              "machine": {
+                "states": [],
+                "transitions": [],
+                "alphabet": []
+              }
+            }
+
+            # Write the new JSON file
+            json_path.write_text(json.dumps(stub_data, indent=2), encoding="utf-8")
+            print(f"Created stub file: {json_path}")
+          
+          # Use an output to signal that changes were made
+          echo "changes_made=true" >> $GITHUB_OUTPUT
+        shell: python
+
+      - name: Commit and push new JSON files
+        if: steps.create_json.outputs.changes_made == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add automata/*.json
+          git commit -m "Auto-create JSON stubs for new images"
+          git push
+          

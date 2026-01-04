@@ -1,0 +1,36 @@
+[
+  {
+    "id": "tm_binary_palindrome",
+    "title": "TM: Binary Palindrome Checker",
+    "type": "TM",
+    "description": "Checks if a binary string is a palindrome. It matches the first bit, replaces it with a blank, travels to the end to check for a match, and repeats.",
+    "machine": {
+      "states": [
+        { "id": "q_start", "initial": true, "accepting": false, "x": 100, "y": 300 },
+        { "id": "q_match_0", "initial": false, "accepting": false, "x": 300, "y": 150 },
+        { "id": "q_match_1", "initial": false, "accepting": false, "x": 300, "y": 450 },
+        { "id": "q_back", "initial": false, "accepting": false, "x": 500, "y": 300 },
+        { "id": "q_accept", "initial": false, "accepting": true, "x": 750, "y": 300 }
+      ],
+      "transitions": [
+        { "from": "q_start", "to": "q_match_0", "read": "0", "write": "B", "move": "R" },
+        { "from": "q_start", "to": "q_match_1", "read": "1", "write": "B", "move": "R" },
+        { "from": "q_start", "to": "q_accept", "read": "B", "write": "B", "move": "S" },
+        
+        { "from": "q_match_0", "to": "q_match_0", "read": "0", "write": "0", "move": "R" },
+        { "from": "q_match_0", "to": "q_match_0", "read": "1", "write": "1", "move": "R" },
+        { "from": "q_match_0", "to": "q_back", "read": "B", "write": "B", "move": "L" },
+        
+        { "from": "q_match_1", "to": "q_match_1", "read": "0", "write": "0", "move": "R" },
+        { "from": "q_match_1", "to": "q_match_1", "read": "1", "write": "1", "move": "R" },
+        { "from": "q_match_1", "to": "q_back", "read": "B", "write": "B", "move": "L" },
+        
+        { "from": "q_back", "to": "q_start", "read": "0", "write": "B", "move": "L" },
+        { "from": "q_back", "to": "q_start", "read": "1", "write": "B", "move": "L" }
+      ],
+      "alphabet": ["0", "1"],
+      "tapeAlphabet": ["0", "1", "B"],
+      "blankSymbol": "B"
+    }
+  }
+]
