@@ -1,0 +1,10 @@
+{
+  "type": "DFA",
+  "id": "new_machine_id",
+  "title": "Machine Title",
+  "description": "Describe the language logic here.",
+  "states": [
+    { "id": "q0", "x": 100, "y": 100, "initial": true, "accepting": false }
+  ],
+  "transitions": []
+}
