@@ -1,0 +1,13 @@
+{
+  "type": "TM",
+  "id": "new_tm_id",
+  "title": "TM Title",
+  "blankSymbol": "B",
+  "states": [
+    { "id": "q0", "x": 100, "y": 100, "initial": true, "accepting": false },
+    { "id": "halt", "x": 300, "y": 100, "initial": false, "accepting": true }
+  ],
+  "transitions": [
+    { "from": "q0", "to": "halt", "symbol": "B", "write": "B", "direction": "S" }
+  ]
+}
