@@ -10,7 +10,6 @@ export function generatePractice() {
     const modeSelect = document.getElementById('modeSelect');
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
     
-    // The mode determines which section of the bank to pull from
     const mode = modeSelect ? modeSelect.value : 'MOORE';
     const level = document.getElementById('practiceMode').value;
 
@@ -35,7 +34,9 @@ export function generatePractice() {
         displayMode = 'Moore → Mealy';
     }
 
+    // Apply Content and the MM orange glow class
     practiceBox.innerHTML = `<strong>${displayMode} | ${level.toUpperCase()}</strong><div style="margin-top:8px">${newPractice.q}</div>`;
+    practiceBox.className = 'practice-mm-active';
     
     if (checkAnswerBtn) checkAnswerBtn.hidden = false;
 }
@@ -81,9 +82,15 @@ export async function showSolution(updateUIFunction) {
 
 export function resetPractice() {
     setCurrentPractice(null);
-    document.getElementById('practiceBox').textContent = 'No practice generated yet.';
+    const practiceBox = document.getElementById('practiceBox');
+    if (practiceBox) {
+        practiceBox.textContent = 'No practice generated yet.';
+        practiceBox.className = ''; 
+    }
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
-    if (checkAnswerBtn) checkAnswerBtn.hidden = true;
+    if (checkAnswerBtn) {
+        checkAnswerBtn.hidden = true;
+    }
 }
 
 

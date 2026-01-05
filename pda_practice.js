@@ -18,6 +18,7 @@ export function generatePractice(level = 'easy') {
 
     const display = document.getElementById('practiceBox');
     if (display) {
+        // Apply Content and the PDA indigo glow class
         display.innerHTML = `
             <div class="practice-card">
                 <h4>${selected.title}</h4>
@@ -25,6 +26,7 @@ export function generatePractice(level = 'easy') {
                 <small><strong>Goal:</strong> ${selected.instruction}</small>
             </div>
         `;
+        display.className = 'practice-pda-active';
     }
     addLogMessage(`New Practice Loaded: ${selected.title}`, 'zap');
 }

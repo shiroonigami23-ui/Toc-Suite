@@ -36,17 +36,36 @@ export function initInteractiveSim(inputString, machine) {
     addLogMessage(`Simulation started with input: "${inputString}"`, 'play');
 }
 
+
 /**
- * Standard Step Logic
+ * Internal helper to record tape operations in the sidebar log.
+ * Synchronized with the Architect Engine's activity standards.
  */
-export function stepTmSimulation(machine) {
+async function logTmStep(stateId, symbolRead, symbolWrite, direction) {
+    const { addLogMessage } = await import('./utils.js');
+    
+    const message = `
+        <span style="color:#10b981; font-weight:bold;">${stateId}:</span> 
+        Read '${symbolRead}', Wrote '${symbolWrite}', Moved ${direction}
+    `;
+    
+    addLogMessage(message, 'activity');
+}
+
+/**
+ * Executes a single logical step of the Turing Machine.
+ * Upgraded to support real-time activity logging.
+ */
+export async function stepTmSimulation(machine) {
     if (!activeSim.isRunning) return { status: 'stopped' };
 
     const currentState = machine.states.find(s => s.id === activeSim.currentStateId);
     if (!currentState) return { status: 'error' };
 
+    // 1. Check for Acceptance (Halt State)
     if (currentState.accepting) {
         activeSim.isRunning = false;
+        const { addLogMessage } = await import('./utils.js');
         addLogMessage(`Halted: Accepted!`, 'check-circle');
         return { status: 'accepted' };
     }
@@ -56,20 +75,32 @@ export function stepTmSimulation(machine) {
     let head = activeSim.heads[tapeIdx];
     const blank = machine.blankSymbol || 'B';
 
-    // Infinite tape expansion
-    if (head < 0) { currentTape.unshift(blank); head = 0; activeSim.heads[tapeIdx] = 0; }
-    else if (head >= currentTape.length) { currentTape.push(blank); }
+    // 2. Infinite Tape Expansion
+    if (head < 0) { 
+        currentTape.unshift(blank); 
+        head = 0; 
+        activeSim.heads[tapeIdx] = 0; 
+    }
+    else if (head >= currentTape.length) { 
+        currentTape.push(blank); 
+    }
     
     const readSymbol = currentTape[head];
     const transition = machine.transitions.find(t => t.from === activeSim.currentStateId && t.read === readSymbol);
 
+    // 3. Handle Rejection (No valid transition)
     if (!transition) {
         activeSim.isRunning = false;
+        const { addLogMessage } = await import('./utils.js');
         addLogMessage(`No transition: Rejected.`, 'x-circle');
         return { status: 'rejected' };
     }
 
-    // Execute
+    // --- ARCHITECTURAL SYNC: LOG STEP ---
+    // We log the source state and the symbols before updating the ID
+    await logTmStep(activeSim.currentStateId, readSymbol, transition.write, transition.move);
+
+    // 4. Execute Transition Logic
     currentTape[head] = transition.write;
     if (transition.move === 'R') activeSim.heads[tapeIdx]++;
     else if (transition.move === 'L') activeSim.heads[tapeIdx]--;
@@ -77,12 +108,15 @@ export function stepTmSimulation(machine) {
     activeSim.currentStateId = transition.to;
     activeSim.steps++;
 
+    // 5. Sync Visualizers
+    const { updateTapeUI } = await import('./tm_visualizer.js');
     updateTapeUI(activeSim.tapes, activeSim.heads);
-    import('./tm_renderer.js').then(m => m.highlightStep(activeSim.currentStateId, transition));
+    
+    const { highlightStep } = await import('./tm_renderer.js');
+    highlightStep(activeSim.currentStateId, transition);
     
     return { status: 'running' };
 }
-
 
 /**
  * Runs a full, non-visual simulation (for Bulk Testing).

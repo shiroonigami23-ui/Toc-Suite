@@ -728,3 +728,33 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
     border-color: #ff9800;
     color: #ff9800;
 }
+
+/* --- PRACTICE GLOW SYSTEM --- */
+
+/* Turing Machine: Emerald */
+.practice-tm-active {
+  border: 2px solid #10b981 !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  background: #f0fdf4 !important;
+}
+
+/* PDA: Indigo */
+.practice-pda-active {
+  border: 2px solid #6366f1 !important;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  background: #f5f3ff !important;
+}
+
+/* Finite Automata: Blue */
+.practice-fa-active {
+  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+  background: #eff6ff !important;
+}
+
+/* Mealy/Moore: Orange */
+.practice-mm-active {
+  border: 2px solid #f59e0b !important;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+  background: #fffbeb !important;
+}

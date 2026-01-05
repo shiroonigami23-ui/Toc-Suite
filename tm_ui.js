@@ -343,14 +343,39 @@ function setupFileUI() {
     loadInput?.addEventListener('change', loadTmMachine);
     document.getElementById('tmExportPngBtn')?.addEventListener('click', exportTmPng);
 }
-
+/**
+ * setupPracticeUI
+ * Upgraded to use Automatic Logical Validation.
+ */
 function setupPracticeUI() {
     document.getElementById('tmGenPracticeBtn')?.addEventListener('click', () => {
         const level = document.getElementById('tmPracticeLevel').value;
         generateTmPractice(level);
+        // Show the emerald glow for the new question
+        const practiceBox = document.getElementById('practiceBox');
+        if (practiceBox) {
+            practiceBox.style.boxShadow = "0 0 15px rgba(16, 185, 129, 0.4)";
+            practiceBox.style.border = "2px solid #10b981";
+        }
     });
+
     document.getElementById('tmShowSolBtn')?.addEventListener('click', showTmSolution);
-    document.getElementById('tmCheckBtn')?.addEventListener('click', checkTmAnswer);
+
+    // 🔥 UPGRADED: Automatic Logic Checking
+    document.getElementById('tmCheckBtn')?.addEventListener('click', async () => {
+        const { checkTmAnswer } = await import('./tm_practice.js'); //
+        const result = await checkTmAnswer(MACHINE); //
+
+        if (result.success) {
+            const { addLogMessage, customAlert } = await import('./utils.js');
+            addLogMessage("Practice Success: Machine Logic Validated!", 'check-circle');
+            customAlert("Logic Verified", "Excellent! Your Turing Machine correctly handled all test cases.");
+        } else {
+            // If it fails, show specifically which string failed
+            const { customAlert } = await import('./utils.js');
+            customAlert("Logic Error", `Machine failed on input: "${result.failedString}". Expected: ${result.expected ? 'ACCEPT' : 'REJECT'}`);
+        }
+    });
 }
 
 function openTmModal(from, to) {

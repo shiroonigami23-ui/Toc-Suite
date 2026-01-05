@@ -20,14 +20,18 @@ export function generatePractice() {
 
     if (!bank || bank.length === 0) {
         practiceBox.textContent = `No ${level} questions for ${mode} mode.`;
-        if (checkAnswerBtn) checkAnswerBtn.hidden = true; // Hide button if no questions
+        if (checkAnswerBtn) checkAnswerBtn.hidden = true; 
         return;
     }
+
     const newPractice = bank[Math.floor(Math.random() * bank.length)];
     setCurrentPractice(newPractice);
-    practiceBox.innerHTML = `<strong>${mode} | ${level}</strong><div style="margin-top:8px">${newPractice.q}</div>`;
     
-    if (checkAnswerBtn) checkAnswerBtn.hidden = false; // Show button when practice is generated
+    // Apply Content and the FA blue glow class
+    practiceBox.innerHTML = `<strong>${mode} | ${level}</strong><div style="margin-top:8px">${newPractice.q}</div>`;
+    practiceBox.className = 'practice-fa-active'; 
+    
+    if (checkAnswerBtn) checkAnswerBtn.hidden = false;
 }
 
 export function showSolution(updateUIFunction) {
@@ -54,9 +58,18 @@ export function showSolution(updateUIFunction) {
 
 export function resetPractice() {
     setCurrentPractice(null);
-    document.getElementById('practiceBox').textContent = 'No practice generated yet.';
+    const practiceBox = document.getElementById('practiceBox');
+    
+    if (practiceBox) {
+        practiceBox.textContent = 'No practice generated yet.';
+        // ARCHITECTURAL FIX: Clear the FA blue glow class
+        practiceBox.className = ''; 
+    }
+
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
-    if (checkAnswerBtn) checkAnswerBtn.hidden = true; // Hide button on reset
+    if (checkAnswerBtn) {
+        checkAnswerBtn.hidden = true; // Hide button on reset
+    }
 }
 
 

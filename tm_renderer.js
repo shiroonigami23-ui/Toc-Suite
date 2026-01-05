@@ -19,9 +19,21 @@ export function renderAll() {
     edgeG.innerHTML = '';
     stateG.innerHTML = '';
 
-    // FIX: Pass the index 'i' to the transition renderer
+    // ARCHITECTURAL FIX: Group transitions by their "from-to" pair 
+    // to calculate the correct offset for curves.
+    const transitionGroups = {};
+    MACHINE.transitions.forEach(t => {
+        const pairId = `${t.from}-${t.to}`;
+        if (!transitionGroups[pairId]) transitionGroups[pairId] = [];
+        transitionGroups[pairId].push(t);
+    });
+
+    // Render transitions using grouped logic to prevent mashing
     MACHINE.transitions.forEach((t, i) => {
-        renderTransition(t, edgeG, i);
+        const pairId = `${t.from}-${t.to}`;
+        const group = transitionGroups[pairId];
+        const localIndex = group.indexOf(t);
+        renderTransition(t, edgeG, localIndex, group.length);
     });
 
     MACHINE.states.forEach(s => {
@@ -82,64 +94,106 @@ function renderState(state, container) {
 /**
  * tm_renderer.js - Edge Grouping Update
  */
-function renderTransition(t, container, index) {
+function renderTransition(t, container, index, total) {
     const fromState = MACHINE.states.find(s => s.id === t.from);
     const toState = MACHINE.states.find(s => s.id === t.to);
     if (!fromState || !toState) return;
 
-    // Create a group for the edge to handle clicks
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('class', 'edge-group');
     g.setAttribute('data-from', t.from);
     g.setAttribute('data-to', t.to);
-    g.setAttribute('data-index', index); // Crucial for deletion
+    g.setAttribute('data-index', index);
     g.style.cursor = 'pointer';
 
     const label = `${t.read} ; ${t.write}, ${t.move}`;
     
-    if (t.from === t.to) {
-        renderSelfLoop(fromState, label, g);
-    } else {
-        renderEdge(fromState, toState, label, g);
-    }
+    // INTEGRATION: Pass index and total to the path generator
+    const pathData = getTmPathData(fromState, toState, index, total);
+    
+    // Create the curved path
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#10b981');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('marker-end', 'url(#arrowhead)');
+    g.appendChild(path);
+
+    // Calculate label position based on the curve's control point
+    const labelPos = getLabelPosition(fromState, toState, index, total);
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', labelPos.x);
+    text.setAttribute('y', labelPos.y);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', 'bold');
+    text.textContent = label;
+    g.appendChild(text);
     
     container.appendChild(g);
 }
 
-function renderEdge(s1, s2, label, container) {
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', s1.x); line.setAttribute('y1', s1.y);
-    line.setAttribute('x2', s2.x); line.setAttribute('y2', s2.y);
-    line.setAttribute('stroke', '#10b981');
-    line.setAttribute('stroke-width', '2');
-    line.setAttribute('marker-end', 'url(#arrowhead)');
-    container.appendChild(line);
+/**
+ * Generates curved path data with a "shorten" logic to ensure arrowheads 
+ * are visible at the edge of the state circle.
+ */
+function getTmPathData(fromNode, toNode, index, total) {
+    const { x: x1, y: y1 } = fromNode;
+    const { x: x2, y: y2 } = toNode;
+    const r = 25; // Radius of your state circles
 
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', (s1.x + s2.x) / 2);
-    text.setAttribute('y', (s1.y + s2.y) / 2 - 10);
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('font-size', '12');
-    text.textContent = label;
-    container.appendChild(text);
+    // Self-loop logic (Standard for TMs)
+    if (fromNode.id === toNode.id) {
+        const loopSize = 30 + (index * 15);
+        // Returns a multi-segment curve for a perfect loop
+        return `M ${x1} ${y1-r} C ${x1-loopSize} ${y1-r-loopSize}, ${x1+loopSize} ${y1-r-loopSize}, ${x1} ${y1-r}`;
+    }
+
+    const midX = (x1 + x2) / 2;
+    const midY = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    
+    // Perpendicular offset for curvature
+    const offset = (index - (total - 1) / 2) * 40; 
+    const nx = -dy / len;
+    const ny = dx / len;
+    
+    const cpX = midX + nx * offset;
+    const cpY = midY + ny * offset;
+
+    // --- DIRECTION FIX: Shorten path so arrowhead doesn't hide inside circle ---
+    // We calculate a point slightly before the actual x2, y2 destination
+    const t = 1 - (r / len); 
+    const finalX = (1-t)*(1-t)*x1 + 2*(1-t)*t*cpX + t*t*x2;
+    const finalY = (1-t)*(1-t)*y1 + 2*(1-t)*t*cpY + t*t*y2;
+
+    return `M ${x1} ${y1} Q ${cpX} ${cpY} ${finalX} ${finalY}`;
 }
 
-function renderSelfLoop(s, label, container) {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const d = `M ${s.x - 10} ${s.y - 23} A 20 20 0 1 1 ${s.x + 10} ${s.y - 23}`;
-    path.setAttribute('d', d);
-    path.setAttribute('fill', 'none');
-    path.setAttribute('stroke', '#10b981');
-    path.setAttribute('marker-end', 'url(#arrowhead)');
-    container.appendChild(path);
-
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', s.x);
-    text.setAttribute('y', s.y - 50);
-    text.setAttribute('text-anchor', 'middle');
-    text.textContent = label;
-    container.appendChild(text);
+/**
+ * Logic to place text labels so they follow the curve.
+ */
+function getLabelPosition(s1, s2, index, total) {
+    if (s1.id === s2.id) {
+        return { x: s1.x, y: s1.y - (45 + index * 15) };
+    }
+    const midX = (s1.x + s2.x) / 2;
+    const midY = (s1.y + s2.y) / 2;
+    const dx = s2.x - s1.x;
+    const dy = s2.y - s1.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const offset = (index - (total - 1) / 2) * 40 + (index >= total/2 ? 15 : -15);
+    
+    return {
+        x: midX + (-dy / len) * offset,
+        y: midY + (dx / len) * offset
+    };
 }
+
+
 
 
 
