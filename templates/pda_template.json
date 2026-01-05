@@ -1,0 +1,18 @@
+{
+  "type": "PDA",
+  "id": "pda_boilerplate",
+  "title": "PDA: [Challenge Name]",
+  "description": "Template for Stack-based machines.",
+  "machine": {
+    "alphabet": ["a", "b"],
+    "stack_alphabet": ["A", "Z"],
+    "states": [
+      { "id": "q_start", "x": 150, "y": 300, "initial": true, "accepting": false },
+      { "id": "q_loop", "x": 450, "y": 300, "initial": false, "accepting": true }
+    ],
+    "transitions": [
+      { "from": "q_start", "to": "q_loop", "symbol": "a", "pop": "Z", "push": "AZ" },
+      { "from": "q_loop", "to": "q_loop", "symbol": "b", "pop": "A", "push": "" }
+    ]
+  }
+}
