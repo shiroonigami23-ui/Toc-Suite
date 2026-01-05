@@ -32,6 +32,23 @@ export function initializeTmUI() {
     initializeTmLibrary();
     setupLogicToggle();
 
+    // --- MOBILE DRAWER LOGIC ---
+    const toggleBtn = document.getElementById('tmPanelToggleBtn');
+    const controlPanel = document.getElementById('controlPanel');
+    const visualizationPanel = document.querySelector('.visualization-panel');
+
+    if (toggleBtn && controlPanel) {
+        toggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            controlPanel.classList.toggle('open'); //
+        };
+    }
+
+    // Close drawer when clicking the canvas for a cleaner focus
+    visualizationPanel?.addEventListener('click', () => {
+        controlPanel?.classList.remove('open');
+    });
+
     // Global render wrapper - this makes the sidebar dynamic
     const originalRender = renderAll;
     window.renderAll = () => {

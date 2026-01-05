@@ -31,6 +31,23 @@ export function initializePdaUI() {
     setupModeLogic();  
     setupPdaLogicToggle();
 
+    // --- MOBILE DRAWER LOGIC ---
+    const toggleBtn = document.getElementById('pdaPanelToggleBtn');
+    const controlPanel = document.getElementById('controlPanel');
+    const visualizationPanel = document.querySelector('.visualization-panel');
+
+    if (toggleBtn && controlPanel) {
+        toggleBtn.onclick = (e) => {
+            e.stopPropagation();
+            controlPanel.classList.toggle('open'); //
+        };
+    }
+
+    // Close drawer when clicking the canvas to maximize workspace
+    visualizationPanel?.addEventListener('click', () => {
+        controlPanel?.classList.remove('open');
+    });
+
     // 2. Global render wrapper for Intelligence synchronization
     const originalRender = renderAll;
     window.renderAll = () => {
@@ -45,7 +62,7 @@ export function initializePdaUI() {
             updateStackUI(['Z']); 
         }
         
-        // 3. Sync history button states (Now defined below)
+        // 3. Sync history button states
         updateUndoRedoButtons(); 
     };
 
@@ -54,7 +71,6 @@ export function initializePdaUI() {
     if (window.lucide) lucide.createIcons();
     addLogMessage("PDA Studio: Intelligence Active.", 'shield-check');
 }
-
 
 function setupModeLogic() {
     const modeSelect = document.getElementById('pdaModeSelect');
