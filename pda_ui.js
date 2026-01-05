@@ -29,8 +29,6 @@ export function initializePdaUI() {
     setupLibraryUI();
     setupZoomUI();     
     setupModeLogic();  
-
-    // 1. Setup the Logic Table Modal toggle
     setupPdaLogicToggle();
 
     // 2. Global render wrapper for Intelligence synchronization
@@ -231,8 +229,18 @@ function setupCanvasInteractions() {
     const svg = document.getElementById('dfaSVG');
     if (!svg) return;
 
-    svg.addEventListener('mousedown', (e) => {
-        const pt = getSVGPoint(e, svg);
+    // Helper to get relative coordinates for both Mouse and Touch
+    function getEventPoint(e) {
+        const pt = svg.createSVGPoint();
+        const touch = e.touches ? e.touches[0] : e;
+        pt.x = touch.clientX;
+        pt.y = touch.clientY;
+        const ctm = svg.getScreenCTM();
+        return ctm ? pt.matrixTransform(ctm.inverse()) : { x: 0, y: 0 };
+    }
+
+    const startAction = (e) => {
+        const pt = getEventPoint(e);
         const target = e.target.closest('.state-group');
 
         if (currentMode === 'addclick' && !target) {
@@ -242,7 +250,15 @@ function setupCanvasInteractions() {
             const stateObj = MACHINE.states.find(s => s.id === stateId);
 
             if (currentMode === 'move') {
+                // Prevent scrolling while dragging on mobile
+                if (e.cancelable) e.preventDefault(); 
+                
                 dragTarget = stateObj;
+                // Calculate offset to prevent state "snapping" to cursor center
+                dragTarget._offsetX = stateObj.x - pt.x;
+                dragTarget._offsetY = stateObj.y - pt.y;
+                
+                target.querySelector('circle')?.classList.add('state-active');
             } else if (currentMode === 'transition') {
                 handleTransitionMode(target, stateId);
             } else if (currentMode === 'delete') {
@@ -253,23 +269,39 @@ function setupCanvasInteractions() {
                 openStatePropsModal(stateObj);
             }
         }
-    });
+    };
 
-    window.addEventListener('mousemove', (e) => {
+    const moveAction = (e) => {
         if (dragTarget) {
-            const pt = getSVGPoint(e, svg);
-            dragTarget.x = pt.x;
-            dragTarget.y = pt.y;
+            // Prevent background scrolling while moving states
+            if (e.cancelable) e.preventDefault(); 
+            
+            const pt = getEventPoint(e);
+            dragTarget.x = pt.x + (dragTarget._offsetX || 0);
+            dragTarget.y = pt.y + (dragTarget._offsetY || 0);
             renderAll();
         }
-    });
+    };
 
-    window.addEventListener('mouseup', () => {
-        if (dragTarget) pushUndo();
+    const endAction = () => {
+        if (dragTarget) {
+            pushUndo();
+            // Remove visual feedback from the state that was being moved
+            document.querySelectorAll('.state-active').forEach(c => c.classList.remove('state-active'));
+        }
         dragTarget = null;
-    });
-}
+    };
 
+    // Unified Listeners for Desktop and Mobile
+    svg.addEventListener('mousedown', startAction);
+    svg.addEventListener('touchstart', startAction, { passive: false });
+
+    window.addEventListener('mousemove', moveAction);
+    window.addEventListener('touchmove', moveAction, { passive: false });
+
+    window.addEventListener('mouseup', endAction);
+    window.addEventListener('touchend', endAction);
+}
 function handleTransitionMode(target, stateId) {
     if (!transFromState) {
         transFromState = stateId;

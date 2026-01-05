@@ -181,24 +181,30 @@ function setupTestingUI() {
  */
 function setupCanvasInteractions() {
     const svg = document.getElementById('dfaSVG');
+    if (!svg) return;
+
     let isDragging = false;
     let dragTarget = null;
     let dragOffset = { x: 0, y: 0 };
 
-    // Helper to get relative SVG coordinates
+    // Unified helper for coordinates (Mouse & Touch)
     const getCoords = (e) => {
         const pt = svg.createSVGPoint();
-        pt.x = e.clientX; pt.y = e.clientY;
+        const touch = e.touches ? e.touches[0] : e;
+        pt.x = touch.clientX; pt.y = touch.clientY;
         return pt.matrixTransform(svg.getScreenCTM().inverse());
     };
 
-    svg.addEventListener('mousedown', (e) => {
+    const startAction = (e) => {
         const coords = getCoords(e);
         const stateTarget = e.target.closest('.state-group');
         const edgeTarget = e.target.closest('.edge-group');
 
-        // 1. MOVE TOOL (Logic Fix)
+        // 1. MOVE TOOL
         if (currentMode === 'move' && stateTarget) {
+            // Prevent scrolling on mobile during drag
+            if (e.cancelable) e.preventDefault(); 
+            
             isDragging = true;
             dragTarget = stateTarget;
             const state = MACHINE.states.find(s => s.id === dragTarget.dataset.id);
@@ -208,7 +214,7 @@ function setupCanvasInteractions() {
             }
             dragTarget.classList.add('dragging');
             addLogMessage(`Moving state: ${dragTarget.dataset.id}`, 'move');
-            return; // Prevent triggering other logic during move
+            return; // Prevent triggering other logic
         }
 
         // 2. ADD STATE
@@ -248,28 +254,40 @@ function setupCanvasInteractions() {
         else if (stateTarget && currentMode === 'stateprops') {
             openStatePropsModal(stateTarget.dataset.id);
         }
-    });
+    };
 
-    svg.addEventListener('mousemove', (e) => {
+    const moveAction = (e) => {
         if (isDragging && dragTarget) {
+            // Smooth movement for both mouse and finger
+            if (e.cancelable) e.preventDefault(); 
             const coords = getCoords(e);
             const state = MACHINE.states.find(s => s.id === dragTarget.dataset.id);
             if (state) {
                 state.x = coords.x + dragOffset.x;
                 state.y = coords.y + dragOffset.y;
-                renderAll(); // Live rubber-banding of transitions
+                renderAll(); 
             }
         }
-    });
+    };
 
-    svg.addEventListener('mouseup', () => {
+    const endAction = () => {
         if (isDragging) {
-            pushUndo(); // Record position in history stack
+            pushUndo();
             isDragging = false;
             if (dragTarget) dragTarget.classList.remove('dragging');
             dragTarget = null;
         }
-    });
+    };
+
+    // Unified Listeners
+    svg.addEventListener('mousedown', startAction);
+    svg.addEventListener('touchstart', startAction, { passive: false });
+
+    window.addEventListener('mousemove', moveAction);
+    window.addEventListener('touchmove', moveAction, { passive: false });
+
+    window.addEventListener('mouseup', endAction);
+    window.addEventListener('touchend', endAction);
 }
 
 /**
