@@ -3,7 +3,7 @@
  * Specialized UI Controller for the PDA Studio.
  */
 
-import { MACHINE, pushUndo, undo, redo, resetMachine } from './pda_state.js';
+import { MACHINE, pushUndo, undo, redo, resetMachine, UNDO_STACK, REDO_STACK } from './pda_state.js';
 import { renderAll } from './pda_renderer.js';
 import { validatePda } from './pda_automata.js';
 import { runPdaSimulation } from './pda_simulation.js';
@@ -666,18 +666,16 @@ function setupPdaLogicToggle() {
     });
 }
 
+
 /**
  * updateUndoRedoButtons
- * Synchronizes the visual state of history buttons with the state stacks.
+ * Synchronizes the visual state of history buttons.
  */
 function updateUndoRedoButtons() {
-    // These IDs must match your pda_studio.html
     const undoBtn = document.getElementById('undoBtn');
     const redoBtn = document.getElementById('redoBtn');
     
-    // Importing stacks from state to check length
-    import('./pda_state.js').then(m => {
-        if (undoBtn) undoBtn.disabled = m.undoStack.length === 0;
-        if (redoBtn) redoBtn.disabled = m.redoStack.length === 0;
-    });
+    // Direct access to the exported stacks
+    if (undoBtn) undoBtn.disabled = UNDO_STACK.length === 0;
+    if (redoBtn) redoBtn.disabled = REDO_STACK.length === 0;
 }

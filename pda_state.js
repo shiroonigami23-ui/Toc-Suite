@@ -12,9 +12,12 @@ export let MACHINE = {
     initialStackSymbol: 'Z'
 };
 
-let undoStack = [];
-let redoStack = [];
+// FIX: Export these using Uppercase to match the other studio modules
+export let UNDO_STACK = [];
+export let REDO_STACK = [];
+
 let renderCallback = () => {};
+
 
 export function setRenderFunction(fn) {
     renderCallback = fn;
@@ -30,30 +33,27 @@ export function setMachine(newMachine) {
  * @param {function} updateUIFn - Optional callback to update UI elements like buttons.
  */
 export function pushUndo(updateUIFn) {
-    undoStack.push(JSON.stringify(MACHINE));
-    redoStack = []; // Clear redo on new action
+    UNDO_STACK.push(JSON.stringify(MACHINE)); // Changed to UNDO_STACK
+    REDO_STACK = []; // Changed to REDO_STACK
     if (updateUIFn) updateUIFn();
 }
 
 export function undo(updateUIFn) {
-    if (undoStack.length === 0) return;
-    redoStack.push(JSON.stringify(MACHINE));
-    MACHINE = JSON.parse(undoStack.pop());
+    if (UNDO_STACK.length === 0) return; // Changed to UNDO_STACK
+    REDO_STACK.push(JSON.stringify(MACHINE)); // Changed to REDO_STACK
+    MACHINE = JSON.parse(UNDO_STACK.pop()); // Changed to UNDO_STACK
     renderCallback();
     if (updateUIFn) updateUIFn();
 }
 
 export function redo(updateUIFn) {
-    if (redoStack.length === 0) return;
-    undoStack.push(JSON.stringify(MACHINE));
-    MACHINE = JSON.parse(redoStack.pop());
+    if (REDO_STACK.length === 0) return; // Changed to REDO_STACK
+    UNDO_STACK.push(JSON.stringify(MACHINE)); // Changed to UNDO_STACK
+    MACHINE = JSON.parse(REDO_STACK.pop()); // Changed to REDO_STACK
     renderCallback();
     if (updateUIFn) updateUIFn();
 }
 
-/**
- * Resets the machine to an empty state.
- */
 export function resetMachine() {
     MACHINE = {
         type: 'PDA',
@@ -63,8 +63,8 @@ export function resetMachine() {
         stackAlphabet: [],
         initialStackSymbol: 'Z'
     };
-    undoStack = [];
-    redoStack = [];
+    UNDO_STACK = []; // Changed to UNDO_STACK
+    REDO_STACK = []; // Changed to REDO_STACK
     renderCallback();
 }
 /**
