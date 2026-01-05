@@ -1,0 +1,12 @@
+{
+  "type": "MOORE",
+  "title": "Moore: [Function]",
+  "machine": {
+    "alphabet": ["0", "1"],
+    "output_alphabet": ["0", "1"],
+    "states": [
+      { "id": "q0", "x": 300, "y": 300, "initial": true, "output": "0" }
+    ],
+    "transitions": []
+  }
+}
