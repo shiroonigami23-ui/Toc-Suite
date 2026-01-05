@@ -1,13 +1,9 @@
 /**
  * tm_renderer.js
- * Specialized renderer for Turing Machine states and transitions.
+ * Optimized renderer for Turing Machine states and consolidated transitions.
  */
-
 import { MACHINE } from './tm_state.js';
 
-/**
- * Main render loop for the TM canvas.
- */
 export function renderAll() {
     const edgeG = document.getElementById('edges');
     const stateG = document.getElementById('states');
@@ -19,26 +15,80 @@ export function renderAll() {
     edgeG.innerHTML = '';
     stateG.innerHTML = '';
 
-    // ARCHITECTURAL FIX: Group transitions by their "from-to" pair 
-    // to calculate the correct offset for curves.
-    const transitionGroups = {};
+    // --- ARCHITECTURAL FIX: Consolidated Path Grouping ---
+    // We group transitions by their visual path to prevent multiple lines
+    const transitionPaths = {};
     MACHINE.transitions.forEach(t => {
-        const pairId = `${t.from}-${t.to}`;
-        if (!transitionGroups[pairId]) transitionGroups[pairId] = [];
-        transitionGroups[pairId].push(t);
+        const pathKey = `${t.from}-${t.to}`;
+        if (!transitionPaths[pathKey]) transitionPaths[pathKey] = [];
+        transitionPaths[pathKey].push(t);
     });
 
-    // Render transitions using grouped logic to prevent mashing
-    MACHINE.transitions.forEach((t, i) => {
-        const pairId = `${t.from}-${t.to}`;
-        const group = transitionGroups[pairId];
-        const localIndex = group.indexOf(t);
-        renderTransition(t, edgeG, localIndex, group.length);
+    // Render consolidated edges
+    Object.keys(transitionPaths).forEach(pathKey => {
+        const transitions = transitionPaths[pathKey];
+        renderConsolidatedTransition(transitions, edgeG);
     });
 
     MACHINE.states.forEach(s => {
         renderState(s, stateG);
     });
+}
+
+/**
+ * Renders a single visual edge containing all logical transitions 
+ * for a specific path. Centered vertically to prevent cutoff.
+ */
+function renderConsolidatedTransition(transitions, container) {
+    const t = transitions[0]; 
+    const fromState = MACHINE.states.find(s => s.id === t.from);
+    const toState = MACHINE.states.find(s => s.id === t.to);
+    if (!fromState || !toState) return;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'edge-group');
+    g.setAttribute('data-from', t.from);
+    g.setAttribute('data-to', t.to);
+    g.style.cursor = 'pointer';
+
+    // Generate Path Data
+    const pathData = getTmPathData(fromState, toState, 0, 1);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', pathData);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#10b981');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('marker-end', 'url(#arrowhead)');
+    g.appendChild(path);
+
+    // --- ARCHITECTURAL FIX: Dynamic Label Positioning ---
+    const labelPos = getLabelPosition(fromState, toState, 0, 1);
+    
+    // Calculate vertical shift: Move the starting point up by half 
+    // the total height of the text block (approx 1.2em per line)
+    const lineHeight = 14; 
+    const totalHeight = (transitions.length - 1) * lineHeight;
+    const verticalOffset = totalHeight / 2;
+
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', labelPos.x);
+    // Apply the offset to center the whole block on the path midpoint
+    text.setAttribute('y', labelPos.y - verticalOffset); 
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('font-size', '11');
+    text.setAttribute('font-weight', 'bold');
+    
+    transitions.forEach((tr, i) => {
+        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        tspan.setAttribute('x', labelPos.x);
+        // First line starts at y, subsequent lines move down by lineHeight
+        tspan.setAttribute('dy', i === 0 ? '0' : '1.2em'); 
+        tspan.textContent = `${tr.read} ; ${tr.write}, ${tr.move}`;
+        text.appendChild(tspan);
+    });
+
+    g.appendChild(text);
+    container.appendChild(g);
 }
 
 function renderState(state, container) {
