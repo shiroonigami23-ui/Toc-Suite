@@ -758,3 +758,35 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
   background: #fffbeb !important;
 }
+
+/* --- TM SPECIFIC FILE HOVER EFFECTS --- */
+
+/* Emerald highlight for Save/Load buttons */
+.tm-file-btn:hover {
+    background: #f0fdf4 !important; /* Soft Emerald tint */
+    border-color: #10b981 !important;
+    color: #065f46 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.tm-file-btn:hover i {
+    stroke: #10b981 !important;
+}
+
+/* Emerald highlight for PNG Export */
+.tm-export-btn:hover {
+    background: #f0fdf4 !important;
+    border-color: #059669 !important;
+    color: #059669 !important;
+}
+
+.tm-export-btn:hover i {
+    stroke: #059669 !important;
+}
+
+/* Ensure TM icons follow the Emerald theme in the toolbar */
+.toolbar-icon#tm-tool-add svg,
+.toolbar-icon#tm-tool-trans svg {
+    stroke: #10b981;
+}

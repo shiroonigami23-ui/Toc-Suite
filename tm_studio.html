@@ -107,19 +107,19 @@
       <details class="control-section">
   <summary><i data-lucide="folder" style="color: #10b981;"></i> <span>File</span></summary>
   <div class="control-section-content">
-    <div class="control-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-      <button id="saveTmBtn" class="icon-btn" title="Save machine" type="button" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-        <i data-lucide="save" style="color: #10b981; width: 16px;"></i> Save
-      </button>
-      <button id="loadTmBtn" class="icon-btn" title="Load machine" type="button" style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-        <i data-lucide="folder-open" style="color: #10b981; width: 16px;"></i> Load
-      </button>
-    </div>
     <div class="control-row">
-      <button id="tmExportPngBtn" class="icon-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" type="button">
-        <i data-lucide="image" style="color: #10b981; width: 18px;"></i> Export PNG
+      <button id="saveTmBtn" class="icon-btn tm-file-btn" title="Save current TM as JSON">
+        <i data-lucide="save"></i> Save machine
+      </button>
+      <button id="loadTmBtn" class="icon-btn tm-file-btn" title="Load TM from JSON file">
+        <i data-lucide="folder-open"></i> Load machine
       </button>
     </div>
+    
+    <button id="tmExportPngBtn" class="icon-btn tm-export-btn" style="width:100%; margin-top:4px; justify-content: center;">
+      <i data-lucide="image"></i> Export Canvas (PNG)
+    </button>
+    
     <input type="file" id="tmLoadInput" accept=".json" style="display:none" />
   </div>
 </details>

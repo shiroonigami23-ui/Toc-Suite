@@ -41,8 +41,9 @@ export function savePdaMachine() {
 }
 
 /**
- * Exports the current SVG canvas as a high-quality PNG.
- * Includes logging and high-resolution scaling for clear documentation.
+ * Exports the current PDA canvas as a high-quality PNG.
+ * Fixed to capture all states and transitions without cutoff, matching the 
+ * 1:1 precision of FA, MM, and TM studios.
  */
 export function exportPng() {
     if (!MACHINE.states || MACHINE.states.length === 0) {
@@ -52,45 +53,55 @@ export function exportPng() {
 
     addLogMessage(`Generating high-resolution PNG snapshot...`, 'image');
 
-    // Determine filename based on smart analysis
-    const suggestedTitle = analyzePdaPattern(MACHINE);
-    const shortestStrings = findShortestAcceptedStringsPda(MACHINE);
-    let baseName = "pda-automaton";
-    
-    if (suggestedTitle) {
-        baseName = suggestedTitle.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    } else if (shortestStrings.length > 0) {
-        baseName = `accepts-${shortestStrings[0].replace(/ε/g, 'eps')}`;
-    }
-    
-    const fileName = prompt("Enter filename for PNG:", baseName) || baseName;
-
     const svgEl = document.getElementById("dfaSVG");
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    const edgesG = document.getElementById("edges");
+    const statesG = document.getElementById("states");
 
-    // Calculate dimensions based on content with padding
-    const bbox = svgEl.getBBox();
-    const padding = 40; 
+    // --- ARCHITECTURAL FIX: Reliable Bounding Box Calculation ---
+    // Instead of the root SVG, we get the bbox of the groups containing the elements.
+    // This ensures elements outside the initial 1400x900 area are included.
+    const edgesBBox = edgesG.getBBox();
+    const statesBBox = statesG.getBBox();
+
+    // Calculate the union of the content area
+    const bbox = {
+        x: Math.min(edgesBBox.x, statesBBox.x),
+        y: Math.min(edgesBBox.y, statesBBox.y),
+        width: Math.max(edgesBBox.x + edgesBBox.width, statesBBox.x + statesBBox.width) - Math.min(edgesBBox.x, statesBBox.x),
+        height: Math.max(edgesBBox.y + edgesBBox.height, statesBBox.y + statesBBox.height) - Math.min(edgesBBox.y, statesBBox.y)
+    };
+
+    // Fallback logic for near-empty canvases
+    if (bbox.width === 0 || bbox.height === 0) {
+        const rootBBox = svgEl.getBBox();
+        bbox.x = rootBBox.x; bbox.y = rootBBox.y;
+        bbox.width = rootBBox.width; bbox.height = rootBBox.height;
+    }
+
+    const padding = 50; // Standard architect padding
     const width = bbox.width + (padding * 2);
     const height = bbox.height + (padding * 2);
 
-    // Scale 3x for high-resolution output
-    const scale = 3; 
+    const scale = 3; // 3x scaling for high-resolution documentation
+    const canvas = document.createElement("canvas");
     canvas.width = width * scale;
     canvas.height = height * scale;
+    const ctx = canvas.getContext("2d");
 
     const svgClone = svgEl.cloneNode(true);
+    // Align viewBox to the newly calculated content bounds
     svgClone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`);
     svgClone.setAttribute('width', width);
     svgClone.setAttribute('height', height);
 
-    // Remove UI-specific hints and animations for the static export
-    const hint = svgClone.getElementById('canvasHint');
+    // CLEANUP: Remove UI specific hints and interactive classes in the clone
+    const hint = svgClone.querySelector('#canvasHint');
     if (hint) hint.remove();
-    svgClone.querySelectorAll('.initial-pulse').forEach(el => el.classList.remove('initial-pulse'));
+    svgClone.querySelectorAll('.initial-pulse, .state-active, .dragging').forEach(el => {
+        el.classList.remove('initial-pulse', 'state-active', 'dragging');
+    });
 
-    // Inject explicit styles to ensure consistent rendering in the PNG
+    // Inject explicit styles for PNG rendering consistency
     const styleEl = document.createElement('style');
     styleEl.textContent = `
         .state-circle { fill: #ffffff; stroke: #667eea; stroke-width: 3; }
@@ -104,6 +115,10 @@ export function exportPng() {
     `;
     svgClone.querySelector('defs').appendChild(styleEl);
 
+    // File Naming Logic
+    const suggestedTitle = analyzePdaPattern ? analyzePdaPattern(MACHINE) : "pda-automaton";
+    const fileName = prompt("Enter filename for PNG:", suggestedTitle) || suggestedTitle;
+
     const svgData = new XMLSerializer().serializeToString(svgClone);
     const img = new Image();
     const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
@@ -112,17 +127,15 @@ export function exportPng() {
     img.onload = () => {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
         ctx.scale(scale, scale);
         ctx.drawImage(img, 0, 0);
         
         URL.revokeObjectURL(url);
-
         const a = document.createElement("a");
         a.download = fileName.endsWith('.png') ? fileName : `${fileName}.png`;
         a.href = canvas.toDataURL("image/png", 1.0);
         a.click();
-        addLogMessage(`Image exported successfully.`, 'check-circle');
+        addLogMessage(`PDA image exported successfully.`, 'check-circle');
     };
 
     img.src = url;
