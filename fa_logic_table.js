@@ -1,7 +1,6 @@
 /**
  * fa_logic_table.js
  * Specialized Intelligence controller for Finite Automata (FA).
- * Enhanced with Initial/Final state status indicators.
  */
 import { MACHINE } from './state.js';
 
@@ -38,14 +37,13 @@ export function updateFaLogicDisplay() {
         ${determinismMetric}
     `;
 
-    // 2. FA TRANSITION TABLE (With Role Status)
+    // 2. FA TRANSITION TABLE
     if (tableBody) {
         tableBody.innerHTML = '';
         MACHINE.transitions.forEach((t, index) => {
             const sourceState = states.find(s => s.id === t.from);
             const targetState = states.find(s => s.id === t.to);
 
-            // Generate status markers
             const getStatus = (s) => {
                 if (!s) return "";
                 let icons = "";
@@ -72,7 +70,29 @@ export function updateFaLogicDisplay() {
     }
 }
 
-// Logic for Row Highlighting remains unchanged
+/**
+ * ARCHITECT'S UPGRADE: Excel Exporter for FA
+ */
+export async function exportFaTableToExcel() {
+    const { MACHINE: latestMachine } = await import('./state.js'); 
+    if (!latestMachine.transitions || latestMachine.transitions.length === 0) return;
+
+    const headers = ["From State", "Input Symbol", "To State"];
+    const rows = latestMachine.transitions.map(t => [
+        t.from,
+        t.symbol || 'ε',
+        t.to
+    ].join(","));
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `FA_Logic_${new Date().getTime()}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
+
 export function highlightFaTableRow(idx) {
     document.querySelectorAll('#faLogicTableBody tr').forEach(r => {
         r.style.background = 'transparent';

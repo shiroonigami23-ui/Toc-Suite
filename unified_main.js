@@ -280,22 +280,35 @@ export const StudioContext = {
         
       </main>
     </div>
-    <div id="faLogicModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-  <div class="modal-box" style="width: 80%; max-width: 700px; background: white; border-radius: 12px; padding: 20px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 style="margin: 0;"><i data-lucide="table-2" style="color: #6366f1;"></i> FA Logic Explorer</h3>
-      <button onclick="document.getElementById('faLogicModal').style.display='none'" style="border:none; background:none; cursor:pointer; font-size:1.5rem;">&times;</button>
+   <div id="faLogicModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="modal-box" style="width: 80%; max-width: 750px; background: white; border-radius: 12px; padding: 25px; max-height: 85vh; overflow-y: auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #3730a3;">
+        <i data-lucide="table-2" style="color: #6366f1;"></i> FA Logic Explorer
+      </h3>
+      
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="faExportTableBtn" class="icon-btn" style="background: #eef2ff; border: 1px solid #6366f1; color: #3730a3; font-size: 0.85em; padding: 6px 15px; border-radius: 8px; font-weight: 700;">
+            <i data-lucide="download" style="width: 16px;"></i> Export
+        </button>
+        
+        <button onclick="document.getElementById('faLogicModal').style.display='none'" style="border:none; background:none; cursor:pointer; font-size:1.5rem; color: #64748b;">&times;</button>
+      </div>
     </div>
-    <table style="width: 100%; border-collapse: collapse;">
-      <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-        <tr>
-          <th style="padding: 10px; text-align: left;">From (Status)</th>
-          <th style="padding: 10px; text-align: center;">Input (σ)</th>
-          <th style="padding: 10px; text-align: right;">To (Status)</th>
-        </tr>
-      </thead>
-      <tbody id="faLogicTableBody"></tbody>
-    </table>
+    
+    <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+      <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9em;">
+        <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0;">
+          <tr>
+            <th style="padding: 12px; text-align: left; color: #475569;">From (Status)</th>
+            <th style="padding: 12px; color: #475569;">Input (σ)</th>
+            <th style="padding: 12px; text-align: right; color: #475569;">To (Status)</th>
+          </tr>
+        </thead>
+        <tbody id="faLogicTableBody" style="color: #1e293b;"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 `;
@@ -552,26 +565,35 @@ export const StudioContext = {
     </div>
 
     <div id="mmLogicModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-  <div class="modal-box" style="width: 80%; max-width: 800px; background: white; border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-      <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-        <i data-lucide="table-2" style="color: #ff9800;"></i> Machine Logic Explorer
+  <div class="modal-box" style="width: 80%; max-width: 850px; background: white; border-radius: 12px; padding: 25px; max-height: 85vh; overflow-y: auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #fff7ed; padding-bottom: 15px;">
+      <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #9a3412;">
+        <i data-lucide="table-2" style="color: #ff9800;"></i> Mealy/Moore Transition Logic
       </h3>
-      <button onclick="document.getElementById('mmLogicModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+      
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="mmExportTableBtn" class="icon-btn" style="background: #fff7ed; border: 1px solid #ff9800; color: #9a3412; font-size: 0.85em; padding: 6px 15px; border-radius: 8px; font-weight: 700;">
+            <i data-lucide="download" style="width: 16px;"></i> Export
+        </button>
+        
+        <button onclick="document.getElementById('mmLogicModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+      </div>
     </div>
     
-    <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
-      <thead style="background: #fdfaf6; border-bottom: 2px solid #ffedd5;">
-        <tr>
-  <th style="padding: 10px; text-align: left;">From (Status)</th>
-  <th style="padding: 10px; text-align: center;">Input Symbol</th>
-  <th style="padding: 10px; text-align: center;">To State</th>
-  <th style="padding: 10px; text-align: right;">Output ($\lambda$)</th>
-</tr>
-      </thead>
-      <tbody id="mmLogicTableBody">
-          </tbody>
-    </table>
+    <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #ffedd5;">
+      <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9em;">
+        <thead style="background: #fdfaf6; border-bottom: 2px solid #ffedd5; position: sticky; top: 0;">
+          <tr>
+            <th style="padding: 12px; text-align: left; color: #7c2d12;">From (Status)</th>
+            <th style="padding: 12px; color: #7c2d12;">Input Symbol</th>
+            <th style="padding: 12px; color: #7c2d12;">To State</th>
+            <th style="padding: 12px; text-align: right; color: #7c2d12;">Output </th>
+          </tr>
+        </thead>
+        <tbody id="mmLogicTableBody" style="color: #431407;"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 `;

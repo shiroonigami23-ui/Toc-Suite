@@ -8,7 +8,7 @@ import { animateMachineDrawing } from './animation.js';
 import { initializeLibrary } from './moore_mealy_library_loader.js';
 import { handleSaveMachine, loadMachine, handleAiGeneration, handleSaveWithMetadata, exportPng, handleImageUpload } from './moore_mealy_file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './moore_mealy_practice.js';
-import { updateMmLogicDisplay } from './mm_logic_table.js';
+import { updateMmLogicDisplay, exportMmTableToExcel } from './mm_logic_table.js';
 
 // --- Global MM Loader Function (Used by library loader) ---
 window.loadMmMachine = (machineData) => {
@@ -1012,17 +1012,19 @@ export function initializeUI() {
         }
     };
 
-    // Setup the toggle button for the Logic Explorer Modal
-    document.getElementById('toggleMmLogicBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('mmLogicModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            if (typeof updateMmLogicDisplay === 'function') {
-                updateMmLogicDisplay(); // Refresh the table content
-            }
-            if (window.lucide) lucide.createIcons();
-        }
-    });
+    // Replace the previous logic toggle listener
+document.getElementById('toggleMmLogicBtn')?.addEventListener('click', () => {
+    const modal = document.getElementById('mmLogicModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        updateMmLogicDisplay(); 
+        if (window.lucide) lucide.createIcons();
+    }
+});
+
+document.getElementById('mmExportTableBtn')?.addEventListener('click', () => {
+    exportMmTableToExcel(); 
+});
 
     // --- Initial Setup ---
     const toolbarIcon = document.querySelector('.toolbar-icon[data-mode="addclick"]');

@@ -71,8 +71,13 @@ export function initializeTmUI() {
 // Ensure validation button is linked globally
 document.getElementById('tmValidateBtn')?.addEventListener('click', validateTm);
 
+/**
+ * setupToolbar
+ * Orchestrates TM-specific tools, custom clear canvas modal, 
+ * and navigation logic.
+ */
 function setupToolbar() {
-    // Tool switching with visual 'active' state
+    // 1. Tool switching with visual 'active' state
     document.querySelectorAll('.toolbar-icon[data-mode]').forEach(tool => {
         tool.addEventListener('click', () => {
             document.querySelectorAll('.toolbar-icon').forEach(t => t.classList.remove('active'));
@@ -82,17 +87,33 @@ function setupToolbar() {
         });
     });
 
-    // Clear Canvas
+    // 2. --- ARCHITECT'S UPGRADE: CUSTOM CLEAR CANVAS MODAL ---
+    // FIX: Changed ID to 'tm-tool-clear' to match your HTML
     document.getElementById('tm-tool-clear')?.addEventListener('click', () => {
-        if(confirm("Clear Turing Machine? This will erase all states and transitions.")) {
-            pushUndo();
-            resetMachine();
-            renderAll();
-            addLogMessage("Canvas cleared.", 'trash-2');
+        const modal = document.getElementById('tmConfirmClearModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            if (window.lucide) lucide.createIcons();
         }
     });
 
-    // Undo/Redo Integration
+    document.getElementById('tmConfirmClearCancel')?.addEventListener('click', () => {
+        document.getElementById('tmConfirmClearModal').style.display = 'none';
+    });
+
+    document.getElementById('tmConfirmClearBtn')?.addEventListener('click', () => {
+        // These are already imported at the top of tm_ui.js
+        pushUndo();
+        resetMachine();
+        
+        document.getElementById('tmConfirmClearModal').style.display = 'none';
+        addLogMessage("Canvas cleared via Architect Tool.", "file-x");
+        
+        // Re-render the canvas to reflect the cleared state
+        renderAll(); 
+    });
+
+    // 3. Undo/Redo Integration
     document.getElementById('tmUndoBtn')?.addEventListener('click', () => {
         undo();
         addLogMessage("Undo performed.", 'corner-up-left');
@@ -103,7 +124,7 @@ function setupToolbar() {
         addLogMessage("Redo performed.", 'corner-up-right');
     });
 
-    // Navigation
+    // 4. Navigation: Return to Main Menu
     document.getElementById('tmBackToMenuBtn')?.addEventListener('click', () => {
         const mainApp = document.getElementById('mainApp');
         const splashScreen = document.getElementById('splashScreen');
@@ -112,13 +133,15 @@ function setupToolbar() {
         if (splashScreen) {
             if (studioContent) studioContent.innerHTML = ''; 
             if (mainApp) mainApp.style.display = 'none';
+            
             splashScreen.style.display = 'flex';
+            void splashScreen.offsetWidth; 
             splashScreen.style.opacity = '1';
+            
             addLogMessage("Exiting Turing Studio...", 'home');
         }
     });
 }
-
 
 /**
  * setupModalButtons
@@ -534,13 +557,23 @@ export function updateStateLegend() {
     addLogMessage(`Legend: ${initial} Initial, ${halt} Halt, ${traps} Potential Trap(s).`, 'info');
 }
 
+// Inside setupLogicToggle() in tm_ui.js
 function setupLogicToggle() {
     const btn = document.getElementById('toggleLogicBtn');
+    const exportBtn = document.getElementById('tmExportTableBtn');
     const modal = document.getElementById('logicTableModal');
     
     btn?.addEventListener('click', () => {
-        modal.style.display = 'flex';
-        updateLogicDisplay(); // Force a refresh when opening
-        if (window.lucide) lucide.createIcons();
+        if (modal) {
+            modal.style.display = 'flex';
+            updateLogicDisplay(); //
+            if (window.lucide) lucide.createIcons();
+        }
+    });
+
+    // --- NEW: Export Listener ---
+    exportBtn?.addEventListener('click', async () => {
+        const { exportTmTableToExcel } = await import('./logic_table.js');
+        exportTmTableToExcel();
     });
 }

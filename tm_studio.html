@@ -61,28 +61,41 @@
     </div>
 </details>
 <div id="logicTableModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div class="modal-box" style="width: 80%; max-width: 800px; background: white; border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="table-2" style="color: #10b981;"></i> Full Transition Logic
+    <div class="modal-box" style="width: 85%; max-width: 900px; background: white; border-radius: 12px; padding: 25px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 10px; color: #064e3b;">
+                <i data-lucide="table-2" style="color: #10b981;"></i> 
+                Full Transition Logic
             </h3>
-            <button id="closeLogicModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
+            
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="tmExportTableBtn" class="icon-btn" style="background: #ecfdf5; border: 1px solid #10b981; color: #065f46; font-size: 0.85em; padding: 6px 15px; border-radius: 8px; font-weight: 700; transition: all 0.2s;">
+                    <i data-lucide="download" style="width: 16px;"></i> Export to Excel
+                </button>
+                
+                <button id="closeLogicModal" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; color: #64748b; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                    <i data-lucide="x" style="width: 18px;"></i>
+                </button>
+            </div>
         </div>
         
-        <table class="logic-table" style="width: 100%; border-collapse: collapse;">
-            <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                <tr>
-                    <th style="padding: 10px;">From State</th>
-                    <th style="padding: 10px;">Read (Tape/Input)</th>
-                    <th style="padding: 10px;">To State</th>
-                    <th style="padding: 10px;">Write/Push</th>
-                    <th style="padding: 10px;">Move/Pop</th>
-                    <th style="padding: 10px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="tmLogicTableBody">
-                </tbody>
-        </table>
+        <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <table class="logic-table" style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9em;">
+                <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0;">
+                    <tr>
+                        <th style="padding: 12px; color: #475569; font-weight: 700;">From State</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700;">Read (σ)</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700;">To State</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700;">Write (γ)</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700;">Move (D)</th>
+                        <th style="padding: 12px; color: #475569; font-weight: 700; width: 60px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tmLogicTableBody" style="color: #1e293b;">
+                    </tbody>
+            </table>
+        </div>
     </div>
 </div>
       <details class="control-section">
@@ -287,3 +300,21 @@
     </div>
 </div>
 
+<div id="tmConfirmClearModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-box" style="max-width: 400px; background: white; border-radius: 12px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        <h3 style="color: #ef4444; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="alert-triangle"></i> Clear TM Canvas
+        </h3>
+        <p class="modal-description" style="color: #64748b; font-size: 0.9em; line-height: 1.5; margin: 15px 0;">
+            Are you sure you want to delete all states and transitions?
+        </p>
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+            <button id="tmConfirmClearCancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; color: #64748b; cursor: pointer; font-weight: 600;">
+                Cancel
+            </button>
+            <button id="tmConfirmClearBtn" style="padding: 8px 16px; border-radius: 6px; border: none; background: #ef4444; color: white; cursor: pointer; font-weight: 600;">
+                Clear Everything
+            </button>
+        </div>
+    </div>
+</div>

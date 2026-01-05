@@ -1,7 +1,6 @@
 /**
  * pda_logic_table.js
  * Specialized Intelligence controller for Pushdown Automata (PDA).
- * Enhanced with Initial/Final state status markers.
  */
 import { MACHINE } from './pda_state.js';
 
@@ -29,11 +28,9 @@ export function updatePdaLogicDisplay() {
             const sourceState = states.find(s => s.id === t.from);
             const targetState = states.find(s => s.id === t.to);
 
-            // Surgical Status Marker Logic
             const getStatus = (s) => {
                 if (!s) return "";
                 let icons = "";
-                // Blue for Initial, Green for Final/Accepting
                 if (s.initial) icons += `<span title="Initial" style="color:#6366f1; font-weight:bold; margin-left:4px;">→</span>`;
                 if (s.accepting) icons += `<span title="Final" style="color:#10b981; font-weight:bold; margin-left:4px;">◎</span>`;
                 return icons;
@@ -65,22 +62,46 @@ export function updatePdaLogicDisplay() {
         });
     }
 }
+
 /**
  * Highlights the active PDA transition row during simulation.
- * Syncs the modal table with the canvas emerald pulse.
  */
 export function highlightPdaTableRow(idx) {
-    // 1. Reset all rows to transparent
     document.querySelectorAll('#pdaLogicTableBody tr').forEach(r => {
         r.style.background = 'transparent';
         r.style.boxShadow = 'none';
     });
 
-    // 2. Identify and highlight the active transition
     const activeRow = document.querySelector(`#pdaLogicTableBody tr[data-index="${idx}"]`);
     if (activeRow) {
-        activeRow.style.background = 'rgba(16, 185, 129, 0.15)'; // Light Emerald Tint
-        activeRow.style.boxShadow = 'inset 4px 0 0 #10b981'; // Emerald Left Border
+        activeRow.style.background = 'rgba(16, 185, 129, 0.15)'; 
+        activeRow.style.boxShadow = 'inset 4px 0 0 #10b981'; 
         activeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+}
+
+/**
+ * Exports PDA transitions to a CSV file optimized for Excel.
+ */
+export async function exportPdaTableToExcel() {
+    // Ensuring we have the latest machine state
+    const { MACHINE: latestMachine } = await import('./pda_state.js');
+    if (!latestMachine.transitions || latestMachine.transitions.length === 0) return;
+
+    const headers = ["From State", "Input Symbol", "Pop Symbol", "To State", "Push Symbol(s)"];
+    const rows = latestMachine.transitions.map(t => [
+        t.from,
+        t.symbol || 'ε',
+        t.pop || 'ε',
+        t.to,
+        t.push || 'ε'
+    ].join(","));
+
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `PDA_Logic_${new Date().getTime()}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
 }

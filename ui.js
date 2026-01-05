@@ -7,7 +7,7 @@ import { generatePractice, showSolution, resetPractice, checkAnswer } from './pr
 import { setValidationMessage } from './utils.js';
 import { areEquivalent } from './equivalence.js';
 import { animateEnfaToNfa, animateNfaToDfa, animateDfaToMinDfa, animateNfaToMinDfa } from './conversion-animation.js';
-import { updateFaLogicDisplay } from './fa_logic_table.js'
+import { updateFaLogicDisplay, exportFaTableToExcel } from './fa_logic_table.js';
 
 function customAlert(title, message) {
     const alertModal = document.getElementById('alertModal');
@@ -602,14 +602,19 @@ function handleBackToMenu() {
     }
     
     document.getElementById('toggleFaLogicBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('faLogicModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            updateFaLogicDisplay(); // Syncs the FA From/Input/To table
-            if (window.lucide) lucide.createIcons();
-        }
-    });
+    const modal = document.getElementById('faLogicModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        updateFaLogicDisplay(); 
+        if (window.lucide) lucide.createIcons();
+    }
+});
 
+  // Inside initializeUI() in ui.js
+document.getElementById('faExportTableBtn')?.addEventListener('click', () => {
+    // Now directly available from top-level import
+    exportFaTableToExcel(); 
+});
     // 2. Hook into the render loop for dynamic sidebar roles
     const originalRender = renderAll;
     window.renderAll = () => {

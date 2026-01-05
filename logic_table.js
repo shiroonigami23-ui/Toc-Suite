@@ -4,7 +4,7 @@
  * Handles dynamic legends, transition tables, and real-time highlighting.
  */
 import { MACHINE } from './tm_state.js';
-
+import { addLogMessage } from './utils.js';
 
 /**
  * logic_table.js
@@ -94,3 +94,45 @@ window.deleteTransitionFromTable = (index) => {
         }
     });
 };
+
+export function exportTmTableToExcel() {
+    if (!MACHINE.transitions || MACHINE.transitions.length === 0) {
+        alert("No transitions to export.");
+        return;
+    }
+
+    addLogMessage("Generating Excel-compatible transition report...", 'table-2');
+
+    // 1. Define CSV Headers
+    const headers = ["From State", "Read Symbol", "Write Symbol", "Move Direction", "To State"];
+    
+    // 2. Map Transitions to CSV Rows
+    const rows = MACHINE.transitions.map(t => {
+        return [
+            t.from,
+            t.read || 'B', // Blank symbol fallback
+            t.write || 'B',
+            t.move,
+            t.to
+        ].join(",");
+    });
+
+    // 3. Combine and create Blob
+    const csvContent = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    
+    // 4. Trigger Download
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const fileName = `TM_Logic_${MACHINE.title || 'Export'}_${timestamp}.csv`;
+    
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    addLogMessage(`Logic Table exported: ${fileName}`, 'check-circle');
+}

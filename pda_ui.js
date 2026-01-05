@@ -12,7 +12,7 @@ import { generatePractice, checkAnswer, showSolution } from './pda_practice.js';
 import { savePdaMachine, exportPng, loadPdaMachine } from './pda_file.js';
 import { setValidationMessage, customAlert, addLogMessage, initializeShortcuts } from './utils.js';
 import { animatePdaDrawing } from './pda_animation.js';
-import { updatePdaLogicDisplay } from './pda_logic_table.js';
+import { updatePdaLogicDisplay, exportPdaTableToExcel } from './pda_logic_table.js';
 import { initializePdaLibrary } from './pda_library_loader.js';
 
 let currentMode = 'move';
@@ -638,10 +638,15 @@ function setupZoomUI() {
         applyTransform(100);
     });
 }
+/**
+ * setupPdaLogicToggle
+ * Handles opening/closing the Logic Modal and triggers the Excel export.
+ */
 function setupPdaLogicToggle() {
     const btn = document.getElementById('togglePdaLogicBtn');
     const modal = document.getElementById('pdaLogicModal');
     const closeBtn = document.getElementById('closePdaLogicModal');
+    const exportBtn = document.getElementById('pdaExportTableBtn'); //
 
     btn?.addEventListener('click', () => {
         if (modal) {
@@ -653,6 +658,11 @@ function setupPdaLogicToggle() {
 
     closeBtn?.addEventListener('click', () => {
         if (modal) modal.style.display = 'none';
+    });
+
+    // --- ARCHITECT'S UPGRADE: Excel Export Listener ---
+    exportBtn?.addEventListener('click', () => {
+        exportPdaTableToExcel(); //
     });
 }
 

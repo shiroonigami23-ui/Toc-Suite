@@ -18,10 +18,10 @@ A mathematically precise environment for constructing and simulating Finite Auto
 ### 📊 Library Metrics
 | Studio | Machine Count | Status |
 | :--- | :---: | :--- |
-| Finite Automata | **8** | Ready |
-| Pushdown Automata | **3** | Ready |
-| Mealy/Moore | **2** | Ready |
-| Turing Machines | **1** | Ready |
+| Finite Automata | **0** | Ready |
+| Pushdown Automata | **0** | Ready |
+| Mealy/Moore | **0** | Ready |
+| Turing Machines | **0** | Ready |
 ---
 
 ## 🛠 Project Architecture
