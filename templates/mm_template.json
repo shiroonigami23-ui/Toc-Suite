@@ -1,0 +1,12 @@
+{
+  "type": "MEALY",
+  "title": "Mealy: [Function]",
+  "machine": {
+    "alphabet": ["0", "1"],
+    "output_alphabet": ["A", "B"],
+    "states": [{ "id": "S1", "x": 300, "y": 300, "initial": true }],
+    "transitions": [
+      { "from": "S1", "to": "S1", "symbol": "1", "output": "A" }
+    ]
+  }
+}
