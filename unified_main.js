@@ -270,11 +270,9 @@ export const StudioContext = {
               </div>
     
               <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
-                <button id="zoomInBtn" class="toolbar-icon" title="Zoom In" type="button"><i data-lucide="zoom-in"></i></button>
-                <input id="zoomSlider" type="range" min="50" max="200" value="100" />
-                <button id="zoomOutBtn" class="toolbar-icon" title="Zoom Out" type="button"><i data-lucide="zoom-out"></i></button>
-                <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
-              </div>
+    <input id="zoomSlider" type="range" min="50" max="200" value="100" />
+    <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
+</div>
             </section>
             
             <div id="stepLog">Step log appears here.</div>
@@ -542,11 +540,9 @@ export const StudioContext = {
               </div>
     
               <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
-                <button id="zoomInBtn" class="toolbar-icon" title="Zoom In" type="button"><i data-lucide="zoom-in"></i></button>
-                <input id="zoomSlider" type="range" min="50" max="200" value="100" />
-                <button id="zoomOutBtn" class="toolbar-icon" title="Zoom Out" type="button"><i data-lucide="zoom-out"></i></button>
-                <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
-              </div>
+    <input id="zoomSlider" type="range" min="50" max="200" value="100" />
+    <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
+</div>
             </section>
             
             <div id="stepLog">I/O Trace steps appear here.</div>
