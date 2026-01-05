@@ -52,7 +52,7 @@ export const StudioContext = {
       </header>
       <main class="main-content">
         <aside id="controlPanel" class="control-panel" aria-label="Controls">
-          <details class="control-section" open>
+          <details class="control-section">
             <summary>
                 <i data-lucide="sliders-horizontal"></i>
                 <span>Mode & Interaction</span>
