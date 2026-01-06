@@ -358,13 +358,33 @@ function deleteTransition(from, to, index) {
     renderAll();
 }
 
-function setupFileUI() {
+/**
+ * setupFileUI (TM Version)
+ * Orchestrates Save, Load, and PNG Export logic.
+ */
+export function setupFileUI() {
+    // 1. Save Logic (Triggers hardcoded prefix modal and background staging)
     document.getElementById('saveTmBtn')?.addEventListener('click', saveTmMachine);
+
+    // 2. Load Logic
     const loadBtn = document.getElementById('loadTmBtn');
     const loadInput = document.getElementById('tmLoadInput');
-    loadBtn?.addEventListener('click', () => loadInput?.click());
-    loadInput?.addEventListener('change', loadTmMachine);
-    document.getElementById('tmExportPngBtn')?.addEventListener('click', exportTmPng);
+    
+    if (loadBtn && loadInput) {
+        loadBtn.onclick = () => loadInput.click();
+        loadInput.onchange = (e) => loadTmMachine(e);
+    }
+
+    // 3. PNG Export (Triggers Emerald prefix modal)
+    document.getElementById('tmExportPngBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('tmExportPngModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Sync hardcoded prefix UI if needed
+            const prefixLabel = document.getElementById('tmSavePrefix');
+            if (prefixLabel) prefixLabel.textContent = "tm_";
+        }
+    });
 }
 /**
  * setupPracticeUI

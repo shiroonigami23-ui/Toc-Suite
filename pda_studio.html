@@ -364,10 +364,11 @@
 
 <div id="pdaSaveModal" class="modal-overlay" style="display:none">
     <div class="modal-box" style="width: 400px; border-top: 4px solid #10b981;">
-        <h3 style="margin-top:0; color:#064e3b;"><i data-lucide="save"></i> Save Machine Configuration</h3>
-        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">Enter a name for your configuration file.</p>
-        <div class="modal-prop-row">
-            <input id="pdaSaveNameInput" class="modal-input" placeholder="pda-logic-export" style="width:100%;">
+        <h3 style="margin-top:0; color:#064e3b;"><i data-lucide="save"></i> Save PDA Configuration</h3>
+        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">Configuration will be staged for the Automated Library.</p>
+        <div class="modal-prop-row" style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+            <span style="padding: 8px 12px; background: #e2e8f0; color: #475569; font-weight: bold; border-right: 1px solid #cbd5e1; user-select: none;">pda_</span>
+            <input id="pdaSaveNameInput" class="modal-input" placeholder="logic-name" style="border: none; flex: 1; padding: 8px; outline: none;">
         </div>
         <div class="modal-actions" style="margin-top:20px;">
             <button onclick="document.getElementById('pdaSaveModal').style.display='none'">Cancel</button>
@@ -379,9 +380,9 @@
 <div id="pdaExportPngModal" class="modal-overlay" style="display:none">
     <div class="modal-box" style="width: 400px; border-top: 4px solid #6366f1;">
         <h3 style="margin-top:0; color:#312e81;"><i data-lucide="image"></i> Export High-Res PNG</h3>
-        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">The canvas will be captured at 3x resolution for documentation.</p>
-        <div class="modal-prop-row">
-            <input id="pdaPngNameInput" class="modal-input" placeholder="pda-visual-export" style="width:100%;">
+        <div class="modal-prop-row" style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-top: 10px;">
+            <span style="padding: 8px 12px; background: #e2e8f0; color: #475569; font-weight: bold; border-right: 1px solid #cbd5e1; user-select: none;">pda_</span>
+            <input id="pdaPngNameInput" class="modal-input" placeholder="visual-export" style="border: none; flex: 1; padding: 8px; outline: none;">
         </div>
         <div class="modal-actions" style="margin-top:20px;">
             <button onclick="document.getElementById('pdaExportPngModal').style.display='none'">Cancel</button>

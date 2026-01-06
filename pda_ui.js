@@ -555,14 +555,17 @@ function setupPracticeUI() {
 /**
  * setupFileUI (Architect Upgrade)
  */
-function setupFileUI() {
-    // 1. Save JSON (Triggers Modal inside pda_file.js)
+export function setupFileUI() {
+    // 1. Save JSON (Opens Modal)
     document.getElementById('savePdaBtn')?.addEventListener('click', savePdaMachine);
 
-    // 2. Export PNG (Triggers Modal)
-    document.getElementById('pdaExportPngBtn')?.addEventListener('click', exportPng);
+    // 2. Export PNG (Opens Modal)
+    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('pdaExportPngModal');
+        if (modal) modal.style.display = 'flex';
+    });
 
-    // 3. Load Logic remains unchanged as it uses system file picker
+    // 3. Load Logic
     const loadBtn = document.getElementById('loadPdaBtn');
     const loadInput = document.getElementById('pdaLoadInput');
     loadBtn?.addEventListener('click', () => loadInput?.click());

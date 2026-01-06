@@ -25,33 +25,41 @@ function getIntelligentName(prefix) {
  * Custom Save Logic using Modal
  */
 export function savePdaMachine() {
-    if (!MACHINE.states || MACHINE.states.length === 0) {
-        customAlert("Empty Canvas", "Add states before saving.");
-        return;
-    }
-
     const modal = document.getElementById('pdaSaveModal');
     const input = document.getElementById('pdaSaveNameInput');
-    const name = getIntelligentName("pda"); // Hardcoded PDA start
+    const prefix = "pda_"; // Hardcoded Architect Prefix
     
-    input.value = name;
+    let suggested = analyzePdaPattern ? analyzePdaPattern(MACHINE) : "logic-snapshot";
+    input.value = suggested.toLowerCase().replace(/\s+/g, '-');
     modal.style.display = 'flex';
 
     document.getElementById('pdaSaveConfirmBtn').onclick = () => {
-        const fileName = input.value.trim() || name;
+        const userProvidedPart = input.value.trim() || "unnamed";
+        const fileName = prefix + userProvidedPart;
+        modal.style.display = 'none';
+
+        // 1. LOCAL DOWNLOAD (The priority for the user)
         const blob = new Blob([JSON.stringify({ type: 'PDA', machine: MACHINE }, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        
         link.href = url;
-        link.download = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
+        link.download = `${fileName}.json`;
         link.click();
-        
-        modal.style.display = 'none';
-        addLogMessage(`Machine saved: ${fileName}`, 'check-circle');
+        addLogMessage(`Local save complete: ${fileName}.json`, 'check-circle');
+
+        // 2. STAGING FOR LIBRARY (Silent Background Process)
+        // This hits your Netlify Function. It is separate from local flow.
+        fetch('/.netlify/functions/save-to-db', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: userProvidedPart, 
+                type: 'PDA',
+                data: MACHINE,
+                author: 'Anonymous Architect' // Change to dynamic user if needed
+            })
+        }).catch(err => console.error("Library sync failed, but local save succeeded.")); 
     };
 }
-
 /**
  * Exports the current PDA canvas as a high-quality PNG.
  * Fixed to capture all states and transitions without cutoff, matching the 

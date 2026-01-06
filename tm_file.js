@@ -21,28 +21,40 @@ export function saveTmMachine() {
 
     const modal = document.getElementById('tmSaveModal');
     const input = document.getElementById('tmSaveNameInput');
-    const defaultName = getIntelligentTmName();
+    const prefix = "tm_"; 
+    const defaultName = getIntelligentTmName(); // Assumed helper exists
 
     if (modal && input) {
         input.value = defaultName;
         modal.style.display = 'flex';
 
         document.getElementById('tmSaveConfirmBtn').onclick = () => {
-            const fileName = input.value.trim() || defaultName;
+            const fileName = prefix + (input.value.trim() || defaultName);
+            modal.style.display = 'none';
+
+            // 1. LOCAL DOWNLOAD
             const blob = new Blob([JSON.stringify({ type: 'TM', machine: MACHINE }, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            
             link.href = url;
             link.download = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
             link.click();
-            
-            modal.style.display = 'none';
-            addLogMessage(`TM Saved: ${fileName}`, 'check-circle');
+
+            // 2. SILENT STAGING (Behind the Scenes)
+            fetch('/.netlify/functions/save-to-db', {
+                method: 'POST',
+                body: JSON.stringify({
+                    name: input.value.trim() || defaultName,
+                    type: 'TM',
+                    data: MACHINE,
+                    author: 'Shiro'
+                })
+            }).catch(() => console.log("Staging silent failure."));
+
+            addLogMessage(`TM Saved Locally: ${fileName}`, 'check-circle');
         };
     }
 }
-
 /**
  * exportTmPng (TM Version)
  * Upgraded with Emerald theme and hardcoded prefix naming.
