@@ -38,26 +38,31 @@ export function updatePdaLogicDisplay() {
 
             const row = document.createElement('tr');
             row.setAttribute('data-index', idx);
-            row.innerHTML = `
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: left;">
-                    <strong>${t.from}</strong> ${getStatus(sourceState)}
-                </td>
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #10b981; font-weight: bold;">
-                    ${t.symbol || 'ε'}
-                </td>
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #6366f1;">
-                    ${t.pop || 'ε'}
-                </td>
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: left;">
-                    ${getStatus(targetState)} <strong>${t.to}</strong>
-                </td>
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #059669;">
-                    ${t.push || 'ε'}
-                </td>
-                <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; text-align: center;">
-                    <button style="color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.2em;" onclick="window.deletePdaTransition(${idx})">×</button>
-                </td>
-            `;
+row.innerHTML = `
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: left; background: #fafafa;">
+        <strong>${t.from}</strong> ${getStatus(sourceState)}
+    </td>
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #10b981; font-weight: bold;">
+        ${t.symbol || 'ε'}
+    </td>
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #6366f1; font-weight: bold; background: #fdfdff;">
+        ${t.pop || 'ε'}
+    </td>
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: left;">
+        ${getStatus(targetState)} <strong>${t.to}</strong>
+    </td>
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #059669; font-weight: bold;">
+        ${t.push || 'ε'}
+    </td>
+    <td style="padding: 12px 10px; border-bottom: 1px solid #f1f5f9; text-align: center;">
+        <button class="icon-btn-danger" style="color: #ef4444; border: none; background: none; cursor: pointer; font-size: 1.25em; transition: transform 0.2s;" 
+                onmouseover="this.style.transform='scale(1.2)'" 
+                onmouseout="this.style.transform='scale(1)'"
+                onclick="window.deletePdaTransition(${idx})">
+            <i data-lucide="trash-2" style="width:16px;"></i> ×
+        </button>
+    </td>
+`;
             tableBody.appendChild(row);
         });
     }

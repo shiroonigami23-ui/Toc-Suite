@@ -274,30 +274,44 @@
     </div>
 </div>
 <div id="pdaTransitionModal" class="modal-overlay" style="display:none">
-    <div class="modal-box">
-        <h3>Add PDA Transition</h3>
-        <div style="display:flex; justify-content: flex-end; margin-bottom: 5px;">
-            <button id="pdaEpsilonShortcutBtn" class="icon-btn" style="font-size: 0.8em; padding: 2px 8px;">Quick ε</button>
+    <div class="modal-box" style="width: 450px; border-top: 4px solid #6366f1;">
+        <h3 style="margin-top:0; color:#312e81;">Add PDA Transition</h3>
+        
+        <div style="display:flex; justify-content: flex-end; margin-bottom: 10px;">
+            <button id="pdaEpsilonShortcutBtn" class="icon-btn" style="font-size: 0.75em; padding: 4px 10px; background:#eef2ff; border:1px solid #6366f1; color:#3730a3;">
+                <i data-lucide="zap" style="width:12px;"></i> Quick ε (All Fields)
+            </button>
         </div>
-        <div style="display:flex; gap:8px; margin-bottom:10px;">
-            <input id="pdaTransFrom" class="modal-input" readonly />
-            <input id="pdaTransTo" class="modal-input" readonly />
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div class="modal-prop-row">
+                <label style="font-size:0.75em; font-weight:bold; color:#64748b;">FROM STATE</label>
+                <input id="pdaTransFrom" class="modal-input" readonly style="background:#f8fafc; font-weight:bold; text-align:center;">
+            </div>
+            <div class="modal-prop-row">
+                <label style="font-size:0.75em; font-weight:bold; color:#64748b;">TO STATE</label>
+                <input id="pdaTransTo" class="modal-input" readonly style="background:#f8fafc; font-weight:bold; text-align:center;">
+            </div>
         </div>
-        <div class="modal-prop-row">
-            <label>Input (a):</label>
-            <input id="pdaTransSymbol" class="modal-input" placeholder="ε" />
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-bottom:20px;">
+            <div class="modal-prop-row">
+                <label style="font-size:0.8em; font-weight:bold;">INPUT (σ)</label>
+                <input id="pdaTransSymbol" class="modal-input" placeholder="ε" maxlength="1" style="text-align:center; border-bottom:2px solid #10b981;">
+            </div>
+            <div class="modal-prop-row">
+                <label style="font-size:0.8em; font-weight:bold;">STACK TOP (γ)</label>
+                <input id="pdaTransPop" class="modal-input" placeholder="Z" maxlength="1" style="text-align:center; border-bottom:2px solid #6366f1;">
+            </div>
+            <div class="modal-prop-row">
+                <label style="font-size:0.8em; font-weight:bold;">PUSH (λ)</label>
+                <input id="pdaTransPush" class="modal-input" placeholder="AZ" style="text-align:center; border-bottom:2px solid #059669;">
+            </div>
         </div>
-        <div class="modal-prop-row">
-            <label>Pop (Z):</label>
-            <input id="pdaTransPop" class="modal-input" placeholder="Z" />
-        </div>
-        <div class="modal-prop-row">
-            <label>Push (γ):</label>
-            <input id="pdaTransPush" class="modal-input" placeholder="AZ" />
-        </div>
-        <div class="modal-actions">
-            <button onclick="document.getElementById('pdaTransitionModal').style.display='none'">Cancel</button>
-            <button id="pdaTransSave" class="primary-btn" style="background:#667eea; color:white;">Save</button>
+
+        <div class="modal-actions" style="border-top: 1px solid #f1f5f9; padding-top:15px;">
+            <button onclick="document.getElementById('pdaTransitionModal').style.display='none'" style="background:#f1f5f9; color:#475569;">Cancel</button>
+            <button id="pdaTransSave" class="primary-btn" style="background:#6366f1; color:white; font-weight:bold;">Save Transition</button>
         </div>
     </div>
 </div>
@@ -346,4 +360,32 @@
         </table>
     </div>
   </div>
+</div>
+
+<div id="pdaSaveModal" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="width: 400px; border-top: 4px solid #10b981;">
+        <h3 style="margin-top:0; color:#064e3b;"><i data-lucide="save"></i> Save Machine Configuration</h3>
+        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">Enter a name for your configuration file.</p>
+        <div class="modal-prop-row">
+            <input id="pdaSaveNameInput" class="modal-input" placeholder="pda-logic-export" style="width:100%;">
+        </div>
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="document.getElementById('pdaSaveModal').style.display='none'">Cancel</button>
+            <button id="pdaSaveConfirmBtn" class="primary-btn" style="background:#10b981;">Confirm Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="pdaExportPngModal" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="width: 400px; border-top: 4px solid #6366f1;">
+        <h3 style="margin-top:0; color:#312e81;"><i data-lucide="image"></i> Export High-Res PNG</h3>
+        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">The canvas will be captured at 3x resolution for documentation.</p>
+        <div class="modal-prop-row">
+            <input id="pdaPngNameInput" class="modal-input" placeholder="pda-visual-export" style="width:100%;">
+        </div>
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="document.getElementById('pdaExportPngModal').style.display='none'">Cancel</button>
+            <button id="pdaPngExportConfirm" class="primary-btn" style="background:#6366f1;">Download PNG</button>
+        </div>
+    </div>
 </div>

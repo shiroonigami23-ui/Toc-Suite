@@ -5,7 +5,7 @@
 
 import { MACHINE, pushUndo, undo, redo, resetMachine, UNDO_STACK, REDO_STACK } from './pda_state.js';
 import { renderAll } from './pda_renderer.js';
-import { validatePda } from './pda_automata.js';
+import { validatePda, convertToDeterministic } from './pda_validator.js';
 import { runPdaSimulation } from './pda_simulation.js';
 import { animatePdaPath,stepSimulation,setSimulationPath,updateStackUI,currentPath,currentIndex} from './pda_simulation_visualizer.js';
 import { generatePractice, checkAnswer, showSolution } from './pda_practice.js'; 
@@ -110,49 +110,6 @@ function setupModeLogic() {
 }
 
 /**
- * Helper to identify and resolve non-deterministic overlaps in PDA transitions.
- * @param {object} machine - The current MACHINE object.
- */
-function convertToDeterministic(machine) {
-    const { transitions } = machine;
-    const seen = new Map();
-    const uniqueTransitions = [];
-    let conflictFound = false;
-
-    // A PDA is deterministic if for every (state, input, stack_top), there is exactly ONE transition.
-    for (const t of transitions) {
-        // Key based on current state, input symbol, and pop symbol
-        const key = `${t.from}|${t.symbol || 'ε'}|${t.pop || 'ε'}`;
-        
-        if (seen.has(key)) {
-            const existing = seen.get(key);
-            // If they go to the same state with the same push, it's just a duplicate we can remove
-            if (existing.to === t.to && existing.push === t.push) {
-                continue; 
-            } else {
-                // Actual branching conflict found
-                conflictFound = true;
-                uniqueTransitions.push(t);
-            }
-        } else {
-            seen.set(key, t);
-            uniqueTransitions.push(t);
-        }
-    }
-
-    machine.transitions = uniqueTransitions;
-
-    if (conflictFound) {
-        return { 
-            success: false, 
-            message: "Inherent non-determinism detected (multiple destinations for same input). Please manually resolve branching paths." 
-        };
-    }
-
-    return { success: true, message: "Redundant transitions cleared. Machine is deterministic." };
-}
-
-/**
  * setupToolbar
  * Orchestrates tool selection, undo/redo, validation, and canvas clearing.
  */
@@ -194,11 +151,16 @@ function setupToolbar() {
         renderAll(); // Re-renders the now-empty canvas
     });
 
-    // 3. Validation Logic
+    // 3. ARCHITECT'S UPGRADE: Validation Logic with Dynamic Icons
     document.getElementById('validateBtn')?.addEventListener('click', () => {
         const result = validatePda(MACHINE); // Performs structural and determinism checks
+        
+        // Set visual message
         setValidationMessage(result.message, result.type);
-        addLogMessage(`Validation: ${result.message}`, result.type === 'success' ? 'check-circle' : 'alert-triangle');
+        
+        // Log the result with domain-specific icons
+        const icon = result.type === 'success' ? 'shield-check' : (result.type === 'error' ? 'alert-octagon' : 'alert-triangle');
+        addLogMessage(`PDA Audit: ${result.message}`, icon);
     });
 
     // 4. History Management (Undo/Redo)
@@ -213,32 +175,32 @@ function setupToolbar() {
     });
 
     // 5. Navigation - Back to Splash Screen
-document.getElementById('pdaBackToMenuBtn')?.addEventListener('click', () => {
-    const mainApp = document.getElementById('mainApp');
-    const splashScreen = document.getElementById('splashScreen');
-    const studioContent = document.getElementById('studioContent');
+    document.getElementById('pdaBackToMenuBtn')?.addEventListener('click', () => {
+        const mainApp = document.getElementById('mainApp');
+        const splashScreen = document.getElementById('splashScreen');
+        const studioContent = document.getElementById('studioContent');
 
-    if (splashScreen) {
-        // Clear the current studio content so IDs don't clash later
-        if (studioContent) {
-            studioContent.innerHTML = ''; 
+        if (splashScreen) {
+            // Clear the current studio content so IDs don't clash later
+            if (studioContent) {
+                studioContent.innerHTML = ''; 
+            }
+
+            // Hide the main container and show the splash screen
+            if (mainApp) {
+                mainApp.style.display = 'none';
+            }
+
+            splashScreen.style.display = 'flex';
+            // Force a reflow for the opacity transition to work
+            void splashScreen.offsetWidth; 
+            splashScreen.style.opacity = '1';
+            
+            addLogMessage("Returned to main menu.", 'home');
+        } else {
+            console.error("Navigation Error: #splashScreen not found.");
         }
-
-        // Hide the main container and show the splash screen
-        if (mainApp) {
-            mainApp.style.display = 'none';
-        }
-
-        splashScreen.style.display = 'flex';
-        // Force a reflow for the opacity transition to work
-        void splashScreen.offsetWidth; 
-        splashScreen.style.opacity = '1';
-        
-        addLogMessage("Returned to main menu.", 'home');
-    } else {
-        console.error("Navigation Error: #splashScreen not found.");
-    }
-});
+    });
 }
 
 function setupCanvasInteractions() {
@@ -380,19 +342,22 @@ function openStatePropsModal(state) {
 function openPdaModal(from, to) {
     const modal = document.getElementById('pdaTransitionModal');
     const symbolIn = document.getElementById('pdaTransSymbol');
-    const popIn = document.getElementById('pdaTransPop');
+    const popIn = document.getElementById('pdaTransPop'); 
     const pushIn = document.getElementById('pdaTransPush');
     const epsBtn = document.getElementById('pdaEpsilonShortcutBtn');
 
     if (!modal || !symbolIn || !popIn || !pushIn) return;
 
+    // Set header labels
     document.getElementById('pdaTransFrom').value = from;
     document.getElementById('pdaTransTo').value = to;
     
-    // Clear previous inputs
-    symbolIn.value = ''; popIn.value = ''; pushIn.value = '';
+    // Reset inputs for a clean state
+    symbolIn.value = ''; 
+    popIn.value = ''; 
+    pushIn.value = '';
 
-    // Epsilon Shortcut logic using Optional Chaining to prevent null errors
+    // Epsilon Quick-Fill Logic
     if (epsBtn) {
         epsBtn.onclick = () => {
             symbolIn.value = 'ε';
@@ -404,21 +369,26 @@ function openPdaModal(from, to) {
     modal.style.display = 'flex';
     symbolIn.focus();
 
+    // Attach Save Listener
     const saveBtn = document.getElementById('pdaTransSave');
     if (saveBtn) {
+        // REMOVED 'async' and 'await' logic here because pushUndo is already imported
         saveBtn.onclick = () => {
-            const symbol = symbolIn.value || 'ε';
-            const pop = popIn.value || 'ε';
-            const push = pushIn.value || 'ε';
+            const symbol = symbolIn.value.trim() || 'ε';
+            const pop = popIn.value.trim() || 'ε';
+            const push = pushIn.value.trim() || 'ε';
             
+            // Use the top-level pushUndo() function
             pushUndo();
+            
+            // Push the formal transition object
             MACHINE.transitions.push({ from, to, symbol, pop, push });
+            
             modal.style.display = 'none';
-            renderAll();
+            renderAll(); // Syncs canvas and sidebar intelligence
         };
     }
 }
-
 function deleteState(id) {
     pushUndo();
     MACHINE.states = MACHINE.states.filter(s => s.id !== id);
@@ -582,27 +552,21 @@ function setupPracticeUI() {
     });
 }
 
+/**
+ * setupFileUI (Architect Upgrade)
+ */
 function setupFileUI() {
-    // Save JSON
+    // 1. Save JSON (Triggers Modal inside pda_file.js)
     document.getElementById('savePdaBtn')?.addEventListener('click', savePdaMachine);
 
-    // Load JSON - Trigger the hidden input
+    // 2. Export PNG (Triggers Modal)
+    document.getElementById('pdaExportPngBtn')?.addEventListener('click', exportPng);
+
+    // 3. Load Logic remains unchanged as it uses system file picker
     const loadBtn = document.getElementById('loadPdaBtn');
     const loadInput = document.getElementById('pdaLoadInput');
-    
     loadBtn?.addEventListener('click', () => loadInput?.click());
     loadInput?.addEventListener('change', loadPdaMachine);
-
-    // Export PNG
-    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => {
-        document.getElementById('pdaExportPngModal').style.display = 'flex';
-    });
-    
-    document.getElementById('pdaPngExportConfirm')?.addEventListener('click', () => {
-        const fileName = document.getElementById('pdaPngNameInput').value.trim() || 'pda-export';
-        exportPng(fileName);
-        document.getElementById('pdaExportPngModal').style.display = 'none';
-    });
 }
 
 function setupLibraryUI() {

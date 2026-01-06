@@ -318,3 +318,31 @@
         </div>
     </div>
 </div>
+
+<div id="tmSaveModal" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="width: 400px; border-top: 4px solid #10b981;">
+        <h3 style="margin-top:0; color:#064e3b;"><i data-lucide="save"></i> Save TM Logic</h3>
+        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">Configuration will be saved as a portable JSON file.</p>
+        <div class="modal-prop-row">
+            <input id="tmSaveNameInput" class="modal-input" placeholder="tm-logic-export" style="width:100%; border-left: 3px solid #10b981;">
+        </div>
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="document.getElementById('tmSaveModal').style.display='none'">Cancel</button>
+            <button id="tmSaveConfirmBtn" class="primary-btn" style="background:#10b981;">Confirm Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="tmExportPngModal" class="modal-overlay" style="display:none">
+    <div class="modal-box" style="width: 400px; border-top: 4px solid #059669;">
+        <h3 style="margin-top:0; color:#064e3b;"><i data-lucide="image"></i> Export Canvas PNG</h3>
+        <p style="font-size:0.85em; color:#64748b; margin-bottom:15px;">High-resolution snapshot for documentation.</p>
+        <div class="modal-prop-row">
+            <input id="tmPngNameInput" class="modal-input" placeholder="tm-visual-snapshot" style="width:100%; border-left: 3px solid #059669;">
+        </div>
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="document.getElementById('tmExportPngModal').style.display='none'">Cancel</button>
+            <button id="tmPngExportConfirm" class="primary-btn" style="background:#059669;">Download PNG</button>
+        </div>
+    </div>
+</div>
