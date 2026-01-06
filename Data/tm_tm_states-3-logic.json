@@ -1,0 +1,53 @@
+{
+  "type": "STANDARD",
+  "states": [
+    {
+      "x": 156.3298797607422,
+      "y": 212.3257598876953,
+      "id": "q0",
+      "initial": true,
+      "accepting": false
+    },
+    {
+      "x": 318.0624084472656,
+      "y": 359.5438232421875,
+      "id": "q1",
+      "initial": false,
+      "accepting": true
+    },
+    {
+      "x": 386.4877014160156,
+      "y": 204.0317840576172,
+      "id": "q2",
+      "initial": false,
+      "accepting": false
+    }
+  ],
+  "alphabet": [
+    "0",
+    "1"
+  ],
+  "numTapes": 1,
+  "blankSymbol": "B",
+  "transitions": [
+    {
+      "to": "q1",
+      "from": "q0",
+      "move": "L",
+      "read": "d",
+      "write": "f"
+    },
+    {
+      "to": "q2",
+      "from": "q1",
+      "move": "L",
+      "read": "d",
+      "write": "f"
+    }
+  ],
+  "tapeAlphabet": [
+    "0",
+    "1",
+    "B"
+  ]
+}
