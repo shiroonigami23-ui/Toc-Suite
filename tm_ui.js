@@ -363,21 +363,29 @@ function deleteTransition(from, to, index) {
  * Orchestrates Save, Load, and PNG Export logic.
  */
 export function setupFileUI() {
-    // Save triggers the Emerald modal
+    // 1. Open Save Modal
     document.getElementById('saveTmBtn')?.addEventListener('click', () => {
-        document.getElementById('tmSaveModal').style.display = 'flex';
+        const modal = document.getElementById('tmSaveModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('tmSaveConfirmBtn').onclick = saveTmMachine;
+        }
     });
 
-    // Load triggers hidden input
+    // 2. Open PNG Modal
+    document.getElementById('tmExportPngBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('tmExportPngModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('tmPngExportConfirm').onclick = exportTmPng;
+        }
+    });
+
+    // 3. Load Logic
     const loadBtn = document.getElementById('loadTmBtn');
     const loadInput = document.getElementById('tmLoadInput');
     loadBtn?.addEventListener('click', () => loadInput?.click());
     loadInput?.addEventListener('change', loadTmMachine);
-
-    // Export triggers PNG modal
-    document.getElementById('tmExportPngBtn')?.addEventListener('click', () => {
-        document.getElementById('tmExportPngModal').style.display = 'flex';
-    });
 }
 /**
  * setupPracticeUI

@@ -556,18 +556,31 @@ function setupPracticeUI() {
  * setupFileUI (Architect Upgrade)
  */
 export function setupFileUI() {
+    // 1. Open Save Modal
     document.getElementById('savePdaBtn')?.addEventListener('click', () => {
-        document.getElementById('pdaSaveModal').style.display = 'flex';
+        const modal = document.getElementById('pdaSaveModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Wire the internal confirm button to the actual logic
+            document.getElementById('pdaSaveConfirmBtn').onclick = savePdaMachine;
+        }
     });
 
+    // 2. Open PNG Modal
+    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => {
+        const modal = document.getElementById('pdaExportPngModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Wire the internal confirm button to the actual logic
+            document.getElementById('pdaPngExportConfirm').onclick = exportPng;
+        }
+    });
+
+    // 3. Load Logic (Standard)
     const loadBtn = document.getElementById('loadPdaBtn');
     const loadInput = document.getElementById('pdaLoadInput');
     loadBtn?.addEventListener('click', () => loadInput?.click());
     loadInput?.addEventListener('change', loadPdaMachine);
-
-    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => {
-        document.getElementById('pdaExportPngModal').style.display = 'flex';
-    });
 }
 
 function setupLibraryUI() {
