@@ -17,11 +17,11 @@ exports.handler = async (event) => {
         const res = await client.query("SELECT type FROM machine_submissions WHERE id = $1", [id]);
         const type = res.rows[0].type.toLowerCase();
 
-        // Data Contract: Data/${typeFolder}/${filename}
+        // ARCHITECT FIX: Push directly to Data/ root, no subfolders
         const fileName = `${type}_${editedName}.json`;
-        const filePath = `Data/${type}/${fileName}`;
-        const content = Buffer.from(JSON.stringify(editedData, null, 2)).toString('base64');
+        const filePath = `Data/${fileName}`; 
         
+        const content = Buffer.from(JSON.stringify(editedData, null, 2)).toString('base64');
         const githubUrl = `https://api.github.com/repos/shiroonigami23-ui/toc-suite/contents/${filePath}`;
 
         const ghResponse = await fetch(githubUrl, {
