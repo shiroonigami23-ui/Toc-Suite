@@ -22,15 +22,17 @@ exports.handler = async (event) => {
             
             const type = sub.type.toLowerCase();
             const fileName = `${type}_${sub.name}.json`;
-            const filePath = `Data/${type}/${fileName}`; // Root Data folder
-            const content = Buffer.from(JSON.stringify(sub.data, null, 2)).toString('base64');
             
+            // ARCHITECT FIX: Direct root placement in Data folder
+            const filePath = `Data/${fileName}`; 
+            
+            const content = Buffer.from(JSON.stringify(sub.data, null, 2)).toString('base64');
             const githubUrl = `https://api.github.com/repos/shiroonigami23-ui/toc-suite/contents/${filePath}`;
 
             const ghResponse = await fetch(githubUrl, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `token ${process.env.GITHUB_PAT}`, // Secret PAT
+                    'Authorization': `token ${process.env.GITHUB_PAT}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
