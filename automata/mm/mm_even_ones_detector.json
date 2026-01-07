@@ -42,7 +42,13 @@
         "symbol": "1"
       }
     ],
-    "alphabet": ["0", "1"],
-    "output_alphabet": ["0", "1"]
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "output_alphabet": [
+      "0",
+      "1"
+    ]
   }
 }
