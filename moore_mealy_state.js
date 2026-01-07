@@ -82,6 +82,37 @@ export function doRedo(updateUIFunction) {
 }
 
 /**
+ * ARCHITECT FIX: handleClearCanvas
+ * Resets the machine to an empty state and clears history.
+ */
+export function handleClearCanvas(updateUIFunction) {
+    // Reset the core machine object
+    setMachine({
+        type: MACHINE.type || 'MOORE', 
+        states: [],
+        transitions: [],
+        inputAlphabet: [],
+        outputAlphabet: []
+    });
+
+    // Wipe stacks to prevent "undoing" back into a deleted machine
+    UNDO_STACK = [];
+    REDO_STACK = [];
+
+    // Reset simulation
+    simState.steps = [];
+    simState.index = 0;
+    simState.input = '';
+    simState.output = '';
+
+    // Re-draw the empty canvas
+    renderFunction();
+
+    // Update the UI buttons (Undo/Redo)
+    if (updateUIFunction) updateUIFunction();
+}
+
+/**
  * Initializes the state for the Mealy/Moore Studio.
  * Moore is the default starting type.
  * @param {function} updateUIFunction 

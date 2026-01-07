@@ -564,37 +564,42 @@ export const StudioContext = {
       </main>
     </div>
 
-    <div id="mmLogicModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-  <div class="modal-box" style="width: 80%; max-width: 850px; background: white; border-radius: 12px; padding: 25px; max-height: 85vh; overflow-y: auto;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #fff7ed; padding-bottom: 15px;">
-      <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; color: #9a3412;">
-        <i data-lucide="table-2" style="color: #ff9800;"></i> Mealy/Moore Transition Logic
-      </h3>
-      
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="mmExportTableBtn" class="icon-btn" style="background: #fff7ed; border: 1px solid #ff9800; color: #9a3412; font-size: 0.85em; padding: 6px 15px; border-radius: 8px; font-weight: 700;">
-            <i data-lucide="download" style="width: 16px;"></i> Export
-        </button>
+   <div id="mmLogicModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-box" style="width: 85%; max-width: 900px; background: white; border-radius: 16px; padding: 0; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
         
-        <button onclick="document.getElementById('mmLogicModal').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">&times;</button>
-      </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: #fff7ed; border-bottom: 2px solid #ffedd5;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: #ff9800; padding: 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="table-2" style="color: white; width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; color: #7c2d12; font-size: 1.2rem;">Transition & Output Logic</h3>
+                    <div id="mmDynamicLegend" style="display: flex; gap: 10px; margin-top: 4px;">
+                        </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="mmExportTableBtn" class="btn" style="background: white; border: 1px solid #ff9800; color: #9a3412; font-size: 0.85em; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="download" style="width: 16px;"></i> Export CSV
+                </button>
+                <button onclick="document.getElementById('mmLogicModal').style.display='none'" style="background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">&times;</button>
+            </div>
+        </div>
+        
+        <div style="padding: 20px 30px 30px;">
+            <div style="overflow-y: auto; max-height: 60vh; border-radius: 12px; border: 1px solid #ffedd5; background: white;">
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.95em;">
+                    <thead style="background: #fdfaf6; border-bottom: 2px solid #ffedd5; position: sticky; top: 0; z-index: 10;">
+                        <tr id="mmLogicTableHeaderRow">
+                            </tr>
+                    </thead>
+                    <tbody id="mmLogicTableBody" style="color: #431407;">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-    
-    <div style="overflow-x: auto; border-radius: 8px; border: 1px solid #ffedd5;">
-      <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.9em;">
-        <thead style="background: #fdfaf6; border-bottom: 2px solid #ffedd5; position: sticky; top: 0;">
-          <tr>
-            <th style="padding: 12px; text-align: left; color: #7c2d12;">From (Status)</th>
-            <th style="padding: 12px; color: #7c2d12;">Input Symbol</th>
-            <th style="padding: 12px; color: #7c2d12;">To State</th>
-            <th style="padding: 12px; text-align: right; color: #7c2d12;">Output </th>
-          </tr>
-        </thead>
-        <tbody id="mmLogicTableBody" style="color: #431407;"></tbody>
-      </table>
-    </div>
-  </div>
 </div>
 `;
     },

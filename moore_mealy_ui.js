@@ -1,4 +1,4 @@
-import { MACHINE, CURRENT_MODE, TRANS_FROM, UNDO_STACK, REDO_STACK, pushUndo, doUndo, doRedo, initializeState, setCurrentMode, setTransFrom, simState, setMachine } from './moore_mealy_state.js';
+import { MACHINE, CURRENT_MODE, TRANS_FROM, UNDO_STACK, REDO_STACK, pushUndo, doUndo, doRedo, initializeState, handleClearCanvas, setCurrentMode, setTransFrom, simState, setMachine } from './moore_mealy_state.js';
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { validateAutomaton, convertMooreToMealy } from './moore_mealy_automata.js';

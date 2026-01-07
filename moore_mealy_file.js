@@ -120,17 +120,16 @@ export function handleSaveMachine() {
     const descInput = document.getElementById('libDescInput');
     const alphaDisplay = document.getElementById('libAlphabetDisplay');
     const typeInput = document.getElementById('libTypeInput');
+    const confirmBtn = document.getElementById('saveLibraryConfirmBtn');
 
-    if (!modal || !titleInput || !descInput || !alphaDisplay || !typeInput) return;
+    if (!modal || !titleInput || !descInput || !alphaDisplay || !typeInput || !confirmBtn) return;
     
-    // CRITICAL CHECK: If machine is empty, alert user.
     if (!MACHINE.states || MACHINE.states.length === 0) {
         window.customAlert("Save Failed", "Please draw a machine before saving.");
         return;
     }
 
     const inputAlphabet = [...new Set(MACHINE.transitions.map(t => t.symbol).filter(s => s))].sort();
-    
     let outputAlphabet = [];
     if (MACHINE.type === 'MOORE') {
         outputAlphabet = [...new Set(MACHINE.states.map(s => s.output).filter(o => o))].sort();
@@ -138,9 +137,8 @@ export function handleSaveMachine() {
         outputAlphabet = [...new Set(MACHINE.transitions.map(t => t.output).filter(o => o))].sort();
     }
 
-    // --- SMART TITLE GENERATION ---
+    // --- YOUR SMART TITLE & ANALYSIS ---
     titleInput.value = analyzeMachineStructure(MACHINE);
-    
     const shortestExample = findShortestPathAndOutput(MACHINE);
     const shortDesc = shortestExample ? `Example: Input "${shortestExample.input}" outputs "${shortestExample.output}".` : 'No simple input/output sequence found.';
     
@@ -149,14 +147,40 @@ export function handleSaveMachine() {
 
     descInput.value = shortDesc;
     typeInput.value = MACHINE.type;
-    
     alphaDisplay.innerHTML = `<strong>Input ($\Sigma$):</strong> {${inputAlphaStr}} | <strong>Output ($\Gamma$):</strong> {${outputAlphaStr}}`;
     alphaDisplay.style.display = 'block';
 
     modal.style.display = 'flex';
-}
 
-// --- In moore_mealy_file.js, insert this new function ---
+    // --- ARCHITECT'S STAGING INTEGRATION ---
+    confirmBtn.onclick = () => {
+        const prefix = "mm_"; // Unified prefix for Moore/Mealy
+        const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
+        const fileName = prefix + userProvidedPart.toLowerCase().replace(/\s+/g, '-');
+        
+        modal.style.display = 'none';
+
+        // 1. LOCAL DOWNLOAD
+        const blob = new Blob([JSON.stringify({ type: MACHINE.type, machine: MACHINE }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${fileName}.json`;
+        link.click();
+        addLogMessage(`MM Saved Locally: ${fileName}.json`, 'check-circle');
+
+        // 2. SILENT STAGING (Silent during Netlify pause)
+        fetch('/.netlify/functions/save-to-db', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: userProvidedPart, 
+                type: 'MM', 
+                data: MACHINE,
+                author: 'Shiro'
+            })
+        }).catch(err => console.error("MM Staging bypassed/failed due to environment status."));
+    };
+}
 
 /**
  * Analyzes the machine's state structure to guess common patterns (e.g., parity, sequence detection).
@@ -231,6 +255,10 @@ function analyzeMachinePatterns(machine) {
     return null; 
 }
 
+/**
+ * ARCHITECT UPGRADE: handleSaveWithMetadata
+ * Retains coordinate cleaning while integrating silent staging.
+ */
 export function handleSaveWithMetadata() {
     const title = document.getElementById('libTitleInput').value.trim();
     const userDescription = document.getElementById('libDescInput').value.trim();
@@ -249,12 +277,11 @@ export function handleSaveWithMetadata() {
         outputAlphabet = [...new Set(MACHINE.transitions.map(t => t.output).filter(o => o))].sort();
     }
 
-    // Ensure the machine object saved is CLEAN but retains X and Y coordinates
+    // --- CLEAN MACHINE DATA (Preserving Visuals) ---
     const machineToSave = {
         type: MACHINE.type, 
-        // Keep x and y coordinates for visual placement on reload
         states: MACHINE.states.map(s => {
-            // FIX: Ensure 'accepting' is NEVER saved for MM machines.
+            // Architect Fix: Clean structure for Moore/Mealy logic
             return { id: s.id, initial: s.initial, output: s.output, x: s.x, y: s.y };
         }),
         transitions: MACHINE.transitions.map(t => {
@@ -271,18 +298,35 @@ export function handleSaveWithMetadata() {
         machine: machineToSave
     };
 
+    // --- ARCHITECT'S DATA CONTRACT: mm_ prefix ---
+    const prefix = "mm_";
+    const fileName = `${prefix}${title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50) || 'automaton'}.json`;
+
+    // 1. LOCAL DOWNLOAD (User Action)
     const blob = new Blob([JSON.stringify(libraryEntry, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const fileName = `${title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50) || 'automaton'}.json`;
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = fileName;
     a.click();
-    URL.revokeObjectURL(a.href);
+    URL.revokeObjectURL(url);
+    addLogMessage(`Local save complete: ${fileName}`, 'check-circle');
+
+    // 2. SILENT STAGING (Architect Action)
+    // Note: This will fail until your Netlify build minutes reset
+    fetch('/.netlify/functions/save-to-db', {
+        method: 'POST',
+        body: JSON.stringify({
+            name: title, 
+            type: 'MM', 
+            data: libraryEntry,
+            author: 'Shiro'
+        })
+    }).catch(err => console.log("Silent staging bypassed: Netlify builds currently paused."));
 
     const modal = document.getElementById('saveLibraryModal');
     if (modal) modal.style.display = 'none';
 }
-
 
 /**
  * Loads a Mealy/Moore machine from a local JSON file.

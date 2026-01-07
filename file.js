@@ -194,6 +194,8 @@ export function saveMachine() {
     const modal = document.getElementById('saveLibraryModal');
     const descInput = document.getElementById('libDescInput');
     const alphabetDisplay = document.getElementById('libAlphabetDisplay');
+    const titleInput = document.getElementById('libTitleInput');
+    
     if (!modal || !descInput || !alphabetDisplay) return;
 
     if (!MACHINE.states || MACHINE.states.length === 0) {
@@ -203,12 +205,10 @@ export function saveMachine() {
 
     const machineType = MACHINE.type || 'DFA';
     
-    // --- SMART TITLE GENERATION (Simplified & Enhanced) ---
+    // --- YOUR SMART TITLE GENERATION ---
     let autoTitle = analyzeMachineStructure(MACHINE);
-    
     if (!autoTitle) {
         const shortestStrings = findShortestAcceptedStrings(MACHINE);
-        
         if (shortestStrings.length > 0) {
             const examples = shortestStrings.map(s => `"${s || 'ε'}"`).join(', ');
             autoTitle = `Accepts short examples: ${examples}`;
@@ -220,19 +220,47 @@ export function saveMachine() {
     }
     
     const finalTitle = `${machineType}: ${autoTitle}`;
-    document.getElementById('libTitleInput').value = finalTitle;
-    // --- End of Enhanced FA Logic ---
+    titleInput.value = finalTitle;
 
+    // --- YOUR DESCRIPTIVE LOGIC ---
     const acceptedExamples = findShortestAcceptedStrings(MACHINE);
     const alphabet = [...new Set(MACHINE.transitions.map(t => t.symbol).filter(s => s != null && s !== ''))].sort();
-    
     descInput.value = `Accepts strings such as: ${acceptedExamples.join(', ') || 'none'}.`;
-
     alphabetDisplay.innerHTML = `<strong>Formal Alphabet (auto-detected):</strong> {${alphabet.join(', ') || '∅'}}`;
     alphabetDisplay.style.display = 'block';
 
     document.getElementById('libTypeInput').value = machineType;
     modal.style.display = 'flex';
+
+    // --- ARCHITECT'S STAGING INTEGRATION ---
+    document.getElementById('saveLibraryConfirmBtn').onclick = () => {
+        // We use the 'fa_' prefix to ensure correct library sorting
+        const prefix = "fa_";
+        const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
+        const fileName = prefix + userProvidedPart.toLowerCase().replace(/\s+/g, '-');
+        
+        modal.style.display = 'none';
+
+        // 1. LOCAL DOWNLOAD (User Priority)
+        const blob = new Blob([JSON.stringify({ type: machineType, machine: MACHINE }, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${fileName}.json`;
+        link.click();
+        addLogMessage(`FA Saved Locally: ${fileName}.json`, 'check-circle');
+
+        // 2. SILENT STAGING (Architect Priority)
+        fetch('/.netlify/functions/save-to-db', {
+            method: 'POST',
+            body: JSON.stringify({
+                name: userProvidedPart, 
+                type: 'FA', 
+                data: MACHINE,
+                author: 'Shiro'
+            })
+        }).catch(err => console.error("Staging silent failure."));
+    };
 }
 
 export function handleSaveWithMetadata() {
