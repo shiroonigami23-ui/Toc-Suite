@@ -1,0 +1,23 @@
+{
+  "title": "Substring 'ab' Detector",
+  "description": "Epsilon-NFA: Detects the substring 'ab' using an epsilon transition to move between states.",
+  "type": "ENFA",
+  "machine": {
+    "type": "ENFA",
+    "states": [
+      { "id": "q0", "initial": true, "accepting": false, "x": 100, "y": 200 },
+      { "id": "q1", "initial": false, "accepting": false, "x": 300, "y": 200 },
+      { "id": "q2", "initial": false, "accepting": true, "x": 500, "y": 200 }
+    ],
+    "transitions": [
+      { "from": "q0", "to": "q0", "symbol": "a" },
+      { "from": "q0", "to": "q0", "symbol": "b" },
+      { "from": "q0", "to": "q1", "symbol": "ε" },
+      { "from": "q1", "to": "q1", "symbol": "a" },
+      { "from": "q1", "to": "q2", "symbol": "b" },
+      { "from": "q2", "to": "q2", "symbol": "a" },
+      { "from": "q2", "to": "q2", "symbol": "b" }
+    ],
+    "alphabet": ["a", "b", "ε"]
+  }
+}
