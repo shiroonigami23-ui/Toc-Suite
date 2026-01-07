@@ -55,34 +55,34 @@ jobs:
           }
 
           # --- Step 1: Ingest and Sort from Data/ ---
-data_dir = pathlib.Path("Data")
-if data_dir.exists():
-    for file in data_dir.glob("*.json"):
-        try:
-            # NEW LOGIC: Use the filename prefix first (tm_, pda_, fa_)
-            # This matches your Netlify hardcoded prefixing
-            prefix = file.name.split('_')[0].upper()
-            
-            prefix_to_folder = {
-                "TM": "automata/tm",
-                "PDA": "automata/pda",
-                "FA": "automata/fa",
-                "MM": "automata/mm"
-            }
-            
-            # Fallback to internal content if no prefix is found
-            content = json.loads(file.read_text(encoding="utf-8"))
-            m_type = prefix if prefix in prefix_to_folder else (content.get("type") or "FA").upper()
-            target_folder = prefix_to_folder.get(m_type, "automata/fa")
-            
-            target_path = pathlib.Path(target_folder) / file.name
-            target_path.parent.mkdir(parents=True, exist_ok=True)
-            target_path.write_text(json.dumps(content, indent=2), encoding="utf-8")
-            
-            file.unlink()
-            print(f"Sorted {file.name} into {target_folder}")
-        except Exception as e:
-            print(f"Error processing {file.name}: {e}")
+          data_dir = pathlib.Path("Data")
+          if data_dir.exists():
+              for file in data_dir.glob("*.json"):
+                  try:
+                      # NEW LOGIC: Use the filename prefix first (tm_, pda_, fa_)
+                      prefix = file.name.split('_')[0].upper()
+                      
+                      # Map the prefix to the correct directory
+                      prefix_to_folder = {
+                          "TM": "automata/tm",
+                          "PDA": "automata/pda",
+                          "FA": "automata/fa",
+                          "MM": "automata/mm"
+                      }
+                      
+                      # Fallback to internal content if no prefix is found
+                      content = json.loads(file.read_text(encoding="utf-8"))
+                      m_type = prefix if prefix in prefix_to_folder else (content.get("type") or "FA").upper()
+                      target_folder = prefix_to_folder.get(m_type, "automata/fa")
+                      
+                      target_path = pathlib.Path(target_folder) / file.name
+                      target_path.parent.mkdir(parents=True, exist_ok=True)
+                      target_path.write_text(json.dumps(content, indent=2), encoding="utf-8")
+                      
+                      file.unlink()
+                      print(f"Sorted {file.name} into {target_folder}")
+                  except Exception as e:
+                      print(f"Error processing {file.name}: {e}")
 
           # --- Step 2: Rebuild Libraries ---
           for folder, target in libraries.items():
