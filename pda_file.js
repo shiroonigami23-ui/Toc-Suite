@@ -60,11 +60,7 @@ export function savePdaMachine() {
         }).catch(err => console.error("Library sync failed, but local save succeeded.")); 
     };
 }
-/**
- * Exports the current PDA canvas as a high-quality PNG.
- * Fixed to capture all states and transitions without cutoff, matching the 
- * 1:1 precision of FA, MM, and TM studios.
- */
+
 /**
  * exportPng (PDA Version)
  * Upgraded to use custom modal and intelligent naming.
@@ -76,16 +72,17 @@ export function exportPng() {
     }
 
     const modal = document.getElementById('pdaExportPngModal');
-    const input = document.getElementById('pdaPngNameInput');
-    const suggestedName = getIntelligentName("pda"); // Hardcoded prefix
+    // FIXED: Target the new unique ID 'pdaVisualFileNameInput'
+    const input = document.getElementById('pdaVisualFileNameInput');
+    const suggestedName = getIntelligentName("pda"); 
 
-    input.value = suggestedName;
+    if (input) input.value = suggestedName;
     modal.style.display = 'flex';
 
     // TRIGGER DOWNLOAD ON MODAL CONFIRM
     document.getElementById('pdaPngExportConfirm').onclick = () => {
-        const fileName = input.value.trim() || suggestedName;
-        modal.style.display = 'none'; // Close modal first
+        const fileName = input ? input.value.trim() : suggestedName;
+        modal.style.display = 'none'; 
         addLogMessage(`Generating PDA snapshot: ${fileName}.png`, 'image');
 
         const svgEl = document.getElementById("dfaSVG");
