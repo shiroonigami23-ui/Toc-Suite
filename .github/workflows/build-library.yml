@@ -63,7 +63,6 @@ if data_dir.exists():
             # This matches your Netlify hardcoded prefixing
             prefix = file.name.split('_')[0].upper()
             
-            # Map the prefix to the correct directory
             prefix_to_folder = {
                 "TM": "automata/tm",
                 "PDA": "automata/pda",
