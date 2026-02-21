@@ -6,6 +6,57 @@
   <meta name="theme-color" content="#4a90e2" />
   <title>Toc-Suite Settings</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .settings-hero {
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      background: linear-gradient(120deg, #eff6ff, #f0fdfa);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .settings-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .settings-kpi {
+      background: #fff;
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 0.86rem;
+    }
+    .settings-accordion {
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: #fff;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    .settings-accordion > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 700;
+      background: #f8fbff;
+      border-bottom: 1px solid #e6eefc;
+    }
+    .settings-accordion > summary::-webkit-details-marker { display: none; }
+    .settings-body { padding: 12px; }
+    .settings-row { display: grid; gap: 8px; }
+    .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sticky-actions {
+      position: sticky;
+      bottom: 10px;
+      background: #fff;
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 12px;
+      box-shadow: 0 8px 18px rgba(2, 132, 199, 0.12);
+    }
+  </style>
 </head>
 <body>
   <main class="app-container" style="max-width: 900px; height: auto; min-height: 100dvh;">
@@ -14,75 +65,97 @@
       <a href="index.html" class="splash-utility-btn">Back to Menu</a>
     </header>
 
-    <section class="visualization-panel">
-      <h3>Profile</h3>
-      <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
-    </section>
-
-    <section class="visualization-panel">
-      <h3>Student Email Login (For Assignment/Quiz Submit)</h3>
-      <input id="studentEmailInput" class="modal-input" placeholder="0902CS231028@rjit.ac.in" maxlength="64" style="text-transform:lowercase;" />
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="saveEmailBtn" class="icon-btn" type="button">Use This Email</button>
-        <button id="clearEmailBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Logout Email</button>
+    <section class="settings-hero">
+      <h3 style="margin:0;">Quick Status</h3>
+      <div class="settings-kpis">
+        <div class="settings-kpi"><strong>Name:</strong> <span id="kpiName">Student</span></div>
+        <div class="settings-kpi"><strong>Theme:</strong> <span id="kpiTheme">default</span></div>
+        <div class="settings-kpi"><strong>Identity:</strong> <span id="kpiIdentity">Not set</span></div>
+        <div class="settings-kpi"><strong>Auto Resume:</strong> <span id="kpiResume">Off</span></div>
       </div>
-      <div class="integration-status" style="margin-top:8px;">
-        <div><strong>Submit Identity:</strong> <span id="authStatePreview">Not set</span></div>
-        <div><strong>Derived Roll:</strong> <span id="authRollPreview">-</span></div>
+      <div class="preset-row" style="margin-top:10px;">
+        <button id="presetFocusBtn" class="icon-btn" type="button">Preset: Focus</button>
+        <button id="presetCalmBtn" class="icon-btn" type="button">Preset: Calm</button>
+        <button id="presetDefaultBtn" class="icon-btn" type="button">Preset: Default</button>
       </div>
-      <p id="authStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
     </section>
 
-    <section class="visualization-panel">
-      <h3>Appearance</h3>
-      <label for="themeSelect" style="font-weight:600;">Theme</label>
-      <select id="themeSelect" class="modal-input">
-        <option value="default">Default</option>
-        <option value="ocean">Ocean</option>
-        <option value="forest">Forest</option>
-        <option value="sunset">Sunset</option>
-      </select>
-      <label for="fontScaleSelect" style="font-weight:600;">Text Size</label>
-      <select id="fontScaleSelect" class="modal-input">
-        <option value="normal">Normal</option>
-        <option value="large">Large</option>
-        <option value="xlarge">Extra Large</option>
-      </select>
-      <label for="motionSelect" style="font-weight:600;">Motion</label>
-      <select id="motionSelect" class="modal-input">
-        <option value="normal">Normal</option>
-        <option value="reduced">Reduced Motion</option>
-      </select>
-    </section>
+    <details class="settings-accordion" id="panel-profile" open>
+      <summary>Profile and Identity</summary>
+      <div class="settings-body settings-row">
+        <label for="studentNameInput" style="font-weight:600;">Student Name</label>
+        <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
 
-    <section class="visualization-panel">
-      <h3>Behavior</h3>
-      <label style="display:flex;gap:8px;align-items:center;">
-        <input id="autoResumeToggle" type="checkbox" />
-        Auto-open last used studio on startup
-      </label>
-    </section>
-
-    <section class="visualization-panel">
-      <h3>Data Controls</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button id="exportSettingsBtn" class="icon-btn" type="button">Export Settings JSON</button>
-        <button id="importSettingsBtn" class="icon-btn" type="button">Import Settings JSON</button>
-        <button id="resetSettingsBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Reset to Defaults</button>
+        <label for="studentEmailInput" style="font-weight:600;">Student Email Login (Assignment/Quiz Submit)</label>
+        <input id="studentEmailInput" class="modal-input" placeholder="0902CS231028@rjit.ac.in" maxlength="64" style="text-transform:lowercase;" />
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="saveEmailBtn" class="icon-btn" type="button">Use This Email</button>
+          <button id="clearEmailBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Logout Email</button>
+          <button id="unlockSessionBtn" class="icon-btn" type="button">Unlock Session Identity</button>
+        </div>
+        <div class="integration-status" style="margin-top:8px;">
+          <div><strong>Submit Identity:</strong> <span id="authStatePreview">Not set</span></div>
+          <div><strong>Derived Roll:</strong> <span id="authRollPreview">-</span></div>
+        </div>
+        <p id="authStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
       </div>
-      <input id="importSettingsInput" type="file" accept=".json,application/json" style="display:none;" />
-    </section>
+    </details>
 
-    <section class="visualization-panel">
-      <h3>Preview</h3>
-      <div id="previewCard" class="integration-status">
-        <div><strong>Name:</strong> <span id="previewName">Student</span></div>
-        <div><strong>Theme:</strong> <span id="previewTheme">default</span></div>
-        <div><strong>Text Size:</strong> <span id="previewFont">normal</span></div>
-        <div><strong>Motion:</strong> <span id="previewMotion">normal</span></div>
+    <details class="settings-accordion" id="panel-appearance" open>
+      <summary>Appearance and Behavior</summary>
+      <div class="settings-body settings-row">
+        <label for="themeSelect" style="font-weight:600;">Theme</label>
+        <select id="themeSelect" class="modal-input">
+          <option value="default">Default</option>
+          <option value="ocean">Ocean</option>
+          <option value="forest">Forest</option>
+          <option value="sunset">Sunset</option>
+        </select>
+        <label for="fontScaleSelect" style="font-weight:600;">Text Size</label>
+        <select id="fontScaleSelect" class="modal-input">
+          <option value="normal">Normal</option>
+          <option value="large">Large</option>
+          <option value="xlarge">Extra Large</option>
+        </select>
+        <label for="motionSelect" style="font-weight:600;">Motion</label>
+        <select id="motionSelect" class="modal-input">
+          <option value="normal">Normal</option>
+          <option value="reduced">Reduced Motion</option>
+        </select>
+        <label style="display:flex;gap:8px;align-items:center; margin-top:4px;">
+          <input id="autoResumeToggle" type="checkbox" />
+          Auto-open last used studio on startup
+        </label>
       </div>
+    </details>
+
+    <details class="settings-accordion" id="panel-data">
+      <summary>Data Controls</summary>
+      <div class="settings-body settings-row">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="exportSettingsBtn" class="icon-btn" type="button">Export Settings JSON</button>
+          <button id="importSettingsBtn" class="icon-btn" type="button">Import Settings JSON</button>
+          <button id="resetSettingsBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Reset to Defaults</button>
+        </div>
+        <input id="importSettingsInput" type="file" accept=".json,application/json" style="display:none;" />
+      </div>
+    </details>
+
+    <details class="settings-accordion" id="panel-preview" open>
+      <summary>Live Preview</summary>
+      <div class="settings-body settings-row">
+        <div id="previewCard" class="integration-status">
+          <div><strong>Name:</strong> <span id="previewName">Student</span></div>
+          <div><strong>Theme:</strong> <span id="previewTheme">default</span></div>
+          <div><strong>Text Size:</strong> <span id="previewFont">normal</span></div>
+          <div><strong>Motion:</strong> <span id="previewMotion">normal</span></div>
+        </div>
+        <p id="saveStatus" style="margin-top:4px;color:#475569;font-size:0.9rem;"></p>
+      </div>
+    </details>
+
+    <section class="sticky-actions">
       <button id="saveSettingsBtn" class="run-btn" type="button">Save All Settings</button>
-      <p id="saveStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
     </section>
   </main>
 
@@ -94,7 +167,8 @@
       motion: 'tocMotion',
       autoResume: 'tocAutoResume',
       authEmail: 'tocAuthEmail',
-      authRoll: 'tocAuthRoll'
+      authRoll: 'tocAuthRoll',
+      openPanels: 'tocSettingsOpenPanelsV1'
     };
     const SESSION_KEYS = {
       authLocked: 'tocAuthSessionLocked'
@@ -130,6 +204,9 @@
     const sessionSet = (key, value) => {
       try { sessionStorage.setItem(key, value); } catch (_e) {}
     };
+    const sessionRemove = (key) => {
+      try { sessionStorage.removeItem(key); } catch (_e) {}
+    };
 
     const parseIdentity = (emailRaw) => {
       const email = String(emailRaw || '').trim().toLowerCase();
@@ -156,6 +233,7 @@
     const studentEmailInput = document.getElementById('studentEmailInput');
     const saveEmailBtn = document.getElementById('saveEmailBtn');
     const clearEmailBtn = document.getElementById('clearEmailBtn');
+    const unlockSessionBtn = document.getElementById('unlockSessionBtn');
     const authStatePreview = document.getElementById('authStatePreview');
     const authRollPreview = document.getElementById('authRollPreview');
     const authStatus = document.getElementById('authStatus');
@@ -170,6 +248,15 @@
     const resetBtn = document.getElementById('resetSettingsBtn');
     const saveStatus = document.getElementById('saveStatus');
 
+    const kpiName = document.getElementById('kpiName');
+    const kpiTheme = document.getElementById('kpiTheme');
+    const kpiIdentity = document.getElementById('kpiIdentity');
+    const kpiResume = document.getElementById('kpiResume');
+
+    const presetFocusBtn = document.getElementById('presetFocusBtn');
+    const presetCalmBtn = document.getElementById('presetCalmBtn');
+    const presetDefaultBtn = document.getElementById('presetDefaultBtn');
+
     function updateAuthPreview() {
       const email = safeGet(STORAGE_KEYS.authEmail, '');
       const roll = safeGet(STORAGE_KEYS.authRoll, '');
@@ -178,12 +265,14 @@
         authStatePreview.textContent = email;
         authRollPreview.textContent = roll;
         studentEmailInput.value = email;
+        kpiIdentity.textContent = roll;
         if (locked) {
-          authStatus.textContent = 'Email registered for this session. Identity cannot be changed until this browser session ends.';
+          authStatus.textContent = 'Email registered for this session. Identity cannot be changed until session unlock or browser restart.';
         }
       } else {
         authStatePreview.textContent = 'Not set';
         authRollPreview.textContent = '-';
+        kpiIdentity.textContent = 'Not set';
       }
       studentEmailInput.disabled = locked;
       saveEmailBtn.disabled = locked;
@@ -201,6 +290,9 @@
       document.getElementById('previewTheme').textContent = theme;
       document.getElementById('previewFont').textContent = fontScale;
       document.getElementById('previewMotion').textContent = motion;
+      kpiName.textContent = name;
+      kpiTheme.textContent = theme;
+      kpiResume.textContent = autoResumeToggle.checked ? 'On' : 'Off';
       applyTheme(theme);
       applyFontScale(fontScale);
       applyMotion(motion);
@@ -231,6 +323,24 @@
         ? 'Saved. Preferences will apply on splash and studios.'
         : 'Saved partially. Browser storage is restricted.';
     };
+
+    function applyPreset(preset) {
+      if (preset === 'focus') {
+        themeSelect.value = 'forest';
+        fontScaleSelect.value = 'large';
+        motionSelect.value = 'reduced';
+      } else if (preset === 'calm') {
+        themeSelect.value = 'ocean';
+        fontScaleSelect.value = 'normal';
+        motionSelect.value = 'reduced';
+      } else {
+        themeSelect.value = DEFAULTS.theme;
+        fontScaleSelect.value = DEFAULTS.fontScale;
+        motionSelect.value = DEFAULTS.motion;
+      }
+      updatePreview();
+      saveStatus.textContent = `Preset applied: ${preset}. Click "Save All Settings" to persist.`;
+    }
 
     saveEmailBtn.addEventListener('click', () => {
       if (sessionGet(SESSION_KEYS.authLocked, '') === 'true') {
@@ -263,12 +373,22 @@
       updateAuthPreview();
     });
 
+    unlockSessionBtn.addEventListener('click', () => {
+      sessionRemove(SESSION_KEYS.authLocked);
+      authStatus.textContent = 'Session identity lock removed on this device.';
+      updateAuthPreview();
+    });
+
     [studentInput, themeSelect, fontScaleSelect, motionSelect].forEach((el) => {
       el.addEventListener('input', updatePreview);
       el.addEventListener('change', updatePreview);
     });
     autoResumeToggle.addEventListener('change', updatePreview);
     saveBtn.addEventListener('click', saveForm);
+
+    presetFocusBtn.addEventListener('click', () => applyPreset('focus'));
+    presetCalmBtn.addEventListener('click', () => applyPreset('calm'));
+    presetDefaultBtn.addEventListener('click', () => applyPreset('default'));
 
     exportBtn.addEventListener('click', () => {
       const payload = {
@@ -312,6 +432,20 @@
       [STORAGE_KEYS.studentName, STORAGE_KEYS.theme, STORAGE_KEYS.fontScale, STORAGE_KEYS.motion, STORAGE_KEYS.autoResume].forEach(safeRemove);
       loadForm();
       saveStatus.textContent = 'Reset complete. Defaults restored.';
+    });
+
+    const panels = ['panel-profile', 'panel-appearance', 'panel-data', 'panel-preview'];
+    const safeParse = (raw, fallback) => { try { return JSON.parse(raw); } catch (_e) { return fallback; } };
+    const panelState = safeParse(safeGet(STORAGE_KEYS.openPanels, '{}'), {});
+    panels.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (Object.prototype.hasOwnProperty.call(panelState, id)) el.open = Boolean(panelState[id]);
+      el.addEventListener('toggle', () => {
+        const next = safeParse(safeGet(STORAGE_KEYS.openPanels, '{}'), {});
+        next[id] = el.open;
+        safeSet(STORAGE_KEYS.openPanels, JSON.stringify(next));
+      });
     });
 
     loadForm();
