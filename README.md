@@ -1,4 +1,18 @@
+<p align="center">
+  <img src="icon-512.png" alt="Toc-Suite Logo" width="110">
+</p>
+
 # Toc-Suite
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg?style=flat-square)](LICENSE)
+[![Library Build](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/build-library.yml?label=Library%20Build&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/build-library.yml)
+[![Netlify Status](https://img.shields.io/badge/Deploy-Netlify-00c7b7?style=flat-square)](https://toc-suite.netlify.app/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Toc--Suite-111827?style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite)
+
+Links:
+- Live App: `https://toc-suite.netlify.app/`
+- GitHub Repository: `https://github.com/shiroonigami23-ui/Toc-Suite`
+- Issues and Tracking: `https://github.com/shiroonigami23-ui/Toc-Suite/issues`
 
 Unified Theory of Computation workspace for:
 - Finite Automata (FA: DFA/NFA/e-NFA + conversions)
