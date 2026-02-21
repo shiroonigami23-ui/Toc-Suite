@@ -5,6 +5,7 @@ import { animateMachineDrawing } from './animation.js';
 // NEW: Import the conversion functions we will now use locally
 import { convertNfaToDfa, minimizeDfa } from './automata.js';
 import { authenticateAiAccess } from './ai-auth.js';
+import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
 // --- Machine Analysis Helpers for Smart Save ---
 
 /**
@@ -233,7 +234,7 @@ export function saveMachine() {
     modal.style.display = 'flex';
 
     // --- ARCHITECT'S STAGING INTEGRATION ---
-    document.getElementById('saveLibraryConfirmBtn').onclick = () => {
+    document.getElementById('saveLibraryConfirmBtn').onclick = async () => {
         // We use the 'fa_' prefix to ensure correct library sorting
         const prefix = "fa_";
         const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
@@ -251,15 +252,17 @@ export function saveMachine() {
         addLogMessage(`FA Saved Locally: ${fileName}.json`, 'check-circle');
 
         // 2. SILENT STAGING (Architect Priority)
-        fetch('/.netlify/functions/save-to-db', {
-            method: 'POST',
-            body: JSON.stringify({
-                name: userProvidedPart, 
-                type: 'FA', 
-                data: MACHINE,
-                author: 'Shiro'
-            })
-        }).catch(err => console.error("Staging silent failure."));
+        const assignment = await decideSubmissionMode('FA');
+        await stageToDb({
+            name: userProvidedPart,
+            type: 'FA',
+            data: MACHINE,
+            author: getStudentProfile().name || 'Student',
+            submissionMode: assignment.submissionMode,
+            assignmentId: assignment.assignmentId,
+            assignmentTitle: assignment.assignmentTitle,
+            studentProfile: getStudentProfile()
+        }).catch(() => console.error('Staging silent failure.'));
     };
 }
 

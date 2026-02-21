@@ -8,7 +8,7 @@ import { MACHINE,pushUndo,resetMachine,undo,redo,updateUndoRedoButtons,tapes,hea
 import { renderAll } from './tm_renderer.js';
 import { activeSim,initInteractiveSim,stepTmSimulation,stepMultiTape,runTmSimulation} from './tm_simulation.js';
 import { updateTapeUI } from './tm_visualizer.js';
-import { addLogMessage, initializeShortcuts } from './utils.js';
+import { addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
 import { saveTmMachine, exportTmPng, loadTmMachine } from './tm_file.js';
 import { generateTmPractice, showTmSolution, checkTmAnswer } from './tm_practice.js';
 import { convertToStandard, handleModeChange } from './tm_modes.js';
@@ -37,17 +37,40 @@ export function initializeTmUI() {
     const controlPanel = document.getElementById('controlPanel');
     const visualizationPanel = document.querySelector('.visualization-panel');
 
-    if (toggleBtn && controlPanel) {
+    const ensureDrawerBackdrop = () => {
+        let backdrop = document.getElementById('drawerBackdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'drawerBackdrop';
+            backdrop.className = 'drawer-backdrop';
+            document.body.appendChild(backdrop);
+        }
+        return backdrop;
+    };
+    const drawerBackdrop = ensureDrawerBackdrop();
+    const closePanel = () => {
+        controlPanel?.classList.remove('open');
+        drawerBackdrop?.classList.remove('open');
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+    };
+    const togglePanel = () => {
+        if (!controlPanel) return;
+        const isOpen = controlPanel.classList.toggle('open');
+        drawerBackdrop?.classList.toggle('open', isOpen);
+        toggleBtn?.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    if (toggleBtn) {
         toggleBtn.onclick = (e) => {
             e.stopPropagation();
-            controlPanel.classList.toggle('open'); //
+            togglePanel();
         };
     }
 
     // Close drawer when clicking the canvas for a cleaner focus
-    visualizationPanel?.addEventListener('click', () => {
-        controlPanel?.classList.remove('open');
-    });
+    visualizationPanel?.addEventListener('click', closePanel);
+    drawerBackdrop?.addEventListener('click', closePanel);
+    bindGlobalDrawerHandlers(closePanel);
 
     // Global render wrapper - this makes the sidebar dynamic
     const originalRender = renderAll;
@@ -65,7 +88,7 @@ export function initializeTmUI() {
     };
 
     window.renderAll();
-    if (window.lucide) lucide.createIcons();
+    refreshLucideIcons();
 }
 
 // Ensure validation button is linked globally
@@ -93,7 +116,7 @@ function setupToolbar() {
         const modal = document.getElementById('tmConfirmClearModal');
         if (modal) {
             modal.style.display = 'flex';
-            if (window.lucide) lucide.createIcons();
+            refreshLucideIcons();
         }
     });
 
@@ -512,6 +535,7 @@ function setupZoomControls() {
 // Add to tm_ui.js initialization logic
 function setupModeSelector() {
     const modeSelect = document.getElementById('tmModeSelect');
+    if (modeSelect) modeSelect.value = MACHINE.type || 'STANDARD';
     
     modeSelect?.addEventListener('change', async (e) => {
         const newMode = e.target.value;
@@ -525,6 +549,7 @@ function setupModeSelector() {
             if (newMode === 'MULTI_TAPE') {
                 import('./tm_visualizer.js').then(m => m.updateTapeUI(tapes, headIndices));
             }
+            validateTm();
         }
     });
 }
@@ -537,6 +562,14 @@ function updateTransitionModalInputs() {
     if (standardInputs) {
         // Standard (Single-Tape) is hidden only when Multi-Tape is active
         standardInputs.style.display = MACHINE.type === 'MULTI_TAPE' ? 'none' : 'grid';
+    }
+
+    const moveSelect = document.getElementById('tmTransMove');
+    if (moveSelect && MACHINE.type !== 'MULTI_TAPE') {
+        const allowStay = MACHINE.type === 'STAY_OPTION' || MACHINE.type === 'NON_DET';
+        moveSelect.innerHTML = allowStay
+            ? '<option value="L">L</option><option value="R">R</option><option value="S">S</option>'
+            : '<option value="L">L</option><option value="R">R</option>';
     }
 
     container.innerHTML = '';
@@ -588,7 +621,7 @@ function setupLogicToggle() {
         if (modal) {
             modal.style.display = 'flex';
             updateLogicDisplay(); //
-            if (window.lucide) lucide.createIcons();
+            refreshLucideIcons();
         }
     });
 

@@ -6,7 +6,11 @@ exports.handler = async (event) => {
         return { statusCode: 401, body: 'Unauthorized' };
     }
 
-    const { ids } = JSON.parse(event.body);
+    const { ids } = JSON.parse(event.body || '{}');
+    if (!Array.isArray(ids) || !ids.length) {
+        return { statusCode: 400, body: 'No submission ids provided' };
+    }
+
     const client = new Client({
         connectionString: process.env.DATABASE_URL,
         ssl: { rejectUnauthorized: false }
@@ -15,19 +19,38 @@ exports.handler = async (event) => {
     try {
         await client.connect();
         const results = [];
+        const repo = process.env.GITHUB_REPO || 'shiroonigami23-ui/toc-suite';
 
         for (const id of ids) {
-            const res = await client.query("SELECT * FROM machine_submissions WHERE id = $1", [id]);
+            const res = await client.query(
+                `SELECT ms.*, a.repo_eligible AS assignment_repo_eligible
+                 FROM machine_submissions ms
+                 LEFT JOIN assignments a ON a.id = ms.assignment_id
+                 WHERE ms.id = $1
+                 LIMIT 1`,
+                [id]
+            );
             const sub = res.rows[0];
-            
-            const type = sub.type.toLowerCase();
+            if (!sub) {
+                results.push({ id, status: 'failed', reason: 'not_found' });
+                continue;
+            }
+            if (sub.status !== 'pending') {
+                results.push({ id, status: 'failed', reason: 'not_pending' });
+                continue;
+            }
+
+            const isRepoEligible = Boolean(sub.repo_eligible) || Boolean(sub.assignment_repo_eligible);
+            if (!isRepoEligible) {
+                results.push({ id, status: 'failed', reason: 'not_repo_eligible' });
+                continue;
+            }
+
+            const type = String(sub.type || '').toLowerCase();
             const fileName = `${type}_${sub.name}.json`;
-            
-            // ARCHITECT FIX: Direct root placement in Data folder
-            const filePath = `Data/${fileName}`; 
-            
+            const filePath = `Data/${fileName}`;
             const content = Buffer.from(JSON.stringify(sub.data, null, 2)).toString('base64');
-            const githubUrl = `https://api.github.com/repos/shiroonigami23-ui/toc-suite/contents/${filePath}`;
+            const githubUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
 
             const ghResponse = await fetch(githubUrl, {
                 method: 'PUT',
@@ -36,18 +59,25 @@ exports.handler = async (event) => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: `🤖 Bulk Library Addition: ${fileName}`,
-                    content: content
+                    message: `Bulk Library Addition: ${fileName}`,
+                    content
                 })
             });
 
             if (ghResponse.ok) {
                 await client.query("UPDATE machine_submissions SET status = 'approved' WHERE id = $1", [id]);
                 results.push({ id, status: 'success' });
+            } else {
+                const ghErr = await ghResponse.json().catch(() => ({}));
+                results.push({ id, status: 'failed', reason: ghErr.message || 'github_push_failed' });
             }
         }
 
-        return { statusCode: 200, body: JSON.stringify(results) };
+        return {
+            statusCode: 200,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(results)
+        };
     } catch (err) {
         return { statusCode: 500, body: err.message };
     } finally {

@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#4a90e2" />
+  <title>Toc-Suite Settings</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-container" style="max-width: 900px; height: auto; min-height: 100dvh;">
+    <header class="header">
+      <h1>Settings Center</h1>
+      <a href="index.html" class="splash-utility-btn">Back to Splash</a>
+    </header>
+
+    <section class="visualization-panel">
+      <h3>Profile</h3>
+      <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Student Email Login (For Assignment/Quiz Submit)</h3>
+      <input id="studentEmailInput" class="modal-input" placeholder="0902CS231028@rjit.ac.in" maxlength="64" style="text-transform:lowercase;" />
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="saveEmailBtn" class="icon-btn" type="button">Use This Email</button>
+        <button id="clearEmailBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Logout Email</button>
+      </div>
+      <div class="integration-status" style="margin-top:8px;">
+        <div><strong>Submit Identity:</strong> <span id="authStatePreview">Not set</span></div>
+        <div><strong>Derived Roll:</strong> <span id="authRollPreview">-</span></div>
+      </div>
+      <p id="authStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Appearance</h3>
+      <label for="themeSelect" style="font-weight:600;">Theme</label>
+      <select id="themeSelect" class="modal-input">
+        <option value="default">Default</option>
+        <option value="ocean">Ocean</option>
+        <option value="forest">Forest</option>
+        <option value="sunset">Sunset</option>
+      </select>
+      <label for="fontScaleSelect" style="font-weight:600;">Text Size</label>
+      <select id="fontScaleSelect" class="modal-input">
+        <option value="normal">Normal</option>
+        <option value="large">Large</option>
+        <option value="xlarge">Extra Large</option>
+      </select>
+      <label for="motionSelect" style="font-weight:600;">Motion</label>
+      <select id="motionSelect" class="modal-input">
+        <option value="normal">Normal</option>
+        <option value="reduced">Reduced Motion</option>
+      </select>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Behavior</h3>
+      <label style="display:flex;gap:8px;align-items:center;">
+        <input id="autoResumeToggle" type="checkbox" />
+        Auto-open last used studio on startup
+      </label>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Data Controls</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="exportSettingsBtn" class="icon-btn" type="button">Export Settings JSON</button>
+        <button id="importSettingsBtn" class="icon-btn" type="button">Import Settings JSON</button>
+        <button id="resetSettingsBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Reset to Defaults</button>
+      </div>
+      <input id="importSettingsInput" type="file" accept=".json,application/json" style="display:none;" />
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Preview</h3>
+      <div id="previewCard" class="integration-status">
+        <div><strong>Name:</strong> <span id="previewName">Student</span></div>
+        <div><strong>Theme:</strong> <span id="previewTheme">default</span></div>
+        <div><strong>Text Size:</strong> <span id="previewFont">normal</span></div>
+        <div><strong>Motion:</strong> <span id="previewMotion">normal</span></div>
+      </div>
+      <button id="saveSettingsBtn" class="run-btn" type="button">Save All Settings</button>
+      <p id="saveStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEYS = {
+      studentName: 'tocStudentName',
+      theme: 'tocTheme',
+      fontScale: 'tocFontScale',
+      motion: 'tocMotion',
+      autoResume: 'tocAutoResume',
+      authEmail: 'tocAuthEmail',
+      authRoll: 'tocAuthRoll'
+    };
+    const SESSION_KEYS = {
+      authLocked: 'tocAuthSessionLocked'
+    };
+    const DEFAULTS = {
+      studentName: 'Student',
+      theme: 'default',
+      fontScale: 'normal',
+      motion: 'normal',
+      autoResume: 'false'
+    };
+    const THEME_COLORS = {
+      default: '#4a90e2',
+      ocean: '#0284c7',
+      forest: '#15803d',
+      sunset: '#ea580c'
+    };
+    const EMAIL_RE = /^[a-z0-9._%+-]+@rjit\.ac\.in$/i;
+    const ROLL_LOCAL_RE = /^0902(?:CS|EC|IT|AI)\d{6}$/i;
+
+    const safeGet = (key, fallback = '') => {
+      try { return localStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
+    };
+    const safeSet = (key, value) => {
+      try { localStorage.setItem(key, value); return true; } catch (_e) { return false; }
+    };
+    const safeRemove = (key) => {
+      try { localStorage.removeItem(key); } catch (_e) {}
+    };
+    const sessionGet = (key, fallback = '') => {
+      try { return sessionStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
+    };
+    const sessionSet = (key, value) => {
+      try { sessionStorage.setItem(key, value); } catch (_e) {}
+    };
+
+    const parseIdentity = (emailRaw) => {
+      const email = String(emailRaw || '').trim().toLowerCase();
+      if (!EMAIL_RE.test(email)) return null;
+      const local = email.split('@')[0].toUpperCase();
+      if (!ROLL_LOCAL_RE.test(local)) return null;
+      return { email, roll: local };
+    };
+
+    const applyTheme = (theme = 'default') => {
+      const safeTheme = THEME_COLORS[theme] ? theme : 'default';
+      document.body.setAttribute('data-theme', safeTheme);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[safeTheme]);
+    };
+    const applyFontScale = (scale = 'normal') => {
+      const safeScale = ['normal', 'large', 'xlarge'].includes(scale) ? scale : 'normal';
+      document.documentElement.setAttribute('data-font-scale', safeScale);
+    };
+    const applyMotion = (mode = 'normal') => {
+      document.body.setAttribute('data-motion', mode === 'reduced' ? 'reduced' : 'normal');
+    };
+
+    const studentInput = document.getElementById('studentNameInput');
+    const studentEmailInput = document.getElementById('studentEmailInput');
+    const saveEmailBtn = document.getElementById('saveEmailBtn');
+    const clearEmailBtn = document.getElementById('clearEmailBtn');
+    const authStatePreview = document.getElementById('authStatePreview');
+    const authRollPreview = document.getElementById('authRollPreview');
+    const authStatus = document.getElementById('authStatus');
+    const themeSelect = document.getElementById('themeSelect');
+    const fontScaleSelect = document.getElementById('fontScaleSelect');
+    const motionSelect = document.getElementById('motionSelect');
+    const autoResumeToggle = document.getElementById('autoResumeToggle');
+    const saveBtn = document.getElementById('saveSettingsBtn');
+    const exportBtn = document.getElementById('exportSettingsBtn');
+    const importBtn = document.getElementById('importSettingsBtn');
+    const importInput = document.getElementById('importSettingsInput');
+    const resetBtn = document.getElementById('resetSettingsBtn');
+    const saveStatus = document.getElementById('saveStatus');
+
+    function updateAuthPreview() {
+      const email = safeGet(STORAGE_KEYS.authEmail, '');
+      const roll = safeGet(STORAGE_KEYS.authRoll, '');
+      const locked = sessionGet(SESSION_KEYS.authLocked, '') === 'true';
+      if (email && roll) {
+        authStatePreview.textContent = email;
+        authRollPreview.textContent = roll;
+        studentEmailInput.value = email;
+        if (locked) {
+          authStatus.textContent = 'Email registered for this session. Identity cannot be changed until this browser session ends.';
+        }
+      } else {
+        authStatePreview.textContent = 'Not set';
+        authRollPreview.textContent = '-';
+      }
+      studentEmailInput.disabled = locked;
+      saveEmailBtn.disabled = locked;
+      clearEmailBtn.disabled = locked;
+      saveEmailBtn.style.opacity = locked ? '0.6' : '1';
+      clearEmailBtn.style.opacity = locked ? '0.6' : '1';
+    }
+
+    const updatePreview = () => {
+      const name = (studentInput.value || '').trim() || DEFAULTS.studentName;
+      const theme = themeSelect.value || DEFAULTS.theme;
+      const fontScale = fontScaleSelect.value || DEFAULTS.fontScale;
+      const motion = motionSelect.value || DEFAULTS.motion;
+      document.getElementById('previewName').textContent = name;
+      document.getElementById('previewTheme').textContent = theme;
+      document.getElementById('previewFont').textContent = fontScale;
+      document.getElementById('previewMotion').textContent = motion;
+      applyTheme(theme);
+      applyFontScale(fontScale);
+      applyMotion(motion);
+      updateAuthPreview();
+    };
+
+    const loadForm = () => {
+      studentInput.value = safeGet(STORAGE_KEYS.studentName, DEFAULTS.studentName);
+      studentEmailInput.value = safeGet(STORAGE_KEYS.authEmail, '');
+      themeSelect.value = safeGet(STORAGE_KEYS.theme, DEFAULTS.theme);
+      fontScaleSelect.value = safeGet(STORAGE_KEYS.fontScale, DEFAULTS.fontScale);
+      motionSelect.value = safeGet(STORAGE_KEYS.motion, DEFAULTS.motion);
+      autoResumeToggle.checked = safeGet(STORAGE_KEYS.autoResume, DEFAULTS.autoResume) === 'true';
+      updatePreview();
+    };
+
+    const saveForm = () => {
+      const name = (studentInput.value || '').trim() || DEFAULTS.studentName;
+      const ok = [
+        safeSet(STORAGE_KEYS.studentName, name),
+        safeSet(STORAGE_KEYS.theme, themeSelect.value || DEFAULTS.theme),
+        safeSet(STORAGE_KEYS.fontScale, fontScaleSelect.value || DEFAULTS.fontScale),
+        safeSet(STORAGE_KEYS.motion, motionSelect.value || DEFAULTS.motion),
+        safeSet(STORAGE_KEYS.autoResume, autoResumeToggle.checked ? 'true' : 'false')
+      ].every(Boolean);
+      updatePreview();
+      saveStatus.textContent = ok
+        ? 'Saved. Preferences will apply on splash and studios.'
+        : 'Saved partially. Browser storage is restricted.';
+    };
+
+    saveEmailBtn.addEventListener('click', () => {
+      if (sessionGet(SESSION_KEYS.authLocked, '') === 'true') {
+        authStatus.textContent = 'Identity is locked for this session.';
+        updateAuthPreview();
+        return;
+      }
+      const parsed = parseIdentity(studentEmailInput.value);
+      if (!parsed) {
+        authStatus.textContent = 'Use valid format: 0902(CS|EC|IT|AI)XXXXXX@rjit.ac.in';
+        return;
+      }
+      safeSet(STORAGE_KEYS.authEmail, parsed.email);
+      safeSet(STORAGE_KEYS.authRoll, parsed.roll);
+      sessionSet(SESSION_KEYS.authLocked, 'true');
+      authStatus.textContent = 'Email registered successfully for this session.';
+      updateAuthPreview();
+    });
+
+    clearEmailBtn.addEventListener('click', () => {
+      if (sessionGet(SESSION_KEYS.authLocked, '') === 'true') {
+        authStatus.textContent = 'Identity is locked for this session and cannot be changed right now.';
+        updateAuthPreview();
+        return;
+      }
+      safeRemove(STORAGE_KEYS.authEmail);
+      safeRemove(STORAGE_KEYS.authRoll);
+      studentEmailInput.value = '';
+      authStatus.textContent = 'Student email identity cleared.';
+      updateAuthPreview();
+    });
+
+    [studentInput, themeSelect, fontScaleSelect, motionSelect].forEach((el) => {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
+    });
+    autoResumeToggle.addEventListener('change', updatePreview);
+    saveBtn.addEventListener('click', saveForm);
+
+    exportBtn.addEventListener('click', () => {
+      const payload = {
+        studentName: (studentInput.value || '').trim() || DEFAULTS.studentName,
+        theme: themeSelect.value || DEFAULTS.theme,
+        fontScale: fontScaleSelect.value || DEFAULTS.fontScale,
+        motion: motionSelect.value || DEFAULTS.motion,
+        autoResume: autoResumeToggle.checked
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'toc-suite-settings.json';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    importBtn.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', async () => {
+      const file = importInput.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (typeof data.studentName === 'string') studentInput.value = data.studentName;
+        if (typeof data.theme === 'string') themeSelect.value = data.theme;
+        if (typeof data.fontScale === 'string') fontScaleSelect.value = data.fontScale;
+        if (typeof data.motion === 'string') motionSelect.value = data.motion;
+        if (typeof data.autoResume === 'boolean') autoResumeToggle.checked = data.autoResume;
+        updatePreview();
+        saveStatus.textContent = 'Settings JSON loaded. Click "Save All Settings" to persist.';
+      } catch (_e) {
+        saveStatus.textContent = 'Import failed. Please choose a valid JSON file.';
+      } finally {
+        importInput.value = '';
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      [STORAGE_KEYS.studentName, STORAGE_KEYS.theme, STORAGE_KEYS.fontScale, STORAGE_KEYS.motion, STORAGE_KEYS.autoResume].forEach(safeRemove);
+      loadForm();
+      saveStatus.textContent = 'Reset complete. Defaults restored.';
+    });
+
+    loadForm();
+    if (safeGet(STORAGE_KEYS.authEmail, '') && safeGet(STORAGE_KEYS.authRoll, '')) {
+      sessionSet(SESSION_KEYS.authLocked, 'true');
+      updateAuthPreview();
+    }
+  </script>
+</body>
+</html>

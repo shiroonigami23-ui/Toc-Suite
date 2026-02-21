@@ -52,6 +52,48 @@
             </div>
             <button onclick="logout()" style="color: #ef4444; background: #fef2f2; border: 1px solid #fee2e2; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">Logout</button>
         </header>
+        
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px;">
+            <h3 style="margin:0 0 10px;color:#0f172a;">Assignment / Quiz Giver</h3>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+                <input id="asgTitle" placeholder="Assignment title" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                <select id="asgMachineType" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <option value="FA">FA</option>
+                    <option value="MM">MM</option>
+                    <option value="PDA">PDA</option>
+                    <option value="TM">TM</option>
+                    <option value="ALL">ALL</option>
+                </select>
+                <select id="asgMode" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <option value="quiz">Quiz</option>
+                    <option value="practice">Practice</option>
+                </select>
+                <input id="asgMarks" type="number" min="1" max="100" value="100" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <input id="asgStartAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                <input id="asgEndAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <input id="asgMaxSubmissions" type="number" min="1" max="20" value="1" title="Max submissions per student" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                <input id="asgArchiveDays" type="number" min="7" max="15" value="10" title="Archive pending submissions after end (days)" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+            </div>
+            <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px;">
+                <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
+                    <input id="asgRepoEligible" type="checkbox">
+                    Special Hard Category (repo push allowed)
+                </label>
+                <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
+                    <input id="asgStrictDeviceLock" type="checkbox" checked>
+                    Strict device lock (1 roll + 1 email + 1 device)
+                </label>
+            </div>
+            <textarea id="asgPrompt" placeholder="Question / prompt for students..." style="width:100%;min-height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                <button onclick="createAssignment()" class="btn" style="background:#6366f1;color:#fff;">Create Assignment</button>
+                <div id="activeAssignmentHint" style="font-size:0.85em;color:#64748b;"></div>
+            </div>
+        </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
             <div style="display: flex; gap: 16px; align-items: center;">
@@ -60,10 +102,23 @@
                     <i data-lucide="search" style="position: absolute; left: 12px; top: 10px; width: 18px; color: #94a3b8;"></i>
                     <input type="text" id="searchTerm" oninput="filterRows()" placeholder="Search by name or type..." class="search-box">
                 </div>
+                <select id="modeFilter" onchange="filterRows()" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                    <option value="all">All Modes</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="practice">Practice</option>
+                </select>
+                <select id="assignmentFilter" onchange="filterRows()" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;min-width:220px;">
+                    <option value="all">All Assignments</option>
+                </select>
             </div>
-            <button id="bulkPushBtn" onclick="pushSelected()" class="btn" style="background: var(--emerald); color: white; opacity: 0.5; pointer-events: none;">
-                <i data-lucide="layers"></i> Push Selected (0)
-            </button>
+            <div style="display:flex;gap:8px;">
+                <button id="exportCsvBtn" onclick="exportFilteredCsv()" class="btn" style="background:#0f766e;color:#fff;">
+                    <i data-lucide="download"></i> Export CSV
+                </button>
+                <button id="bulkPushBtn" onclick="pushSelected()" class="btn" style="background: var(--emerald); color: white; opacity: 0.5; pointer-events: none;">
+                    <i data-lucide="layers"></i> Push Selected (0)
+                </button>
+            </div>
         </div>
 
         <table>
@@ -72,6 +127,7 @@
                     <th style="width: 40px;"></th>
                     <th>TYPE</th>
                     <th>IDENTIFIER / FILENAME</th>
+                    <th>MODE / GRADE</th>
                     <th>STAGED DATE</th>
                     <th style="text-align: right;">REVIEW</th>
                 </tr>
@@ -101,9 +157,28 @@
                 <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Logic Definition</label>
                 <textarea id="editJson" class="edit-area" spellcheck="false"></textarea>
             </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 160px; gap: 10px; margin-bottom: 24px;">
+                <div>
+                    <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Submission Mode</label>
+                    <select id="submissionMode" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                        <option value="practice">Practice</option>
+                        <option value="quiz">Quiz</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Grade</label>
+                    <input id="gradeInput" type="number" min="0" max="100" step="1" placeholder="0-100" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;">
+                </div>
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Reviewer Note</label>
+                <textarea id="reviewNoteInput" placeholder="Optional note for student/admin..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;"></textarea>
+            </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button onclick="document.getElementById('reviewModal').style.display='none'" class="btn" style="background: transparent; color: #64748b;">Cancel</button>
+                <button id="saveReviewBtn" class="btn" style="background: #0ea5e9; color: white; padding: 12px 24px;">Save Review</button>
                 <button id="pushConfirmBtn" class="btn" style="background: var(--emerald); color: white; padding: 12px 24px;">Confirm & Commit to GitHub</button>
             </div>
         </div>
@@ -111,6 +186,27 @@
 
     <script>
         let currentSubmissions = [];
+        let filteredSubmissions = [];
+
+        function esc(v) {
+            return String(v ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function csvEscape(v) {
+            const s = String(v ?? '');
+            return `"${s.replace(/"/g, '""')}"`;
+        }
+
+        function toLocalDate(v) {
+            if (!v) return '-';
+            const d = new Date(v);
+            return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
+        }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -136,18 +232,34 @@
             
             currentSubmissions = await res.json();
             document.getElementById('pendingCount').textContent = `${currentSubmissions.length} Pending`;
-            renderTable(currentSubmissions);
+            rebuildAssignmentFilter();
+            filterRows();
+            refreshActiveAssignmentsHint();
         }
 
         function renderTable(data) {
+            filteredSubmissions = data;
             document.getElementById('submissionRows').innerHTML = data.map((sub, idx) => `
                 <tr>
                     <td style="text-align: center;"><input type="checkbox" class="sub-checker" value="${sub.id}" onclick="updateBulkButtonStyle()" style="cursor:pointer;"></td>
-                    <td><span class="badge ${sub.type}" style="padding: 4px 10px; border-radius: 6px; font-size: 0.7em; font-weight: 800;">${sub.type}</span></td>
-                    <td style="font-weight: 600; color: #1e293b;">${sub.name}</td>
-                    <td style="color: #94a3b8; font-size: 0.85em;">${new Date(sub.created_at).toLocaleDateString()}</td>
+                    <td><span class="badge ${esc(sub.type)}" style="padding: 4px 10px; border-radius: 6px; font-size: 0.7em; font-weight: 800;">${esc(sub.type)}</span></td>
+                    <td style="font-weight: 600; color: #1e293b;">
+                        <div>${esc(sub.name)}</div>
+                        <div style="font-size:0.78em;color:#64748b;">${esc(sub.assignment_title || 'No assignment')}</div>
+                        <div style="font-size:0.75em;color:${sub.repo_eligible ? '#065f46' : '#64748b'};font-weight:${sub.repo_eligible ? '700' : '500'};">
+                            ${sub.repo_eligible ? 'Repo-Eligible' : 'DB-Only'}
+                        </div>
+                    </td>
+                    <td style="font-size: 0.85em; color: #475569;">
+                        <div>${esc(sub.submission_mode || '-')}</div>
+                        <div style="color:#0f766e;font-weight:700;">${(sub.grade ?? sub.grade === 0) ? `Grade: ${sub.grade}` : 'Ungraded'}</div>
+                        <div style="color:${sub.suspicious_flag ? '#b91c1c' : '#64748b'};font-weight:${sub.suspicious_flag ? '700' : '500'};" title="${esc(sub.suspicious_reason || '')}">
+                            ${sub.suspicious_flag ? 'Flagged' : 'Clean'}
+                        </div>
+                    </td>
+                    <td style="color: #94a3b8; font-size: 0.85em;">${esc(toLocalDate(sub.created_at))}</td>
                     <td style="text-align: right;">
-                        <button onclick="openReview(${idx})" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 6px 12px; margin-left: auto;">
+                        <button onclick="openReview(${Number(sub.id)})" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 6px 12px; margin-left: auto;">
                             <i data-lucide="edit-3" style="width: 14px;"></i> Review
                         </button>
                     </td>
@@ -157,9 +269,28 @@
             updateBulkButtonStyle();
         }
 
+        function rebuildAssignmentFilter() {
+            const sel = document.getElementById('assignmentFilter');
+            if (!sel) return;
+            const prev = sel.value || 'all';
+            const titles = Array.from(new Set(currentSubmissions.map(s => (s.assignment_title || '').trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+            sel.innerHTML = `<option value="all">All Assignments</option>${titles.map(t => `<option value="${encodeURIComponent(t)}">${esc(t)}</option>`).join('')}<option value="none">No Assignment</option>`;
+            const hasPrev = Array.from(sel.options).some(o => o.value === prev);
+            sel.value = hasPrev ? prev : 'all';
+        }
+
         function filterRows() {
             const q = document.getElementById('searchTerm').value.toLowerCase();
-            const filtered = currentSubmissions.filter(s => s.name.toLowerCase().includes(q) || s.type.toLowerCase().includes(q));
+            const mode = document.getElementById('modeFilter')?.value || 'all';
+            const assignment = document.getElementById('assignmentFilter')?.value || 'all';
+            const filtered = currentSubmissions.filter((s) => {
+                const hitSearch = (s.name || '').toLowerCase().includes(q) || (s.type || '').toLowerCase().includes(q);
+                const hitMode = mode === 'all' || (s.submission_mode || '').toLowerCase() === mode;
+                let hitAssignment = true;
+                if (assignment === 'none') hitAssignment = !(s.assignment_title || '').trim();
+                else if (assignment !== 'all') hitAssignment = (s.assignment_title || '') === decodeURIComponent(assignment);
+                return hitSearch && hitMode && hitAssignment;
+            });
             renderTable(filtered);
         }
 
@@ -185,12 +316,54 @@
         }
 
         function openReview(index) {
-            const sub = currentSubmissions[index];
+            const sub = currentSubmissions.find((x) => Number(x.id) === Number(index));
+            if (!sub) {
+                showToast("Submission not found");
+                return;
+            }
             document.getElementById('prefixLabel').textContent = sub.type.toLowerCase() + "_";
             document.getElementById('editName').value = sub.name;
             document.getElementById('editJson').value = JSON.stringify(sub.data, null, 4);
+            document.getElementById('submissionMode').value = sub.submission_mode || 'practice';
+            document.getElementById('gradeInput').value = (sub.grade ?? '') === '' ? '' : sub.grade;
+            document.getElementById('reviewNoteInput').value = sub.review_note || '';
             document.getElementById('reviewModal').style.display = 'flex';
-            document.getElementById('pushConfirmBtn').onclick = () => pushToLibrary(sub.id);
+            const pushBtn = document.getElementById('pushConfirmBtn');
+            pushBtn.disabled = !sub.repo_eligible;
+            pushBtn.style.opacity = sub.repo_eligible ? '1' : '0.5';
+            pushBtn.style.pointerEvents = sub.repo_eligible ? 'auto' : 'none';
+            pushBtn.textContent = sub.repo_eligible ? 'Confirm & Commit to GitHub' : 'DB-Only Submission';
+            pushBtn.onclick = () => pushToLibrary(sub.id);
+            document.getElementById('saveReviewBtn').onclick = () => saveReview(sub.id);
+        }
+
+        async function saveReview(id) {
+            const mode = document.getElementById('submissionMode').value;
+            const gradeRaw = document.getElementById('gradeInput').value.trim();
+            const note = document.getElementById('reviewNoteInput').value.trim();
+            const grade = gradeRaw === '' ? null : Number(gradeRaw);
+
+            if (grade !== null && (Number.isNaN(grade) || grade < 0 || grade > 100)) {
+                showToast("Grade must be between 0 and 100");
+                return;
+            }
+
+            const res = await fetch('/.netlify/functions/save-review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Architect-Key': sessionStorage.getItem('architect_key')
+                },
+                body: JSON.stringify({ id, submissionMode: mode, grade, reviewNote: note })
+            });
+
+            if (res.ok) {
+                showToast("Review saved");
+                fetchSubmissions();
+            } else {
+                const msg = await res.text();
+                showToast(`Failed to save review: ${msg}`);
+            }
         }
 
         async function pushToLibrary(id) {
@@ -209,11 +382,14 @@
                 showToast("Machine Pushed to Library");
                 document.getElementById('reviewModal').style.display = 'none';
                 fetchSubmissions();
+            } else {
+                const msg = await res.text();
+                showToast(`Push blocked: ${msg}`);
             }
         }
 
         async function pushSelected() {
-            const ids = Array.from(document.querySelectorAll('.sub-checker:checked')).map(cb => parseInt(cb.value));
+            const ids = Array.from(document.querySelectorAll('.sub-checker:checked')).map(cb => parseInt(cb.value, 10));
             if (!confirm(`Commit ${ids.length} machines to GitHub?`)) return;
 
             const res = await fetch('/.netlify/functions/push-to-github-bulk', {
@@ -222,7 +398,113 @@
                 body: JSON.stringify({ ids })
             });
 
-            if (res.ok) { showToast("Bulk push successful!"); fetchSubmissions(); }
+            if (res.ok) {
+                const out = await res.json().catch(() => []);
+                const okCount = out.filter((x) => x.status === 'success').length;
+                const failCount = out.length - okCount;
+                showToast(`Bulk push: ${okCount} success, ${failCount} blocked/failed`);
+                fetchSubmissions();
+            } else {
+                const msg = await res.text();
+                showToast(`Bulk push failed: ${msg}`);
+            }
+        }
+
+        function exportFilteredCsv() {
+            const rows = filteredSubmissions || [];
+            if (!rows.length) {
+                showToast("No rows to export");
+                return;
+            }
+            const header = [
+                'id', 'name', 'type', 'submission_mode', 'assignment_id', 'assignment_title',
+                'author', 'student_year', 'student_section', 'student_branch', 'student_roll',
+                'grade', 'review_note', 'status', 'suspicious_flag', 'suspicious_reason', 'client_fingerprint', 'created_at'
+            ];
+            const lines = [header.join(',')];
+            rows.forEach((r) => {
+                lines.push([
+                    csvEscape(r.id),
+                    csvEscape(r.name),
+                    csvEscape(r.type),
+                    csvEscape(r.submission_mode),
+                    csvEscape(r.assignment_id),
+                    csvEscape(r.assignment_title),
+                    csvEscape(r.author),
+                    csvEscape(r.student_year),
+                    csvEscape(r.student_section),
+                    csvEscape(r.student_branch),
+                    csvEscape(r.student_roll),
+                    csvEscape(r.grade),
+                    csvEscape(r.review_note),
+                    csvEscape(r.status),
+                    csvEscape(r.suspicious_flag),
+                    csvEscape(r.suspicious_reason),
+                    csvEscape(r.client_fingerprint),
+                    csvEscape(r.created_at)
+                ].join(','));
+            });
+            const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `toc-gradebook-${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast(`CSV exported (${rows.length} rows)`);
+        }
+
+        async function createAssignment() {
+            const payload = {
+                title: document.getElementById('asgTitle').value.trim(),
+                machineType: document.getElementById('asgMachineType').value,
+                assignmentMode: document.getElementById('asgMode').value,
+                maxMarks: Number(document.getElementById('asgMarks').value || 100),
+                startAt: document.getElementById('asgStartAt').value || null,
+                endAt: document.getElementById('asgEndAt').value || null,
+                maxSubmissions: Number(document.getElementById('asgMaxSubmissions').value || 1),
+                archiveAfterDays: Number(document.getElementById('asgArchiveDays').value || 10),
+                repoEligible: document.getElementById('asgRepoEligible').checked,
+                strictDeviceLock: document.getElementById('asgStrictDeviceLock').checked,
+                prompt: document.getElementById('asgPrompt').value.trim()
+            };
+
+            if (!payload.title || !payload.prompt) {
+                showToast("Title and prompt are required.");
+                return;
+            }
+
+            const res = await fetch('/.netlify/functions/create-assignment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Architect-Key': sessionStorage.getItem('architect_key')
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                showToast(`Failed: ${msg}`);
+                return;
+            }
+            showToast("Assignment created.");
+            document.getElementById('asgTitle').value = '';
+            document.getElementById('asgPrompt').value = '';
+            document.getElementById('asgMaxSubmissions').value = '1';
+            document.getElementById('asgArchiveDays').value = '10';
+            document.getElementById('asgRepoEligible').checked = false;
+            document.getElementById('asgStrictDeviceLock').checked = true;
+            refreshActiveAssignmentsHint();
+        }
+
+        async function refreshActiveAssignmentsHint() {
+            const res = await fetch('/.netlify/functions/list-active-assignments?machineType=ALL');
+            if (!res.ok) return;
+            const list = await res.json();
+            document.getElementById('activeAssignmentHint').textContent = `${list.length} active assignment(s)`;
         }
 
         function logout() { sessionStorage.removeItem('architect_key'); location.reload(); }

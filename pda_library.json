@@ -1,55 +1,79 @@
 [
   {
+    "id": "pda_an_bn_test",
+    "title": "PDA: Equality a^n b^n",
     "type": "PDA",
-    "id": "pda_balanced_parens",
-    "title": "PDA: Balanced Parentheses",
-    "description": "Accepts strings of balanced brackets ( ) using a stack.",
-    "states": [
-      {
-        "id": "q0",
-        "x": 150,
-        "y": 200,
-        "initial": true,
-        "accepting": false
-      },
-      {
-        "id": "q1",
-        "x": 400,
-        "y": 200,
-        "initial": false,
-        "accepting": true
-      }
-    ],
-    "transitions": [
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": "(",
-        "pop": "Z",
-        "push": "(Z"
-      },
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": "(",
-        "pop": "(",
-        "push": "(("
-      },
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": ")",
-        "pop": "(",
-        "push": "\u03b5"
-      },
-      {
-        "from": "q0",
-        "to": "q1",
-        "symbol": "\u03b5",
-        "pop": "Z",
-        "push": "Z"
-      }
-    ]
+    "description": "Standard test case for Build Automata Library. Matches equal number of a's and b's.",
+    "machine": {
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "accepting": true,
+          "x": 200,
+          "y": 300
+        },
+        {
+          "id": "q1",
+          "initial": false,
+          "accepting": false,
+          "x": 450,
+          "y": 300
+        },
+        {
+          "id": "q2",
+          "initial": false,
+          "accepting": true,
+          "x": 700,
+          "y": 300
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "a",
+          "pop": "Z",
+          "push": "XZ"
+        },
+        {
+          "from": "q1",
+          "to": "q1",
+          "symbol": "a",
+          "pop": "X",
+          "push": "XX"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "b",
+          "pop": "X",
+          "push": ""
+        },
+        {
+          "from": "q2",
+          "to": "q2",
+          "symbol": "b",
+          "pop": "X",
+          "push": ""
+        },
+        {
+          "from": "q2",
+          "to": "q2",
+          "symbol": "",
+          "pop": "Z",
+          "push": "Z"
+        }
+      ],
+      "alphabet": [
+        "a",
+        "b"
+      ],
+      "stackAlphabet": [
+        "X",
+        "Z"
+      ]
+    }
   },
   {
     "type": "PDA",
@@ -125,79 +149,130 @@
     ]
   },
   {
-    "id": "pda_an_bn_test",
-    "title": "PDA: Equality a^n b^n",
     "type": "PDA",
-    "description": "Standard test case for Build Automata Library. Matches equal number of a's and b's.",
-    "machine": {
-      "states": [
-        {
-          "id": "q0",
-          "initial": true,
-          "accepting": true,
-          "x": 200,
-          "y": 300
-        },
-        {
-          "id": "q1",
-          "initial": false,
-          "accepting": false,
-          "x": 450,
-          "y": 300
-        },
-        {
-          "id": "q2",
-          "initial": false,
-          "accepting": true,
-          "x": 700,
-          "y": 300
-        }
-      ],
-      "transitions": [
-        {
-          "from": "q0",
-          "to": "q1",
-          "symbol": "a",
-          "pop": "Z",
-          "push": "XZ"
-        },
-        {
-          "from": "q1",
-          "to": "q1",
-          "symbol": "a",
-          "pop": "X",
-          "push": "XX"
-        },
-        {
-          "from": "q1",
-          "to": "q2",
-          "symbol": "b",
-          "pop": "X",
-          "push": ""
-        },
-        {
-          "from": "q2",
-          "to": "q2",
-          "symbol": "b",
-          "pop": "X",
-          "push": ""
-        },
-        {
-          "from": "q2",
-          "to": "q2",
-          "symbol": "",
-          "pop": "Z",
-          "push": "Z"
-        }
-      ],
-      "alphabet": [
-        "a",
-        "b"
-      ],
-      "stackAlphabet": [
-        "X",
-        "Z"
-      ]
-    }
+    "id": "pda_balanced_parens",
+    "title": "PDA: Balanced Parentheses",
+    "description": "Accepts strings of balanced brackets ( ) using a stack.",
+    "states": [
+      {
+        "id": "q0",
+        "x": 150,
+        "y": 200,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q1",
+        "x": 400,
+        "y": 200,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "Z",
+        "push": "(Z"
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "(",
+        "push": "(("
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": ")",
+        "pop": "(",
+        "push": "\u03b5"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "\u03b5",
+        "pop": "Z",
+        "push": "Z"
+      }
+    ]
+  },
+  {
+    "id": "pda_smoke_anbn_2026",
+    "title": "PDA Smoke: a^n b^n",
+    "type": "PDA",
+    "states": [
+      {
+        "id": "q0",
+        "initial": true,
+        "accepting": false,
+        "x": 220,
+        "y": 230
+      },
+      {
+        "id": "q1",
+        "initial": false,
+        "accepting": false,
+        "x": 500,
+        "y": 230
+      },
+      {
+        "id": "q2",
+        "initial": false,
+        "accepting": true,
+        "x": 800,
+        "y": 230
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "a",
+        "pop": "Z",
+        "push": "AZ"
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "a",
+        "pop": "A",
+        "push": "AA"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "b",
+        "pop": "A",
+        "push": ""
+      },
+      {
+        "from": "q1",
+        "to": "q1",
+        "symbol": "b",
+        "pop": "A",
+        "push": ""
+      },
+      {
+        "from": "q1",
+        "to": "q2",
+        "symbol": "",
+        "pop": "Z",
+        "push": "Z"
+      }
+    ],
+    "alphabet": [
+      "a",
+      "b"
+    ],
+    "stackAlphabet": [
+      "Z",
+      "A"
+    ],
+    "initialStackSymbol": "Z",
+    "acceptanceMode": "FINAL_STATE"
   }
 ]

@@ -19,8 +19,15 @@
        <select id="pdaModeSelect" style="width:100%; padding:5px;">
          <option value="NPDA">Non-Deterministic (NPDA)</option>
          <option value="DPDA">Deterministic (DPDA)</option>
+         <option value="NPDA_EPS_FREE">NPDA (Epsilon-Free Input)</option>
+         <option value="DPDA_EPS_FREE">DPDA (Epsilon-Free Input)</option>
        </select>
-       <div class="kv">Acceptance: <strong>Final State</strong></div>
+       <label style="font-size:0.8em; color:var(--muted);">Acceptance Rule:</label>
+       <select id="pdaAcceptanceSelect" style="width:100%; padding:5px;">
+         <option value="FINAL_STATE">Final State</option>
+         <option value="EMPTY_STACK">Empty Stack</option>
+         <option value="BOTH">Final State + Empty Stack</option>
+       </select>
      </div>
   </div>
 </details>

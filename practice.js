@@ -3,7 +3,17 @@ import { animateMachineDrawing } from './animation.js';
 import { setValidationMessage, addLogMessage } from './utils.js';
 import { areEquivalent } from './equivalence.js';
 
-export function generatePractice() {
+let practiceBankPromise = null;
+
+async function ensurePracticeBankLoaded() {
+    if (typeof window.PRACTICE_BANK !== 'undefined') return;
+    if (!practiceBankPromise) {
+        practiceBankPromise = import('./practice-bank.js');
+    }
+    await practiceBankPromise;
+}
+
+export async function generatePractice() {
     const practiceBox = document.getElementById('practiceBox');
     const modeSelect = document.getElementById('modeSelect');
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
@@ -11,6 +21,7 @@ export function generatePractice() {
     const mode = modeSelect ? modeSelect.value.split('_TO_')[0] : 'DFA';
     const level = document.getElementById('practiceMode').value;
 
+    await ensurePracticeBankLoaded();
     if (typeof window.PRACTICE_BANK === 'undefined') {
         practiceBox.textContent = "Practice bank not loaded.";
         return;

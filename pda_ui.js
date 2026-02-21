@@ -10,7 +10,7 @@ import { runPdaSimulation } from './pda_simulation.js';
 import { animatePdaPath,stepSimulation,setSimulationPath,updateStackUI,currentPath,currentIndex} from './pda_simulation_visualizer.js';
 import { generatePractice, checkAnswer, showSolution } from './pda_practice.js'; 
 import { savePdaMachine, exportPng, loadPdaMachine } from './pda_file.js';
-import { setValidationMessage, customAlert, addLogMessage, initializeShortcuts } from './utils.js';
+import { setValidationMessage, customAlert, addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
 import { animatePdaDrawing } from './pda_animation.js';
 import { updatePdaLogicDisplay, exportPdaTableToExcel } from './pda_logic_table.js';
 import { initializePdaLibrary } from './pda_library_loader.js';
@@ -36,17 +36,40 @@ export function initializePdaUI() {
     const controlPanel = document.getElementById('controlPanel');
     const visualizationPanel = document.querySelector('.visualization-panel');
 
-    if (toggleBtn && controlPanel) {
+    const ensureDrawerBackdrop = () => {
+        let backdrop = document.getElementById('drawerBackdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'drawerBackdrop';
+            backdrop.className = 'drawer-backdrop';
+            document.body.appendChild(backdrop);
+        }
+        return backdrop;
+    };
+    const drawerBackdrop = ensureDrawerBackdrop();
+    const closePanel = () => {
+        controlPanel?.classList.remove('open');
+        drawerBackdrop?.classList.remove('open');
+        toggleBtn?.setAttribute('aria-expanded', 'false');
+    };
+    const togglePanel = () => {
+        if (!controlPanel) return;
+        const isOpen = controlPanel.classList.toggle('open');
+        drawerBackdrop?.classList.toggle('open', isOpen);
+        toggleBtn?.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    if (toggleBtn) {
         toggleBtn.onclick = (e) => {
             e.stopPropagation();
-            controlPanel.classList.toggle('open'); //
+            togglePanel();
         };
     }
 
     // Close drawer when clicking the canvas to maximize workspace
-    visualizationPanel?.addEventListener('click', () => {
-        controlPanel?.classList.remove('open');
-    });
+    visualizationPanel?.addEventListener('click', closePanel);
+    drawerBackdrop?.addEventListener('click', closePanel);
+    bindGlobalDrawerHandlers(closePanel);
 
     // 2. Global render wrapper for Intelligence synchronization
     const originalRender = renderAll;
@@ -68,22 +91,28 @@ export function initializePdaUI() {
 
     // Initial render and Lucide icon generation
     window.renderAll();
-    if (window.lucide) lucide.createIcons();
+    refreshLucideIcons();
     addLogMessage("PDA Studio: Intelligence Active.", 'shield-check');
 }
 
 function setupModeLogic() {
     const modeSelect = document.getElementById('pdaModeSelect');
-    if (!modeSelect) return;
+    const acceptanceSelect = document.getElementById('pdaAcceptanceSelect');
+    if (!modeSelect || !acceptanceSelect) return;
+
+    modeSelect.value = MACHINE.type || 'NPDA';
+    acceptanceSelect.value = MACHINE.acceptanceMode || 'FINAL_STATE';
 
     modeSelect.addEventListener('change', async (e) => {
         const newMode = e.target.value;
+        const deterministic = newMode.startsWith('DPDA');
         
-        if (newMode === 'DPDA') {
+        if (deterministic) {
             addLogMessage("Starting conversion to Deterministic PDA...", 'loader');
             
             // 1. Logic Check (Synchronous)
             const conversionResult = convertToDeterministic(MACHINE);
+            MACHINE.type = newMode;
             
             // 2. Visual Animation
             // We "redraw" the machine to show the pruned/deterministic version being constructed
@@ -101,11 +130,18 @@ function setupModeLogic() {
             }
         } else {
             pushUndo();
-            MACHINE.type = 'NPDA';
+            MACHINE.type = newMode;
             setValidationMessage("Switched to Non-Deterministic mode.", 'success');
-            addLogMessage("Switched to Non-Deterministic PDA mode.", "zap");
+            addLogMessage(`Switched to ${newMode} mode.`, "zap");
             renderAll();
         }
+    });
+
+    acceptanceSelect.addEventListener('change', (e) => {
+        pushUndo();
+        MACHINE.acceptanceMode = e.target.value || 'FINAL_STATE';
+        setValidationMessage(`Acceptance mode set to ${MACHINE.acceptanceMode}.`, 'success');
+        addLogMessage(`PDA acceptance mode: ${MACHINE.acceptanceMode}`, 'check-check');
     });
 }
 
@@ -377,6 +413,11 @@ function openPdaModal(from, to) {
             const symbol = symbolIn.value.trim() || 'ε';
             const pop = popIn.value.trim() || 'ε';
             const push = pushIn.value.trim() || 'ε';
+
+            if (String(MACHINE.type || '').includes('EPS_FREE') && (symbol === 'ε' || symbol.toLowerCase() === 'eps')) {
+                customAlert("Mode Restriction", "Epsilon input transitions are blocked in epsilon-free modes.");
+                return;
+            }
             
             // Use the top-level pushUndo() function
             pushUndo();
@@ -630,7 +671,7 @@ function setupPdaLogicToggle() {
         if (modal) {
             modal.style.display = 'flex';
             updatePdaLogicDisplay(); // Refresh logic table
-            if (window.lucide) lucide.createIcons();
+            refreshLucideIcons();
         }
     });
 

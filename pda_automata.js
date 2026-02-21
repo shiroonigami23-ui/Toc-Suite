@@ -9,12 +9,12 @@
  * and suggests merging or re-routing if they go to the same state.
  */
 export function convertToDeterministic(machine) {
-    if (machine.type === 'DPDA') return { success: true, message: "Already DPDA" };
+    if (String(machine.type || '').startsWith('DPDA')) return { success: true, message: "Already DPDA" };
 
     const conflicts = findNonDeterministicConflicts(machine);
     
     if (conflicts.length === 0) {
-        machine.type = 'DPDA';
+        machine.type = String(machine.type || '').includes('EPS_FREE') ? 'DPDA_EPS_FREE' : 'DPDA';
         return { success: true, message: "Successfully converted to DPDA." };
     }
 
@@ -43,7 +43,7 @@ export function convertToDeterministic(machine) {
         };
     }
 
-    machine.type = 'DPDA';
+    machine.type = String(machine.type || '').includes('EPS_FREE') ? 'DPDA_EPS_FREE' : 'DPDA';
     return { success: true, message: `Redundant transitions removed. Machine is now DPDA.` };
 }
 
@@ -66,7 +66,7 @@ export function validatePda(machine) {
     if (machine.states.length === 0) return { type: 'error', message: "No states defined." };
     if (!machine.states.some(s => s.initial)) return { type: 'error', message: "No initial state." };
     
-    if (machine.type === 'DPDA') {
+    if (String(machine.type || '').startsWith('DPDA')) {
         const conflicts = findNonDeterministicConflicts(machine);
         if (conflicts.length > 0) {
             return { type: 'warning', message: "DPDA has non-deterministic conflicts." };

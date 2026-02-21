@@ -1,0 +1,75 @@
+{
+  "id": "pda_smoke_anbn_2026",
+  "title": "PDA Smoke: a^n b^n",
+  "type": "PDA",
+  "states": [
+    {
+      "id": "q0",
+      "initial": true,
+      "accepting": false,
+      "x": 220,
+      "y": 230
+    },
+    {
+      "id": "q1",
+      "initial": false,
+      "accepting": false,
+      "x": 500,
+      "y": 230
+    },
+    {
+      "id": "q2",
+      "initial": false,
+      "accepting": true,
+      "x": 800,
+      "y": 230
+    }
+  ],
+  "transitions": [
+    {
+      "from": "q0",
+      "to": "q0",
+      "symbol": "a",
+      "pop": "Z",
+      "push": "AZ"
+    },
+    {
+      "from": "q0",
+      "to": "q0",
+      "symbol": "a",
+      "pop": "A",
+      "push": "AA"
+    },
+    {
+      "from": "q0",
+      "to": "q1",
+      "symbol": "b",
+      "pop": "A",
+      "push": ""
+    },
+    {
+      "from": "q1",
+      "to": "q1",
+      "symbol": "b",
+      "pop": "A",
+      "push": ""
+    },
+    {
+      "from": "q1",
+      "to": "q2",
+      "symbol": "",
+      "pop": "Z",
+      "push": "Z"
+    }
+  ],
+  "alphabet": [
+    "a",
+    "b"
+  ],
+  "stackAlphabet": [
+    "Z",
+    "A"
+  ],
+  "initialStackSymbol": "Z",
+  "acceptanceMode": "FINAL_STATE"
+}

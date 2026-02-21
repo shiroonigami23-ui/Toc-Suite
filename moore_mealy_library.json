@@ -1,5 +1,59 @@
 [
   {
+    "title": "Even Ones Detector",
+    "description": "Moore Machine: Outputs '1' if the number of 1s received so far is even, otherwise '0'.",
+    "type": "MOORE",
+    "machine": {
+      "type": "MOORE",
+      "states": [
+        {
+          "id": "q_even",
+          "initial": true,
+          "output": "1",
+          "x": 200,
+          "y": 200
+        },
+        {
+          "id": "q_odd",
+          "initial": false,
+          "output": "0",
+          "x": 500,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q_even",
+          "to": "q_even",
+          "symbol": "0"
+        },
+        {
+          "from": "q_even",
+          "to": "q_odd",
+          "symbol": "1"
+        },
+        {
+          "from": "q_odd",
+          "to": "q_odd",
+          "symbol": "0"
+        },
+        {
+          "from": "q_odd",
+          "to": "q_even",
+          "symbol": "1"
+        }
+      ],
+      "alphabet": [
+        "0",
+        "1"
+      ],
+      "output_alphabet": [
+        "0",
+        "1"
+      ]
+    }
+  },
+  {
     "type": "MOORE",
     "id": "moore_sequence_10",
     "title": "Moore: Detect '10' Sequence",
@@ -59,59 +113,5 @@
         "symbol": "1"
       }
     ]
-  },
-  {
-    "title": "Even Ones Detector",
-    "description": "Moore Machine: Outputs '1' if the number of 1s received so far is even, otherwise '0'.",
-    "type": "MOORE",
-    "machine": {
-      "type": "MOORE",
-      "states": [
-        {
-          "id": "q_even",
-          "initial": true,
-          "output": "1",
-          "x": 200,
-          "y": 200
-        },
-        {
-          "id": "q_odd",
-          "initial": false,
-          "output": "0",
-          "x": 500,
-          "y": 200
-        }
-      ],
-      "transitions": [
-        {
-          "from": "q_even",
-          "to": "q_even",
-          "symbol": "0"
-        },
-        {
-          "from": "q_even",
-          "to": "q_odd",
-          "symbol": "1"
-        },
-        {
-          "from": "q_odd",
-          "to": "q_odd",
-          "symbol": "0"
-        },
-        {
-          "from": "q_odd",
-          "to": "q_even",
-          "symbol": "1"
-        }
-      ],
-      "alphabet": [
-        "0",
-        "1"
-      ],
-      "output_alphabet": [
-        "0",
-        "1"
-      ]
-    }
   }
 ]

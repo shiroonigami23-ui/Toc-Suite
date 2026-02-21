@@ -1,5 +1,73 @@
 [
   {
+    "title": "DFA that accepts ending with \"RR\"",
+    "description": "Accepts short strings such as: RR, PRR, RRR. The formal alphabet is {P, R}.",
+    "type": "DFA",
+    "machine": {
+      "type": "DFA",
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "accepting": false,
+          "x": 700,
+          "y": 300
+        },
+        {
+          "id": "q1",
+          "initial": false,
+          "accepting": false,
+          "x": 829.9038105676658,
+          "y": 525
+        },
+        {
+          "id": "q2",
+          "initial": false,
+          "accepting": true,
+          "x": 570.0961894323342,
+          "y": 525
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "P"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "R"
+        },
+        {
+          "from": "q2",
+          "to": "q2",
+          "symbol": "R"
+        },
+        {
+          "from": "q2",
+          "to": "q0",
+          "symbol": "P"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "R"
+        },
+        {
+          "from": "q1",
+          "to": "q0",
+          "symbol": "P"
+        }
+      ],
+      "alphabet": [
+        "P",
+        "R"
+      ],
+      "title": "DFA that accepts ending with \"R\""
+    }
+  },
+  {
     "type": "DFA",
     "title": "DFA: Binary Divisible by 3",
     "description": "Accepts binary strings representing numbers divisible by 3 using modular arithmetic. States track remainders when dividing by 3.",
@@ -71,6 +139,111 @@
     "difficulty": "medium",
     "category": "number-recognition",
     "author": "CS Theory Course"
+  },
+  {
+    "type": "DFA",
+    "id": "binary_odd_ones",
+    "title": "DFA: Odd Number of 1s",
+    "description": "Accepts binary strings with an odd number of 1s.",
+    "states": [
+      {
+        "id": "q_even",
+        "x": 100,
+        "y": 100,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q_odd",
+        "x": 300,
+        "y": 100,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q_even",
+        "to": "q_even",
+        "symbol": "0"
+      },
+      {
+        "from": "q_even",
+        "to": "q_odd",
+        "symbol": "1"
+      },
+      {
+        "from": "q_odd",
+        "to": "q_odd",
+        "symbol": "0"
+      },
+      {
+        "from": "q_odd",
+        "to": "q_even",
+        "symbol": "1"
+      }
+    ]
+  },
+  {
+    "type": "DFA",
+    "id": "dfa_starts_a",
+    "title": "DFA: Starts with 'a'",
+    "description": "Accepts any string from {a, b} that begins with the letter 'a'.",
+    "states": [
+      {
+        "id": "q0",
+        "x": 100,
+        "y": 200,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q1",
+        "x": 300,
+        "y": 200,
+        "initial": false,
+        "accepting": true
+      },
+      {
+        "id": "q2",
+        "x": 300,
+        "y": 400,
+        "initial": false,
+        "accepting": false
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "a"
+      },
+      {
+        "from": "q0",
+        "to": "q2",
+        "symbol": "b"
+      },
+      {
+        "from": "q1",
+        "to": "q1",
+        "symbol": "a"
+      },
+      {
+        "from": "q1",
+        "to": "q1",
+        "symbol": "b"
+      },
+      {
+        "from": "q2",
+        "to": "q2",
+        "symbol": "a"
+      },
+      {
+        "from": "q2",
+        "to": "q2",
+        "symbol": "b"
+      }
+    ]
   },
   {
     "title": "Substring 'ab' Detector",
@@ -146,31 +319,23 @@
     }
   },
   {
+    "id": "fa_smoke_even_as_2026",
+    "title": "DFA Smoke: Even number of a",
     "type": "DFA",
-    "id": "dfa_starts_a",
-    "title": "DFA: Starts with 'a'",
-    "description": "Accepts any string from {a, b} that begins with the letter 'a'.",
     "states": [
       {
         "id": "q0",
-        "x": 100,
-        "y": 200,
         "initial": true,
-        "accepting": false
+        "accepting": true,
+        "x": 260,
+        "y": 220
       },
       {
         "id": "q1",
-        "x": 300,
-        "y": 200,
         "initial": false,
-        "accepting": true
-      },
-      {
-        "id": "q2",
-        "x": 300,
-        "y": 400,
-        "initial": false,
-        "accepting": false
+        "accepting": false,
+        "x": 520,
+        "y": 220
       }
     ],
     "transitions": [
@@ -180,290 +345,14 @@
         "symbol": "a"
       },
       {
-        "from": "q0",
-        "to": "q2",
-        "symbol": "b"
-      },
-      {
         "from": "q1",
-        "to": "q1",
+        "to": "q0",
         "symbol": "a"
-      },
-      {
-        "from": "q1",
-        "to": "q1",
-        "symbol": "b"
-      },
-      {
-        "from": "q2",
-        "to": "q2",
-        "symbol": "a"
-      },
-      {
-        "from": "q2",
-        "to": "q2",
-        "symbol": "b"
-      }
-    ]
-  },
-  {
-    "type": "DFA",
-    "id": "binary_odd_ones",
-    "title": "DFA: Odd Number of 1s",
-    "description": "Accepts binary strings with an odd number of 1s.",
-    "states": [
-      {
-        "id": "q_even",
-        "x": 100,
-        "y": 100,
-        "initial": true,
-        "accepting": false
-      },
-      {
-        "id": "q_odd",
-        "x": 300,
-        "y": 100,
-        "initial": false,
-        "accepting": true
       }
     ],
-    "transitions": [
-      {
-        "from": "q_even",
-        "to": "q_even",
-        "symbol": "0"
-      },
-      {
-        "from": "q_even",
-        "to": "q_odd",
-        "symbol": "1"
-      },
-      {
-        "from": "q_odd",
-        "to": "q_odd",
-        "symbol": "0"
-      },
-      {
-        "from": "q_odd",
-        "to": "q_even",
-        "symbol": "1"
-      }
-    ]
-  },
-  {
-    "type": "DFA",
-    "title": "DFA: contains substring '010'",
-    "description": "Accepts binary strings that contain '010' as a substring. Uses state memory to track partial matches.",
     "alphabet": [
-      "0",
-      "1"
-    ],
-    "states": [
-      {
-        "id": "q0",
-        "x": 150,
-        "y": 300,
-        "initial": true,
-        "accepting": false
-      },
-      {
-        "id": "q1",
-        "x": 350,
-        "y": 300,
-        "initial": false,
-        "accepting": false
-      },
-      {
-        "id": "q2",
-        "x": 550,
-        "y": 300,
-        "initial": false,
-        "accepting": false
-      },
-      {
-        "id": "q3",
-        "x": 750,
-        "y": 300,
-        "initial": false,
-        "accepting": true
-      }
-    ],
-    "transitions": [
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": "1"
-      },
-      {
-        "from": "q0",
-        "to": "q1",
-        "symbol": "0"
-      },
-      {
-        "from": "q1",
-        "to": "q1",
-        "symbol": "0"
-      },
-      {
-        "from": "q1",
-        "to": "q2",
-        "symbol": "1"
-      },
-      {
-        "from": "q2",
-        "to": "q3",
-        "symbol": "0"
-      },
-      {
-        "from": "q2",
-        "to": "q0",
-        "symbol": "1"
-      },
-      {
-        "from": "q3",
-        "to": "q3",
-        "symbol": "0"
-      },
-      {
-        "from": "q3",
-        "to": "q3",
-        "symbol": "1"
-      }
-    ],
-    "tags": [
-      "substring",
-      "pattern-matching",
-      "finite-memory"
-    ],
-    "difficulty": "medium",
-    "category": "string-matching",
-    "author": "Algorithms Course"
-  },
-  {
-    "title": "DFA that accepts ending with \"RR\"",
-    "description": "Accepts short strings such as: RR, PRR, RRR. The formal alphabet is {P, R}.",
-    "type": "DFA",
-    "machine": {
-      "type": "DFA",
-      "states": [
-        {
-          "id": "q0",
-          "initial": true,
-          "accepting": false,
-          "x": 700,
-          "y": 300
-        },
-        {
-          "id": "q1",
-          "initial": false,
-          "accepting": false,
-          "x": 829.9038105676658,
-          "y": 525
-        },
-        {
-          "id": "q2",
-          "initial": false,
-          "accepting": true,
-          "x": 570.0961894323342,
-          "y": 525
-        }
-      ],
-      "transitions": [
-        {
-          "from": "q0",
-          "to": "q0",
-          "symbol": "P"
-        },
-        {
-          "from": "q1",
-          "to": "q2",
-          "symbol": "R"
-        },
-        {
-          "from": "q2",
-          "to": "q2",
-          "symbol": "R"
-        },
-        {
-          "from": "q2",
-          "to": "q0",
-          "symbol": "P"
-        },
-        {
-          "from": "q0",
-          "to": "q1",
-          "symbol": "R"
-        },
-        {
-          "from": "q1",
-          "to": "q0",
-          "symbol": "P"
-        }
-      ],
-      "alphabet": [
-        "P",
-        "R"
-      ],
-      "title": "DFA that accepts ending with \"R\""
-    }
-  },
-  {
-    "id": "nfa_second_to_last_is_a",
-    "title": "NFA for second to last symbol 'a'",
-    "type": "NFA",
-    "description": "Accepts any string from the alphabet {a, b} where the second-to-last symbol is 'a'.",
-    "machine": {
-      "states": [
-        {
-          "id": "q0",
-          "initial": true,
-          "x": 150,
-          "y": 200
-        },
-        {
-          "id": "q1",
-          "x": 350,
-          "y": 200
-        },
-        {
-          "id": "q2",
-          "accepting": true,
-          "x": 550,
-          "y": 200
-        }
-      ],
-      "transitions": [
-        {
-          "from": "q0",
-          "to": "q0",
-          "symbol": "a"
-        },
-        {
-          "from": "q0",
-          "to": "q0",
-          "symbol": "b"
-        },
-        {
-          "from": "q0",
-          "to": "q1",
-          "symbol": "a"
-        },
-        {
-          "from": "q1",
-          "to": "q2",
-          "symbol": "a"
-        },
-        {
-          "from": "q1",
-          "to": "q2",
-          "symbol": "b"
-        }
-      ],
-      "alphabet": [
-        "a",
-        "b"
-      ]
-    }
+      "a"
+    ]
   },
   {
     "id": "nfa_contains_aba",
@@ -590,5 +479,152 @@
         "1"
       ]
     }
+  },
+  {
+    "id": "nfa_second_to_last_is_a",
+    "title": "NFA for second to last symbol 'a'",
+    "type": "NFA",
+    "description": "Accepts any string from the alphabet {a, b} where the second-to-last symbol is 'a'.",
+    "machine": {
+      "states": [
+        {
+          "id": "q0",
+          "initial": true,
+          "x": 150,
+          "y": 200
+        },
+        {
+          "id": "q1",
+          "x": 350,
+          "y": 200
+        },
+        {
+          "id": "q2",
+          "accepting": true,
+          "x": 550,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "a"
+        },
+        {
+          "from": "q0",
+          "to": "q0",
+          "symbol": "b"
+        },
+        {
+          "from": "q0",
+          "to": "q1",
+          "symbol": "a"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "a"
+        },
+        {
+          "from": "q1",
+          "to": "q2",
+          "symbol": "b"
+        }
+      ],
+      "alphabet": [
+        "a",
+        "b"
+      ]
+    }
+  },
+  {
+    "type": "DFA",
+    "title": "DFA: contains substring '010'",
+    "description": "Accepts binary strings that contain '010' as a substring. Uses state memory to track partial matches.",
+    "alphabet": [
+      "0",
+      "1"
+    ],
+    "states": [
+      {
+        "id": "q0",
+        "x": 150,
+        "y": 300,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q1",
+        "x": 350,
+        "y": 300,
+        "initial": false,
+        "accepting": false
+      },
+      {
+        "id": "q2",
+        "x": 550,
+        "y": 300,
+        "initial": false,
+        "accepting": false
+      },
+      {
+        "id": "q3",
+        "x": 750,
+        "y": 300,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "1"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "0"
+      },
+      {
+        "from": "q1",
+        "to": "q1",
+        "symbol": "0"
+      },
+      {
+        "from": "q1",
+        "to": "q2",
+        "symbol": "1"
+      },
+      {
+        "from": "q2",
+        "to": "q3",
+        "symbol": "0"
+      },
+      {
+        "from": "q2",
+        "to": "q0",
+        "symbol": "1"
+      },
+      {
+        "from": "q3",
+        "to": "q3",
+        "symbol": "0"
+      },
+      {
+        "from": "q3",
+        "to": "q3",
+        "symbol": "1"
+      }
+    ],
+    "tags": [
+      "substring",
+      "pattern-matching",
+      "finite-memory"
+    ],
+    "difficulty": "medium",
+    "category": "string-matching",
+    "author": "Algorithms Course"
   }
 ]

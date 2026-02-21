@@ -6,6 +6,7 @@ import { setValidationMessage, fetchWithRetry } from './utils.js';
 import { animateMachineDrawing } from './animation.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { authenticateAiAccess } from './ai-auth.js';
+import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
 // --- Machine Analysis Helpers (Used for smart save metadata) ---
 
 /**
@@ -153,7 +154,7 @@ export function handleSaveMachine() {
     modal.style.display = 'flex';
 
     // --- ARCHITECT'S STAGING INTEGRATION ---
-    confirmBtn.onclick = () => {
+    confirmBtn.onclick = async () => {
         const prefix = "mm_"; // Unified prefix for Moore/Mealy
         const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
         const fileName = prefix + userProvidedPart.toLowerCase().replace(/\s+/g, '-');
@@ -170,15 +171,17 @@ export function handleSaveMachine() {
         addLogMessage(`MM Saved Locally: ${fileName}.json`, 'check-circle');
 
         // 2. SILENT STAGING (Silent during Netlify pause)
-        fetch('/.netlify/functions/save-to-db', {
-            method: 'POST',
-            body: JSON.stringify({
-                name: userProvidedPart, 
-                type: 'MM', 
-                data: MACHINE,
-                author: 'Shiro'
-            })
-        }).catch(err => console.error("MM Staging bypassed/failed due to environment status."));
+        const assignment = await decideSubmissionMode('MM');
+        await stageToDb({
+            name: userProvidedPart,
+            type: 'MM',
+            data: MACHINE,
+            author: getStudentProfile().name || 'Student',
+            submissionMode: assignment.submissionMode,
+            assignmentId: assignment.assignmentId,
+            assignmentTitle: assignment.assignmentTitle,
+            studentProfile: getStudentProfile()
+        }).catch(() => console.error("MM staging silent failure."));
     };
 }
 

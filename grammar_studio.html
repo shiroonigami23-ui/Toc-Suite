@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grammar Studio | TOC-Suite</title>
+  <meta name="theme-color" content="#4a90e2" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+  <div class="app-container" style="max-width:1400px;">
+    <header class="header" style="background:linear-gradient(90deg,#0ea5e9,#0f766e);">
+      <h1>Grammar Studio</h1>
+      <button id="grammarBackBtn" class="splash-utility-btn" type="button">Back to Splash</button>
+    </header>
+
+    <main class="main-content" style="align-items:stretch;">
+      <aside class="control-panel" style="position:relative;top:auto;max-height:none;">
+        <details class="control-section" open>
+          <summary><i data-lucide="book-open"></i><span>CFG Input</span></summary>
+          <div class="control-section-content">
+            <label for="grammarStart" style="font-weight:600;font-size:0.85rem;">Start Symbol</label>
+            <input id="grammarStart" class="modal-input" value="S" maxlength="12" />
+            <label for="grammarInput" style="font-weight:600;font-size:0.85rem;">Grammar Rules</label>
+            <textarea id="grammarInput" class="modal-input" style="min-height:220px;font-family:Consolas,monospace;" spellcheck="false">S -> a S b | eps</textarea>
+            <button id="grammarValidateBtn" class="run-btn" type="button">Validate Grammar</button>
+            <div id="grammarStatus" class="integration-status" style="margin-top:10px;">Ready.</div>
+          </div>
+        </details>
+
+        <details class="control-section" open>
+          <summary><i data-lucide="sparkles"></i><span>Conversion</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <button id="grammarAnimateBtn" class="icon-btn" type="button">Animate CFG to NPDA</button>
+            <button id="grammarBuildBtn" class="icon-btn" type="button">Build NPDA JSON</button>
+            <button id="grammarOpenPdaBtn" class="icon-btn" type="button">Open in PDA Studio</button>
+            <button id="grammarDownloadBtn" class="icon-btn" type="button">Download NPDA JSON</button>
+          </div>
+        </details>
+
+        <details class="control-section" open>
+          <summary><i data-lucide="git-fork"></i><span>Parse Tree</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <label for="parseTarget" style="font-weight:600;font-size:0.85rem;">Target String</label>
+            <input id="parseTarget" class="modal-input" placeholder="Example: aaabbb" />
+            <button id="parseGenerateBtn" class="icon-btn" type="button">Generate Parse Tree</button>
+            <div style="font-size:0.82rem;color:#475569;">Use `eps` for epsilon. No spaces in target string.</div>
+          </div>
+        </details>
+      </aside>
+
+      <section class="visualization-panel" style="min-height:600px;">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="icon-btn grammar-tab-btn" data-tab="steps" type="button">Steps</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="npda" type="button">NPDA</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="tree" type="button">Parse Tree</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="derivation" type="button">Derivation</button>
+        </div>
+
+        <div id="grammarTabSteps" class="grammar-tab-panel" style="display:block;">
+          <h3 style="margin:0 0 8px 0;">Conversion Animation</h3>
+          <div id="grammarStepLog" class="help-step-content" style="min-height:250px;max-height:340px;overflow:auto;"></div>
+        </div>
+
+        <div id="grammarTabNpda" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Generated NPDA</h3>
+          <pre id="grammarNpdaJson" class="help-step-content" style="min-height:420px;overflow:auto;font-family:Consolas,monospace;"></pre>
+        </div>
+
+        <div id="grammarTabTree" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Parse Tree</h3>
+          <div style="border:1px solid #e2e8f0;border-radius:12px;background:#fff;overflow:auto;min-height:420px;">
+            <svg id="parseTreeSvg" width="1200" height="520"></svg>
+          </div>
+        </div>
+
+        <div id="grammarTabDerivation" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Leftmost Derivation</h3>
+          <ol id="grammarDerivationList" class="help-step-content" style="min-height:420px;overflow:auto;margin:0;padding:16px 22px;"></ol>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="grammar_main.js"></script>
+</body>
+</html>

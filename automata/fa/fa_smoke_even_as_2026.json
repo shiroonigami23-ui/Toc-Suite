@@ -1,0 +1,36 @@
+{
+  "id": "fa_smoke_even_as_2026",
+  "title": "DFA Smoke: Even number of a",
+  "type": "DFA",
+  "states": [
+    {
+      "id": "q0",
+      "initial": true,
+      "accepting": true,
+      "x": 260,
+      "y": 220
+    },
+    {
+      "id": "q1",
+      "initial": false,
+      "accepting": false,
+      "x": 520,
+      "y": 220
+    }
+  ],
+  "transitions": [
+    {
+      "from": "q0",
+      "to": "q1",
+      "symbol": "a"
+    },
+    {
+      "from": "q1",
+      "to": "q0",
+      "symbol": "a"
+    }
+  ],
+  "alphabet": [
+    "a"
+  ]
+}

@@ -4,7 +4,7 @@ import { runSimulation, showStep } from './simulation.js';
 import { validateAutomaton } from './automata.js';
 import { saveMachine, loadMachine, exportPng, handleSaveWithMetadata, handleImageUpload, handleAiGeneration } from './file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './practice.js';
-import { setValidationMessage } from './utils.js';
+import { setValidationMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
 import { areEquivalent } from './equivalence.js';
 import { animateEnfaToNfa, animateNfaToDfa, animateDfaToMinDfa, animateNfaToMinDfa } from './conversion-animation.js';
 import { updateFaLogicDisplay, exportFaTableToExcel } from './fa_logic_table.js';
@@ -111,18 +111,38 @@ export function initializeUI() {
         });
     }
     
+    const ensureDrawerBackdrop = () => {
+        let backdrop = document.getElementById('drawerBackdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'drawerBackdrop';
+            backdrop.className = 'drawer-backdrop';
+            document.body.appendChild(backdrop);
+        }
+        return backdrop;
+    };
+    const drawerBackdrop = ensureDrawerBackdrop();
+    const closePanel = () => {
+        if (controlPanel) controlPanel.classList.remove('open');
+        if (drawerBackdrop) drawerBackdrop.classList.remove('open');
+        if (panelToggleBtn) panelToggleBtn.setAttribute('aria-expanded', 'false');
+    };
+    const togglePanel = () => {
+        if (!controlPanel) return;
+        const isOpen = controlPanel.classList.toggle('open');
+        if (drawerBackdrop) drawerBackdrop.classList.toggle('open', isOpen);
+        if (panelToggleBtn) panelToggleBtn.setAttribute('aria-expanded', String(isOpen));
+    };
+
     if (panelToggleBtn) {
         panelToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if(controlPanel) controlPanel.classList.toggle('open');
+            togglePanel();
         });
     }
-
-    if (visualizationPanel) {
-        visualizationPanel.addEventListener('click', () => {
-            if(controlPanel) controlPanel.classList.remove('open');
-        });
-    }
+    drawerBackdrop?.addEventListener('click', closePanel);
+    if (visualizationPanel) visualizationPanel.addEventListener('click', closePanel);
+    bindGlobalDrawerHandlers(closePanel);
 
     // FIX: Removed optional chaining from function definition
     const showLoading = () => { if (loadingOverlay) loadingOverlay.style.display = 'flex'; };
@@ -606,7 +626,7 @@ function handleBackToMenu() {
     if (modal) {
         modal.style.display = 'flex';
         updateFaLogicDisplay(); 
-        if (window.lucide) lucide.createIcons();
+        refreshLucideIcons();
     }
 });
 
@@ -639,9 +659,7 @@ document.getElementById('faExportTableBtn')?.addEventListener('click', () => {
     if(checkAnswerBtn) checkAnswerBtn.style.display = 'none';
     
     // Final icon generation for all dynamic elements
-    if(loadingOverlay && typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
-        lucide.createIcons({nodes: [loadingOverlay]});
-    }
+    if (loadingOverlay) refreshLucideIcons([loadingOverlay]);
 }
 
 function addState(x, y) {

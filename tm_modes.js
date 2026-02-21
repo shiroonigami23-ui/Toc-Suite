@@ -30,6 +30,12 @@ export async function handleModeChange(newMode, oldMode) {
         if (newMode === 'NON_DET') {
             addLogMessage("NTM Explorer active: Multiple transition paths per symbol permitted.", 'git-fork');
         }
+        if (newMode === 'LBA') {
+            transformedMachine.boundMode = 'INPUT_BOUNDED';
+            addLogMessage("LBA mode active: head movement is restricted to input bounds.", 'shield');
+        } else {
+            transformedMachine.boundMode = 'UNBOUNDED';
+        }
 
         resetMachine(); // Clear canvas and hint text
         await animateTmDrawing(transformedMachine); // Re-animate emerald nodes
@@ -50,6 +56,8 @@ export async function convertToStandard(machine, currentMode) {
         standardMachine = flattenMultiTape(standardMachine);
     } else if (currentMode === 'NON_DET') {
         standardMachine = determinizeNTM(standardMachine);
+    } else if (currentMode === 'LBA') {
+        standardMachine.boundMode = 'UNBOUNDED';
     }
 
     resetMachine(); // Prepare for visual construction

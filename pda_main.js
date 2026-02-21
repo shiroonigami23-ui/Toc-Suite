@@ -3,10 +3,12 @@
  * Entry point for the PDA Studio module.
  */
 
-import { initializeState, setRenderFunction } from './pda_state.js';
+import { initializeState, setRenderFunction, setMachine } from './pda_state.js';
 import { initializePdaUI } from './pda_ui.js';
 import { renderAll } from './pda_renderer.js';
 import { generatePractice } from './pda_practice.js';
+
+const PENDING_PDA_KEY = 'tocPendingPdaMachine';
 
 /**
  * Initializes the PDA Studio environment.
@@ -29,6 +31,19 @@ export function initializePDA() {
         setMachine(machineData);
         renderAll();
     };
+
+    // 5. Optional import bridge from Grammar Studio
+    try {
+        const pending = localStorage.getItem(PENDING_PDA_KEY);
+        if (pending) {
+            const parsed = JSON.parse(pending);
+            setMachine(parsed);
+            renderAll();
+            localStorage.removeItem(PENDING_PDA_KEY);
+        }
+    } catch (_e) {
+        // Ignore malformed pending import
+    }
 
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();

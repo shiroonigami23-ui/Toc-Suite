@@ -4,12 +4,13 @@
  */
 
 export let MACHINE = {
-    type: 'PDA',
+    type: 'NPDA',
     states: [],
     transitions: [],
     alphabet: [],
     stackAlphabet: [],
-    initialStackSymbol: 'Z'
+    initialStackSymbol: 'Z',
+    acceptanceMode: 'FINAL_STATE'
 };
 
 // FIX: Export these using Uppercase to match the other studio modules
@@ -56,12 +57,13 @@ export function redo(updateUIFn) {
 
 export function resetMachine() {
     MACHINE = {
-        type: 'PDA',
+        type: 'NPDA',
         states: [],
         transitions: [],
         alphabet: [],
         stackAlphabet: [],
-        initialStackSymbol: 'Z'
+        initialStackSymbol: 'Z',
+        acceptanceMode: 'FINAL_STATE'
     };
     UNDO_STACK = []; // Changed to UNDO_STACK
     REDO_STACK = []; // Changed to REDO_STACK
@@ -72,14 +74,15 @@ export function resetMachine() {
  */
 export function initializeState() {
     MACHINE = {
-        type: 'PDA',
+        type: 'NPDA',
         states: [],
         transitions: [],
         alphabet: [],
         stackAlphabet: [],
-        initialStackSymbol: 'Z'
+        initialStackSymbol: 'Z',
+        acceptanceMode: 'FINAL_STATE'
     };
-    undoStack = [];
-    redoStack = [];
+    UNDO_STACK = [];
+    REDO_STACK = [];
     if (renderCallback) renderCallback();
 }

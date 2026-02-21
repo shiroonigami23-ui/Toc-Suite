@@ -8,6 +8,7 @@ import { renderAll } from './tm_renderer.js';
 export let MACHINE = {
     type: 'STANDARD', // Default mode
     numTapes: 1,      // Number of parallel tapes
+    boundMode: 'UNBOUNDED',
     states: [],
     transitions: [],
     alphabet: ['0', '1'],
@@ -49,6 +50,7 @@ export function resetMachine() {
     MACHINE = {
         type: 'STANDARD',
         numTapes: 1,
+        boundMode: 'UNBOUNDED',
         states: [],
         transitions: [],
         alphabet: ['0', '1'],

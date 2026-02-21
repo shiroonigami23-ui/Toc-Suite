@@ -43,11 +43,40 @@ export function addLogMessage(message, icon) {
         log.appendChild(logEntry);
     }
 
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons({
-            nodes: [logEntry]
-        });
-    }
+    refreshLucideIcons([logEntry]);
+}
+
+export function refreshLucideIcons(nodes = null) {
+    if (typeof lucide === 'undefined' || typeof lucide.createIcons !== 'function') return;
+    if (window.__tocLucideFrame) cancelAnimationFrame(window.__tocLucideFrame);
+    window.__tocLucideFrame = requestAnimationFrame(() => {
+        if (nodes && Array.isArray(nodes) && nodes.length) {
+            lucide.createIcons({ nodes });
+        } else {
+            lucide.createIcons();
+        }
+        window.__tocLucideFrame = null;
+    });
+}
+
+export function bindGlobalDrawerHandlers(closePanel) {
+    if (typeof closePanel !== 'function') return;
+    window.__tocActiveDrawerClose = closePanel;
+
+    if (window.__tocDrawerGlobalsBound) return;
+    window.__tocDrawerGlobalsBound = true;
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && typeof window.__tocActiveDrawerClose === 'function') {
+            window.__tocActiveDrawerClose();
+        }
+    });
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1024 && typeof window.__tocActiveDrawerClose === 'function') {
+            window.__tocActiveDrawerClose();
+        }
+    });
 }
 
 /**
@@ -89,27 +118,48 @@ export async function fetchWithRetry(url, options, retries = 3) {
  * Maps keys to specific button clicks based on the current studio context.
  */
 export function initializeShortcuts() {
+    if (window.__tocShortcutsInitialized) return;
+    window.__tocShortcutsInitialized = true;
+
     window.addEventListener('keydown', (e) => {
         // Prevent shortcuts if user is typing in an input or textarea
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        const tag = e.target?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
 
         const key = e.key.toLowerCase();
         const ctrl = e.ctrlKey || e.metaKey;
 
         // --- Core Studio Actions ---
-        if (ctrl && key === 'z') { e.preventDefault(); clickIfExist(['undoBtn', 'pdaUndoBtn']); }
-        if (ctrl && key === 'y') { e.preventDefault(); clickIfExist(['redoBtn', 'pdaRedoBtn']); }
-        if (ctrl && key === 's') { e.preventDefault(); clickIfExist(['saveBtn', 'pdaSaveBtn', 'savePdaBtn']); }
+        if (ctrl && key === 'z') {
+            e.preventDefault();
+            clickIfExist(['undoBtn', 'tmUndoBtn', 'pdaUndoBtn']);
+        }
+        if (ctrl && (key === 'y' || (e.shiftKey && key === 'z'))) {
+            e.preventDefault();
+            clickIfExist(['redoBtn', 'tmRedoBtn', 'pdaRedoBtn']);
+        }
+        if (ctrl && key === 's') {
+            e.preventDefault();
+            clickIfExist(['saveMachineBtn', 'savePdaBtn', 'saveTmBtn']);
+        }
+        if (ctrl && key === 'o') {
+            e.preventDefault();
+            clickIfExist(['loadMachineBtn', 'loadPdaBtn', 'loadTmBtn']);
+        }
+        if (ctrl && key === 'e') {
+            e.preventDefault();
+            clickIfExist(['exportPngBtn', 'pdaExportPngBtn', 'tmExportPngBtn']);
+        }
 
         // --- Tool Switching (V = Pointer, S = State, T = Transition, D = Delete) ---
-        if (key === 'v') clickIfExist(['pdaCursorTool', 'tool-move', 'pda-tool-move']);
-        if (key === 's') clickIfExist(['pdaStateTool', 'tool-addclick', 'pda-tool-add']);
-        if (key === 't') clickIfExist(['pdaTransitionTool', 'tool-transition', 'pda-tool-transition']);
-        if (key === 'd') clickIfExist(['pdaDeleteTool', 'tool-delete', 'pda-tool-delete']);
+        if (!ctrl && key === 'v') clickAction(['tool-move', 'tm-tool-move'], ['.toolbar-icon[data-mode="move"]']);
+        if (!ctrl && key === 's') clickAction(['tool-addclick', 'pda-tool-add', 'tm-tool-add'], ['.toolbar-icon[data-mode="addclick"]']);
+        if (!ctrl && key === 't') clickAction(['tool-transition', 'tm-tool-trans'], ['.toolbar-icon[data-mode="transition"]']);
+        if (!ctrl && key === 'd') clickAction(['tool-delete', 'tm-tool-del'], ['.toolbar-icon[data-mode="delete"]']);
 
         // --- Canvas Actions ---
-        if (key === 'escape') clickIfExist(['pda-tool-clear', 'clearCanvasBtn']);
-        if (key === 'enter') clickIfExist(['validateBtn', 'pda-tool-validate']);
+        if (!ctrl && key === 'escape') clickIfExist(['clearCanvasBtn', 'pda-tool-clear', 'tm-tool-clear']);
+        if (!ctrl && key === 'enter') clickIfExist(['runTestBtn', 'pdaRunTestBtn', 'tmRunTestBtn', 'validateBtn', 'tmValidateBtn']);
     });
 }
 
@@ -120,8 +170,20 @@ export function initializeShortcuts() {
 function clickIfExist(ids) {
     for (const id of ids) {
         const btn = document.getElementById(id);
-        if (btn) {
+        if (btn && !btn.disabled) {
             btn.click();
+            return true;
+        }
+    }
+    return false;
+}
+
+function clickAction(ids, selectors = []) {
+    if (clickIfExist(ids)) return;
+    for (const selector of selectors) {
+        const node = document.querySelector(selector);
+        if (node && !node.disabled) {
+            node.click();
             return;
         }
     }
@@ -134,6 +196,7 @@ export function customAlert(title, message) {
     const modal = document.getElementById('alertModal');
     const titleEl = document.getElementById('alertModalTitle');
     const msgEl = document.getElementById('alertModalMessage');
+    const okBtn = document.getElementById('alertOk');
 
     if (!modal || !titleEl || !msgEl) {
         alert(`${title}: ${message}`);
@@ -142,6 +205,24 @@ export function customAlert(title, message) {
 
     titleEl.textContent = title;
     msgEl.textContent = message;
+
+    // Ensure alert close behavior works in every studio (FA/MM/PDA/TM),
+    // even if a specific UI module did not register modal listeners.
+    if (okBtn && !okBtn.dataset.boundClose) {
+        okBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        okBtn.dataset.boundClose = '1';
+    }
+    if (!modal.dataset.boundBackdropClose) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        modal.dataset.boundBackdropClose = '1';
+    }
+
     modal.style.display = 'flex';
 }
 window.customAlert = customAlert; // Keep legacy support

@@ -10,6 +10,7 @@ import { analyzePdaPattern } from './pda_library_analyzer.js';
 import { customAlert, addLogMessage } from './utils.js';
 import { runPdaSimulation } from './pda_simulation.js';
 import { animatePdaDrawing } from './pda_animation.js';
+import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
 
 /**
  * ARCHITECT UPGRADE: PDA Intelligence Naming
@@ -33,7 +34,7 @@ export function savePdaMachine() {
     input.value = suggested.toLowerCase().replace(/\s+/g, '-');
     modal.style.display = 'flex';
 
-    document.getElementById('pdaSaveConfirmBtn').onclick = () => {
+    document.getElementById('pdaSaveConfirmBtn').onclick = async () => {
         const userProvidedPart = input.value.trim() || "unnamed";
         const fileName = prefix + userProvidedPart;
         modal.style.display = 'none';
@@ -49,15 +50,17 @@ export function savePdaMachine() {
 
         // 2. STAGING FOR LIBRARY (Silent Background Process)
         // This hits your Netlify Function. It is separate from local flow.
-        fetch('/.netlify/functions/save-to-db', {
-            method: 'POST',
-            body: JSON.stringify({
-                name: userProvidedPart, 
-                type: 'PDA',
-                data: MACHINE,
-                author: 'Anonymous Architect' // Change to dynamic user if needed
-            })
-        }).catch(err => console.error("Library sync failed, but local save succeeded.")); 
+        const assignment = await decideSubmissionMode('PDA');
+        await stageToDb({
+            name: userProvidedPart,
+            type: 'PDA',
+            data: MACHINE,
+            author: getStudentProfile().name || 'Student',
+            submissionMode: assignment.submissionMode,
+            assignmentId: assignment.assignmentId,
+            assignmentTitle: assignment.assignmentTitle,
+            studentProfile: getStudentProfile()
+        }).catch(() => console.error("Library sync failed, but local save succeeded."));
     };
 }
 

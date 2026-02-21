@@ -2,12 +2,14 @@ name: Build Automata Library
 
 on:
   push:
+    branches: [main]
     paths:
       - "automata/**"
       - "Data/**"
 
 jobs:
   build:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -117,5 +119,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add automata/ *.json Data/
-          git commit -m "Auto-sort Data and rebuild libraries (FA/NFA/ENFA Support)" || echo "No changes"
+          git commit -m "chore(data): auto-sort and rebuild libraries [skip ci]" || echo "No changes"
           git push

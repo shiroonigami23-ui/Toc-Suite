@@ -4,9 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Finite Automata Practice — Enhanced Interactive Studio</title>
+  <title>Finite Automata Practice - Enhanced Interactive Studio</title>
   
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4a90e2">
   <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -16,31 +15,29 @@
 </head>
 
 <body>
-  <div id="splashScreen"
-    style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea,#764ba2);z-index:9999;flex-direction:column;gap:20px;color:#fff;transition:opacity 0.8s ease;">
-    <h1 style="font-size:3.5rem;margin:0;text-shadow:0 4px 12px rgba(0,0,0,0.4);">
-      Enhanced Automata Studio
-    </h1>
-    <div style="display:flex; gap: 20px;">
-      <button class="splash-nav-btn" data-target="FA"
-        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
-        Finite Automata
-      </button>
-      <button class="splash-nav-btn" data-target="MM"
-        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
-        Mealy/Moore
-      </button>
-       <button class="splash-nav-btn" data-target="PDA" disabled
-        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.05); cursor:not-allowed; opacity:0.6; font-weight:700;">
-        PDA
-      </button>
-      <button class="splash-nav-btn" data-target="Turing"
-        style="all:unset;padding:15px 30px; border-radius:12px; font-size:1.5rem; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); cursor:pointer; font-weight:700; transition: background 0.3s;">
-        Turing Machine
-      </button>
+  <div id="localModeNotice" style="display:none">
+    Local file mode detected. Open via a local server: <code>npx serve . -l 5173</code> then visit <code>http://localhost:5173</code>.
+  </div>
+  <div id="splashScreen" class="splash-screen">
+    <div class="splash-orb splash-orb-1"></div>
+    <div class="splash-orb splash-orb-2"></div>
+    <div class="splash-shell">
+      <div class="splash-kicker">TOC-Suite 2026</div>
+      <h1 class="splash-title">Enhanced Automata Studio</h1>
+      <p id="splashStudentWelcome" class="splash-student">Welcome, Student</p>
+      <div class="splash-tabs" role="tablist" aria-label="Studios">
+        <button class="splash-nav-btn" data-target="FA" role="tab">Finite Automata</button>
+        <button class="splash-nav-btn" data-target="MM" role="tab">Mealy/Moore</button>
+        <button class="splash-nav-btn" data-target="PDA" role="tab">PDA</button>
+        <button class="splash-nav-btn" data-target="Turing" role="tab">Turing Machine</button>
+        <button class="splash-nav-btn" data-target="Grammar" role="tab">Grammar Studio</button>
+      </div>
+      <div id="splashUtilityRow">
+        <a href="splash_help.html" class="splash-utility-btn">Help Guide</a>
+        <a href="splash_settings.html" class="splash-utility-btn">Settings</a>
+      </div>
     </div>
   </div>
-  
   <div id="mainApp" style="display:none">
       <div id="studioContent">
           </div>
@@ -193,18 +190,196 @@
           </div>
       </div>
   </div>
-
-  <script src="practice-bank.js" defer></script>
-  <script src="moore_mealy_practice_bank.js" defer></script>
-  
-  <script type="module" src="ai-auth.js"></script>
-  <script type="module" src="unified_main.js"></script>
+  <div id="splashHelpModal" class="modal-overlay" style="display:none">
+      <div class="modal-box splash-dialog">
+          <h3>Interactive Help</h3>
+          <p class="modal-description" id="helpStepTitle">Step 1</p>
+          <div id="helpStepContent" class="help-step-content"></div>
+          <div class="help-step-progress">
+              <span id="helpStepCounter">1/4</span>
+          </div>
+          <div class="modal-actions">
+              <button id="helpPrevBtn" type="button">Previous</button>
+              <button id="helpNextBtn" type="button">Next</button>
+              <button id="helpCloseBtn" type="button">Close</button>
+          </div>
+      </div>
+  </div>
+  <div id="splashSettingsModal" class="modal-overlay" style="display:none">
+      <div class="modal-box splash-dialog">
+          <h3>Settings</h3>
+          <p class="modal-description">Set your profile and app theme for all studios.</p>
+          <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
+          <label for="themeSelect" style="font-size:0.9rem;font-weight:600;">Theme</label>
+          <select id="themeSelect" class="modal-input">
+              <option value="default">Default</option>
+              <option value="ocean">Ocean</option>
+              <option value="forest">Forest</option>
+              <option value="sunset">Sunset</option>
+          </select>
+          <div class="integration-status">
+              <div><strong>Neon DB:</strong> Connected in code via `DATABASE_URL` on Netlify functions.</div>
+              <div><strong>GitHub:</strong> Push workflow configured via `GITHUB_PAT` in Netlify functions.</div>
+          </div>
+          <div class="modal-actions">
+              <button id="settingsCancelBtn" type="button">Cancel</button>
+              <button id="settingsSaveBtn" type="button">Save Settings</button>
+          </div>
+      </div>
+  </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
+    const isFileProtocol = window.location.protocol === 'file:';
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const isSecure = window.location.protocol === 'https:';
+    const safeGet = (key, fallback = '') => {
+      try { return localStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
+    };
+    const safeSet = (key, value) => {
+      try { localStorage.setItem(key, value); } catch (_e) {}
+    };
+    const bindUniversalSplashUtilityFallback = () => {
+      const helpModal = document.getElementById('splashHelpModal');
+      const settingsModal = document.getElementById('splashSettingsModal');
+      const openHelpBtn = document.getElementById('openHelpBtn');
+      const openSettingsBtn = document.getElementById('openSettingsBtn');
+      const helpTitle = document.getElementById('helpStepTitle');
+      const helpContent = document.getElementById('helpStepContent');
+      const helpCounter = document.getElementById('helpStepCounter');
+      const helpPrevBtn = document.getElementById('helpPrevBtn');
+      const helpNextBtn = document.getElementById('helpNextBtn');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
+      const studentNameInput = document.getElementById('studentNameInput');
+      const themeSelect = document.getElementById('themeSelect');
+      const settingsCancelBtn = document.getElementById('settingsCancelBtn');
+      const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+      const welcome = document.getElementById('splashStudentWelcome');
+
+      const helpSteps = [
+        { title: 'Step 1: Pick a Studio', content: 'Use FA, Mealy/Moore, PDA, or Turing based on your class topic.' },
+        { title: 'Step 2: Build on Canvas', content: 'Use toolbar tools to add/move/delete states and transitions.' },
+        { title: 'Step 3: Test + Practice', content: 'Run tests, bulk checks, and practice questions before submission.' },
+        { title: 'Step 4: Save + Export', content: 'Use Save JSON and Export PNG for submission and revision.' },
+        { title: 'Step 5: Shortcuts', content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export, V/S/T/D tools.' }
+      ];
+      let helpIndex = 0;
+      const renderStep = () => {
+        const step = helpSteps[helpIndex];
+        if (helpTitle) helpTitle.textContent = step.title;
+        if (helpContent) helpContent.textContent = step.content;
+        if (helpCounter) helpCounter.textContent = `${helpIndex + 1}/${helpSteps.length}`;
+        if (helpPrevBtn) helpPrevBtn.disabled = helpIndex === 0;
+        if (helpNextBtn) helpNextBtn.textContent = helpIndex === helpSteps.length - 1 ? 'Finish' : 'Next';
+      };
+      const closeModal = (m) => { if (m) m.style.display = 'none'; };
+      const openModal = (m) => { if (m) m.style.display = 'flex'; };
+
+      if (welcome) welcome.textContent = `Welcome, ${safeGet('tocStudentName', 'Student')}`;
+
+      if (openHelpBtn) {
+        openHelpBtn.onclick = () => {
+          helpIndex = 0;
+          renderStep();
+          openModal(helpModal);
+        };
+      }
+      if (helpPrevBtn) helpPrevBtn.onclick = () => { helpIndex = Math.max(0, helpIndex - 1); renderStep(); };
+      if (helpNextBtn) helpNextBtn.onclick = () => {
+        if (helpIndex >= helpSteps.length - 1) return closeModal(helpModal);
+        helpIndex += 1; renderStep();
+      };
+      if (helpCloseBtn) helpCloseBtn.onclick = () => closeModal(helpModal);
+
+      if (openSettingsBtn) {
+        openSettingsBtn.onclick = () => {
+          if (studentNameInput) studentNameInput.value = safeGet('tocStudentName', 'Student');
+          if (themeSelect) themeSelect.value = safeGet('tocTheme', 'default');
+          openModal(settingsModal);
+        };
+      }
+      if (settingsCancelBtn) settingsCancelBtn.onclick = () => closeModal(settingsModal);
+      if (settingsSaveBtn) {
+        settingsSaveBtn.onclick = () => {
+          const studentName = (studentNameInput?.value || '').trim() || 'Student';
+          const theme = themeSelect?.value || 'default';
+          safeSet('tocStudentName', studentName);
+          safeSet('tocTheme', theme);
+          if (welcome) welcome.textContent = `Welcome, ${studentName}`;
+          closeModal(settingsModal);
+        };
+      }
+      [helpModal, settingsModal].forEach((m) => {
+        m?.addEventListener('click', (e) => { if (e.target === m) closeModal(m); });
+      });
+    };
+    const showLocalModeHint = () => {
+      const cmd = 'npx serve . -l 5173';
+      alert(`Local file mode cannot run module-based app features.\n\nRun in terminal:\n${cmd}\nThen open:\nhttp://localhost:5173`);
+    };
+    const bindFileModeFallbacks = () => {
+      const helpModal = document.getElementById('splashHelpModal');
+      const settingsModal = document.getElementById('splashSettingsModal');
+      const openHelpBtn = document.getElementById('openHelpBtn');
+      const openSettingsBtn = document.getElementById('openSettingsBtn');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
+      const settingsCancelBtn = document.getElementById('settingsCancelBtn');
+      const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+
+      openHelpBtn?.addEventListener('click', () => {
+        if (helpModal) helpModal.style.display = 'flex';
+      });
+      openSettingsBtn?.addEventListener('click', () => {
+        if (settingsModal) settingsModal.style.display = 'flex';
+      });
+      helpCloseBtn?.addEventListener('click', () => {
+        if (helpModal) helpModal.style.display = 'none';
+      });
+      settingsCancelBtn?.addEventListener('click', () => {
+        if (settingsModal) settingsModal.style.display = 'none';
+      });
+      settingsSaveBtn?.addEventListener('click', () => {
+        if (settingsModal) settingsModal.style.display = 'none';
+        showLocalModeHint();
+      });
+      [helpModal, settingsModal].forEach((modal) => {
+        modal?.addEventListener('click', (e) => {
+          if (e.target === modal) modal.style.display = 'none';
+        });
+      });
+      document.querySelectorAll('.splash-nav-btn').forEach((btn) => {
+        btn.addEventListener('click', showLocalModeHint);
+      });
+    };
+
+    if (isFileProtocol) {
+      const localNotice = document.getElementById('localModeNotice');
+      if (localNotice) localNotice.style.display = 'block';
+      bindUniversalSplashUtilityFallback();
+      bindFileModeFallbacks();
+    } else {
+      bindUniversalSplashUtilityFallback();
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = 'manifest.json';
+      document.head.appendChild(manifestLink);
+
+      const aiScript = document.createElement('script');
+      aiScript.type = 'module';
+      aiScript.src = 'ai-auth.js';
+      aiScript.onerror = () => console.error('Failed to load ai-auth.js');
+      document.body.appendChild(aiScript);
+
+      const appScript = document.createElement('script');
+      appScript.type = 'module';
+      appScript.src = 'unified_main.js';
+      appScript.onerror = () => console.error('Failed to load unified_main.js');
+      document.body.appendChild(appScript);
+    }
+
+    if ('serviceWorker' in navigator && !isFileProtocol && (isSecure || isLocalhost)) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
-          .then((reg) => console.log('Service Worker Registered'))
+          .then(() => console.log('Service Worker Registered'))
           .catch((err) => console.log('Service Worker Failed', err));
       });
     }

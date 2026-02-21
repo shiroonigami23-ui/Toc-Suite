@@ -2,7 +2,7 @@ import { MACHINE, CURRENT_MODE, TRANS_FROM, UNDO_STACK, REDO_STACK, pushUndo, do
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { validateAutomaton, convertMooreToMealy } from './moore_mealy_automata.js';
-import { setValidationMessage, addLogMessage } from './utils.js';
+import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
 import { areEquivalent } from './moore_mealy_equivalence.js';
 import { animateMachineDrawing } from './animation.js'; 
 import { initializeLibrary } from './moore_mealy_library_loader.js';
@@ -602,16 +602,38 @@ export function initializeUI() {
     }
 
     // Collapsible Panel
-    if (panelToggleBtn && controlPanel && visualizationPanel) {
+    const ensureDrawerBackdrop = () => {
+        let backdrop = document.getElementById('drawerBackdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'drawerBackdrop';
+            backdrop.className = 'drawer-backdrop';
+            document.body.appendChild(backdrop);
+        }
+        return backdrop;
+    };
+    const drawerBackdrop = ensureDrawerBackdrop();
+    const closePanel = () => {
+        if (controlPanel) controlPanel.classList.remove('open');
+        if (drawerBackdrop) drawerBackdrop.classList.remove('open');
+        if (panelToggleBtn) panelToggleBtn.setAttribute('aria-expanded', 'false');
+    };
+    const togglePanel = () => {
+        if (!controlPanel) return;
+        const isOpen = controlPanel.classList.toggle('open');
+        if (drawerBackdrop) drawerBackdrop.classList.toggle('open', isOpen);
+        if (panelToggleBtn) panelToggleBtn.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    if (panelToggleBtn) {
         panelToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            controlPanel.classList.toggle('open');
-        });
-
-        visualizationPanel.addEventListener('click', () => {
-             controlPanel.classList.remove('open');
+            togglePanel();
         });
     }
+    drawerBackdrop?.addEventListener('click', closePanel);
+    visualizationPanel?.addEventListener('click', closePanel);
+    bindGlobalDrawerHandlers(closePanel);
 
     const showLoading = () => { if (loadingOverlay) loadingOverlay.style.display = 'flex'; };
     const hideLoading = () => { if (loadingOverlay) loadingOverlay.style.display = 'none'; };
@@ -1018,7 +1040,7 @@ document.getElementById('toggleMmLogicBtn')?.addEventListener('click', () => {
     if (modal) {
         modal.style.display = 'flex';
         updateMmLogicDisplay(); 
-        if (window.lucide) lucide.createIcons();
+        refreshLucideIcons();
     }
 });
 
@@ -1043,5 +1065,5 @@ document.getElementById('mmExportTableBtn')?.addEventListener('click', () => {
     if(checkAnswerBtn) checkAnswerBtn.style.display = 'none';
 
     // Final icon generation for all dynamic elements
-    if(window.lucide) lucide.createIcons();
+    refreshLucideIcons();
 }

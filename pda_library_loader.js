@@ -85,8 +85,10 @@ function renderLibraryItems(query) {
         // 1. Filter by Mode (DPDA/NPDA)
         // Logic: Show if 'all' is selected, if types match exactly, or if the machine 
         // is labeled as generic 'PDA' (making it visible in both specific filters).
-        const matchesType = (filterValue === 'all') || 
-                            (machineType === filterValue) || 
+        const matchesType = (filterValue === 'all') ||
+                            (machineType === filterValue) ||
+                            (filterValue === 'DPDA' && machineType.startsWith('DPDA')) ||
+                            (filterValue === 'NPDA' && machineType.startsWith('NPDA')) ||
                             (machineType === 'PDA');
         
         // 2. Filter by Search Text
@@ -118,8 +120,6 @@ function createLibraryEntryEl(entry) {
     container.style.borderBottom = "1px solid #e2e8f0";
 
     const machineData = entry.machine || entry;
-    const isDPDA = machineData.type === 'DPDA';
-
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:5px;">
             <div>
@@ -140,6 +140,10 @@ function createLibraryEntryEl(entry) {
         // Update the Mode Dropdown in the UI to match the library entry
         const modeSelect = document.getElementById('pdaModeSelect');
         if (modeSelect) modeSelect.value = machineData.type;
+        const acceptanceSelect = document.getElementById('pdaAcceptanceSelect');
+        if (acceptanceSelect && machineData.acceptanceMode) {
+            acceptanceSelect.value = machineData.acceptanceMode;
+        }
 
         // Start the animated drawing
         await animatePdaDrawing(machineData);

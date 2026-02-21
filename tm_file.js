@@ -6,6 +6,7 @@
 import { MACHINE, pushUndo } from './tm_state.js';
 import { addLogMessage, customAlert } from './utils.js';
 import { animateTmDrawing } from './tm_animation.js';
+import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
 
 /**
  * Intelligent Naming for TM
@@ -28,7 +29,7 @@ export function saveTmMachine() {
         input.value = defaultName;
         modal.style.display = 'flex';
 
-        document.getElementById('tmSaveConfirmBtn').onclick = () => {
+        document.getElementById('tmSaveConfirmBtn').onclick = async () => {
             const fileName = prefix + (input.value.trim() || defaultName);
             modal.style.display = 'none';
 
@@ -41,14 +42,16 @@ export function saveTmMachine() {
             link.click();
 
             // 2. SILENT STAGING (Behind the Scenes)
-            fetch('/.netlify/functions/save-to-db', {
-                method: 'POST',
-                body: JSON.stringify({
-                    name: input.value.trim() || defaultName,
-                    type: 'TM',
-                    data: MACHINE,
-                    author: 'Shiro'
-                })
+            const assignment = await decideSubmissionMode('TM');
+            await stageToDb({
+                name: input.value.trim() || defaultName,
+                type: 'TM',
+                data: MACHINE,
+                author: getStudentProfile().name || 'Student',
+                submissionMode: assignment.submissionMode,
+                assignmentId: assignment.assignmentId,
+                assignmentTitle: assignment.assignmentTitle,
+                studentProfile: getStudentProfile()
             }).catch(() => console.log("Staging silent failure."));
 
             addLogMessage(`TM Saved Locally: ${fileName}`, 'check-circle');

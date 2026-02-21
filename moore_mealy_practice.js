@@ -5,7 +5,17 @@ import { areEquivalent } from './moore_mealy_equivalence.js';
 // FIX: Import the conversion function directly
 import { convertMooreToMealy } from './moore_mealy_automata.js';
 
-export function generatePractice() {
+let mmPracticeBankPromise = null;
+
+async function ensureMmPracticeBankLoaded() {
+    if (typeof window.MM_PRACTICE_BANK !== 'undefined') return;
+    if (!mmPracticeBankPromise) {
+        mmPracticeBankPromise = import('./moore_mealy_practice_bank.js');
+    }
+    await mmPracticeBankPromise;
+}
+
+export async function generatePractice() {
     const practiceBox = document.getElementById('practiceBox');
     const modeSelect = document.getElementById('modeSelect');
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
@@ -13,6 +23,7 @@ export function generatePractice() {
     const mode = modeSelect ? modeSelect.value : 'MOORE';
     const level = document.getElementById('practiceMode').value;
 
+    await ensureMmPracticeBankLoaded();
     if (typeof window.MM_PRACTICE_BANK === 'undefined') {
         practiceBox.textContent = "Practice bank not loaded for Mealy/Moore.";
         return;

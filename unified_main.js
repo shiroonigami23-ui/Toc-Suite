@@ -8,6 +8,7 @@ import * as FA_FILE from './file.js';
 import * as MM_FILE from './moore_mealy_file.js';
 import * as FA_LIB from './library-loader.js';
 import * as MM_LIB from './moore_mealy_library_loader.js';
+import { initializeShortcuts, refreshLucideIcons } from './utils.js';
 
 
 // --- Context Object for Dynamic Switching ---
@@ -609,6 +610,375 @@ export const StudioContext = {
     
 };
 
+const STORAGE_KEYS = {
+    studentName: 'tocStudentName',
+    studentYear: 'tocStudentYear',
+    studentSection: 'tocStudentSection',
+    studentBranch: 'tocStudentBranch',
+    studentRoll: 'tocStudentRoll',
+    theme: 'tocTheme',
+    fontScale: 'tocFontScale',
+    motion: 'tocMotion',
+    autoResume: 'tocAutoResume',
+    lastStudio: 'tocLastStudio'
+};
+const SESSION_KEYS = {
+    activeRoute: 'tocActiveRoute'
+};
+
+const THEME_COLORS = {
+    default: '#4a90e2',
+    ocean: '#0284c7',
+    forest: '#15803d',
+    sunset: '#ea580c'
+};
+
+function applyTheme(theme = 'default') {
+    const safeTheme = THEME_COLORS[theme] ? theme : 'default';
+    document.body.setAttribute('data-theme', safeTheme);
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.setAttribute('content', THEME_COLORS[safeTheme]);
+}
+
+function applyFontScale(scale = 'normal') {
+    const safeScale = ['normal', 'large', 'xlarge'].includes(scale) ? scale : 'normal';
+    document.documentElement.setAttribute('data-font-scale', safeScale);
+}
+
+function applyMotionPreference(mode = 'normal') {
+    const safeMode = mode === 'reduced' ? 'reduced' : 'normal';
+    document.body.setAttribute('data-motion', safeMode);
+}
+
+function applyStoredPreferences() {
+    applyTheme(safeStorageGet(STORAGE_KEYS.theme, 'default') || 'default');
+    applyFontScale(safeStorageGet(STORAGE_KEYS.fontScale, 'normal') || 'normal');
+    applyMotionPreference(safeStorageGet(STORAGE_KEYS.motion, 'normal') || 'normal');
+}
+
+function safeStorageGet(key, fallback = null) {
+    try {
+        const value = localStorage.getItem(key);
+        return value ?? fallback;
+    } catch (_e) {
+        return fallback;
+    }
+}
+
+function safeStorageSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (_e) {
+        return false;
+    }
+}
+
+function safeSessionGet(key, fallback = null) {
+    try {
+        const value = sessionStorage.getItem(key);
+        return value ?? fallback;
+    } catch (_e) {
+        return fallback;
+    }
+}
+
+function safeSessionSet(key, value) {
+    try {
+        sessionStorage.setItem(key, value);
+    } catch (_e) {}
+}
+
+function safeSessionRemove(key) {
+    try {
+        sessionStorage.removeItem(key);
+    } catch (_e) {}
+}
+
+const ROUTE_HASH = {
+    splash: '',
+    fa: '#fa',
+    mm: '#mm',
+    pda: '#pda',
+    tm: '#tm',
+    grammar: '#grammar'
+};
+
+function setRouteHash(hash) {
+    const safeHash = String(hash || '');
+    if (window.location.hash !== safeHash) {
+        history.replaceState({}, '', `${window.location.pathname}${safeHash}`);
+    }
+}
+
+function setActiveRoute(route) {
+    const safeRoute = String(route || 'splash').toLowerCase();
+    safeSessionSet(SESSION_KEYS.activeRoute, safeRoute);
+    if (safeRoute === 'fa') setRouteHash(ROUTE_HASH.fa);
+    if (safeRoute === 'mm') setRouteHash(ROUTE_HASH.mm);
+    if (safeRoute === 'pda') setRouteHash(ROUTE_HASH.pda);
+    if (safeRoute === 'tm') setRouteHash(ROUTE_HASH.tm);
+    if (safeRoute === 'grammar') setRouteHash(ROUTE_HASH.grammar);
+    if (safeRoute === 'splash') setRouteHash(ROUTE_HASH.splash);
+}
+
+function clearActiveRoute() {
+    safeSessionRemove(SESSION_KEYS.activeRoute);
+    setRouteHash(ROUTE_HASH.splash);
+}
+
+function hideSplash() {
+    const splashScreen = document.getElementById('splashScreen');
+    if (!splashScreen) return;
+    splashScreen.style.opacity = '0';
+    setTimeout(() => {
+        splashScreen.style.display = 'none';
+    }, 250);
+}
+
+function showSplash() {
+    const splashScreen = document.getElementById('splashScreen');
+    if (!splashScreen) return;
+    splashScreen.style.display = 'flex';
+    void splashScreen.offsetWidth;
+    splashScreen.style.opacity = '1';
+    clearActiveRoute();
+}
+
+function getSavedStudentName() {
+    return safeStorageGet(STORAGE_KEYS.studentName, 'Student') || 'Student';
+}
+
+function getSavedStudentMeta() {
+    const roll = (safeStorageGet('tocAuthRoll', '') || '').trim();
+    const email = (safeStorageGet('tocAuthEmail', '') || '').trim();
+    const parts = [roll ? `Roll ${roll}` : '', email || ''].filter(Boolean);
+    return parts.join(' | ');
+}
+
+function updateSplashWelcomeName() {
+    const welcomeEl = document.getElementById('splashStudentWelcome');
+    if (welcomeEl) {
+        const meta = getSavedStudentMeta();
+        welcomeEl.textContent = meta
+            ? `Welcome, ${getSavedStudentName()} (${meta})`
+            : `Welcome, ${getSavedStudentName()}`;
+    }
+}
+
+async function renderSplashAssignmentHint() {
+    const splash = document.getElementById('splashScreen');
+    const shell = splash?.querySelector('.splash-shell');
+    if (!splash) return;
+    const esc = (v) => String(v ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    let panel = document.getElementById('splashAssignmentPanel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'splashAssignmentPanel';
+        panel.style.cssText = 'width:100%;display:flex;flex-direction:column;gap:10px;margin-top:4px;';
+        (shell || splash).appendChild(panel);
+    }
+    panel.innerHTML = '<div id="splashAssignmentHint" style="background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.25);padding:8px 12px;border-radius:999px;font-size:0.9rem;display:inline-block;align-self:center;">Checking active assignments...</div>';
+    const hint = document.getElementById('splashAssignmentHint');
+    try {
+        const res = await fetch('/.netlify/functions/list-active-assignments?machineType=ALL');
+        if (!res.ok) {
+            hint.textContent = 'Assignments unavailable right now.';
+            return;
+        }
+        const list = await res.json();
+        if (!Array.isArray(list) || !list.length) {
+            hint.textContent = 'No active quiz/practice right now.';
+            return;
+        }
+        const quizCount = list.filter(a => a.assignment_mode === 'quiz').length;
+        const practiceCount = list.filter(a => a.assignment_mode === 'practice').length;
+        hint.textContent = `Active: ${quizCount} quiz, ${practiceCount} practice`;
+
+        const cards = document.createElement('div');
+        cards.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;';
+        list.slice(0, 6).forEach((asg) => {
+            const machine = String(asg.machine_type || 'FA').toUpperCase();
+            const mode = String(asg.assignment_mode || 'practice').toLowerCase();
+            const starts = asg.start_at ? new Date(asg.start_at).toLocaleString() : 'Now';
+            const ends = asg.end_at ? new Date(asg.end_at).toLocaleString() : 'No deadline';
+            const marks = Number(asg.max_marks || 100);
+            const safeTitle = esc(asg.title || 'Untitled');
+            const safePrompt = esc(asg.prompt || '');
+            const rawTitle = encodeURIComponent(String(asg.title || ''));
+            const card = document.createElement('div');
+            card.style.cssText = 'background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.28);border-radius:12px;padding:12px;text-align:left;';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+                    <strong style="font-size:1rem;">${safeTitle}</strong>
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:${mode === 'quiz' ? 'rgba(239,68,68,.25)' : 'rgba(16,185,129,.25)'};">${mode.toUpperCase()}</span>
+                </div>
+                <div style="font-size:0.82rem;opacity:0.95;margin-top:4px;">Machine: ${esc(machine)} | Marks: ${marks}</div>
+                <div style="font-size:0.8rem;opacity:0.85;margin-top:2px;">Window: ${esc(starts)} to ${esc(ends)}</div>
+                <div style="font-size:0.82rem;opacity:0.95;margin-top:8px;max-height:44px;overflow:hidden;">${safePrompt}</div>
+                <button data-assignment-id="${Number(asg.id)}" data-machine="${esc(machine)}" data-mode="${esc(mode)}" data-title="${rawTitle}" style="margin-top:10px;width:100%;padding:9px 10px;border:none;border-radius:8px;background:#fff;color:#1e293b;font-weight:700;cursor:pointer;">Open ${esc(machine)} Studio</button>
+            `;
+            cards.appendChild(card);
+        });
+        panel.appendChild(cards);
+        cards.querySelectorAll('button[data-assignment-id]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const assignmentId = btn.getAttribute('data-assignment-id') || '';
+                const machine = btn.getAttribute('data-machine') || 'FA';
+                const mode = btn.getAttribute('data-mode') || 'practice';
+                const title = decodeURIComponent(btn.getAttribute('data-title') || '');
+                safeStorageSet('tocPreferredAssignmentId', assignmentId);
+                safeStorageSet('tocPreferredAssignmentMode', mode);
+                safeStorageSet('tocPreferredAssignmentTitle', title);
+                openStudioByMachineType(machine);
+            });
+        });
+    } catch (_e) {
+        hint.textContent = 'Assignments unavailable right now.';
+    }
+}
+
+function openStudioByMachineType(machineType) {
+    const machine = String(machineType || 'FA').toUpperCase();
+    if (machine === 'GRAMMAR') {
+        setActiveRoute('grammar');
+        window.location.href = 'grammar_studio.html';
+        return;
+    }
+    if (machine === 'PDA') {
+        loadPdaStudio();
+        return;
+    }
+    if (machine === 'TM' || machine === 'TURING') {
+        loadTmStudio();
+        return;
+    }
+    const target = machine === 'MM' ? 'MM' : 'FA';
+    hideSplash();
+    setTimeout(() => loadStudio(target), 250);
+}
+
+function setupSplashUtility() {
+    const helpModal = document.getElementById('splashHelpModal');
+    const settingsModal = document.getElementById('splashSettingsModal');
+    const openHelpBtn = document.getElementById('openHelpBtn');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const helpTitle = document.getElementById('helpStepTitle');
+    const helpContent = document.getElementById('helpStepContent');
+    const helpCounter = document.getElementById('helpStepCounter');
+    const helpPrevBtn = document.getElementById('helpPrevBtn');
+    const helpNextBtn = document.getElementById('helpNextBtn');
+    const helpCloseBtn = document.getElementById('helpCloseBtn');
+    const settingsCancelBtn = document.getElementById('settingsCancelBtn');
+    const settingsSaveBtn = document.getElementById('settingsSaveBtn');
+    const studentNameInput = document.getElementById('studentNameInput');
+    const themeSelect = document.getElementById('themeSelect');
+
+    const openModal = (modal) => { if (modal) modal.style.display = 'flex'; };
+    const closeModal = (modal) => { if (modal) modal.style.display = 'none'; };
+
+    const helpSteps = [
+        {
+            title: 'Step 1: Pick a Studio',
+            content: 'Choose FA, Mealy/Moore, PDA, or Turing Machine based on your topic. You can return anytime using Back to Main Menu.'
+        },
+        {
+            title: 'Step 2: Use Canvas Tools',
+            content: 'Use Add, Move, Transition, Rename, Delete, and State Properties from the toolbar. On phone, open controls from the menu button.'
+        },
+        {
+            title: 'Step 3: Practice + Testing',
+            content: 'Generate practice questions, run manual/auto simulation, and use bulk testing to validate many strings quickly.'
+        },
+        {
+            title: 'Step 4: Save and Share',
+            content: 'Save machine JSON, export PNG, and submit to review workflows. Netlify functions can store submissions in Neon and push approved files to GitHub.'
+        },
+        {
+            title: 'Step 5: Keyboard Shortcuts',
+            content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export PNG, Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, V move, S add state, T transition, D delete, Enter run/validate, Esc clear.'
+        }
+    ];
+
+    let helpIndex = 0;
+    const renderHelpStep = () => {
+        const step = helpSteps[helpIndex];
+        if (!step || !helpTitle || !helpContent || !helpCounter) return;
+        helpTitle.textContent = step.title;
+        helpContent.textContent = step.content;
+        helpCounter.textContent = `${helpIndex + 1}/${helpSteps.length}`;
+        if (helpPrevBtn) helpPrevBtn.disabled = helpIndex === 0;
+        if (helpNextBtn) helpNextBtn.textContent = helpIndex === helpSteps.length - 1 ? 'Finish' : 'Next';
+    };
+
+    openHelpBtn?.addEventListener('click', () => {
+        helpIndex = 0;
+        renderHelpStep();
+        openModal(helpModal);
+    });
+    helpPrevBtn?.addEventListener('click', () => {
+        helpIndex = Math.max(0, helpIndex - 1);
+        renderHelpStep();
+    });
+    helpNextBtn?.addEventListener('click', () => {
+        if (helpIndex >= helpSteps.length - 1) {
+            closeModal(helpModal);
+            return;
+        }
+        helpIndex += 1;
+        renderHelpStep();
+    });
+    helpCloseBtn?.addEventListener('click', () => closeModal(helpModal));
+
+    openSettingsBtn?.addEventListener('click', () => {
+        if (studentNameInput) studentNameInput.value = getSavedStudentName();
+        if (themeSelect) themeSelect.value = safeStorageGet(STORAGE_KEYS.theme, 'default') || 'default';
+        openModal(settingsModal);
+    });
+    settingsCancelBtn?.addEventListener('click', () => closeModal(settingsModal));
+    settingsSaveBtn?.addEventListener('click', () => {
+        const studentName = (studentNameInput?.value || '').trim() || 'Student';
+        const selectedTheme = themeSelect?.value || 'default';
+        safeStorageSet(STORAGE_KEYS.studentName, studentName);
+        safeStorageSet(STORAGE_KEYS.theme, selectedTheme);
+        applyTheme(selectedTheme);
+        updateSplashWelcomeName();
+        closeModal(settingsModal);
+    });
+
+    [helpModal, settingsModal].forEach((modal) => {
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(modal);
+        });
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        closeModal(helpModal);
+        closeModal(settingsModal);
+    });
+
+    // Run state hydration after listeners are attached, so UI remains interactive
+    // even if storage is unavailable in the current browser context.
+    updateSplashWelcomeName();
+    const savedTheme = safeStorageGet(STORAGE_KEYS.theme, 'default') || 'default';
+    applyTheme(savedTheme);
+    if (themeSelect) themeSelect.value = savedTheme;
+    if (studentNameInput) studentNameInput.value = getSavedStudentName();
+}
+
+try {
+    applyStoredPreferences();
+} catch (_e) {
+    applyTheme('default');
+    applyFontScale('normal');
+    applyMotionPreference('normal');
+}
+
 
 /**
  * Dynamically loads the studio HTML content and initializes the appropriate scripts.
@@ -627,11 +997,11 @@ function loadStudio(target) {
     studioContent.innerHTML = htmlContent;
     
     StudioContext.current = target;
+    safeStorageSet(STORAGE_KEYS.lastStudio, target);
+    setActiveRoute(target === 'MM' ? 'mm' : 'fa');
     
     setTimeout(() => {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        refreshLucideIcons();
         
         // 1. Set the correct render function pointer in the state module
         StudioContext.setRenderFunction(StudioContext.renderAll);
@@ -665,10 +1035,7 @@ async function loadPdaStudio() {
         return;
     }
 
-    if (splashScreen) {
-        splashScreen.style.opacity = '0';
-        setTimeout(() => splashScreen.style.display = 'none', 800);
-    }
+    if (splashScreen) hideSplash();
 
     mainApp.style.display = 'block';
     studioContent.innerHTML = '<div class="library-message">Loading PDA Environment...</div>';
@@ -685,6 +1052,8 @@ async function loadPdaStudio() {
         
         window.currentStudio = 'PDA';
         StudioContext.current = 'PDA'; // Keep context in sync
+        safeStorageSet(STORAGE_KEYS.lastStudio, 'PDA');
+        setActiveRoute('pda');
     } catch (error) {
         console.error("PDA module load error:", error);
         studioContent.innerHTML = `<div class="library-message error">Failed to load PDA: ${error.message}</div>`;
@@ -706,10 +1075,7 @@ async function loadTmStudio() {
     }
 
     // Hide splash screen with transition
-    if (splashScreen) {
-        splashScreen.style.opacity = '0';
-        setTimeout(() => splashScreen.style.display = 'none', 800);
-    }
+    if (splashScreen) hideSplash();
 
     mainApp.style.display = 'block';
     studioContent.innerHTML = '<div class="library-message">Booting Turing Machine Studio...</div>';
@@ -727,11 +1093,11 @@ async function loadTmStudio() {
         // 3. Keep global state in sync
         window.currentStudio = 'Turing';
         StudioContext.current = 'Turing'; 
+        safeStorageSet(STORAGE_KEYS.lastStudio, 'Turing');
+        setActiveRoute('tm');
         
         // 4. Initialize Lucide for the newly injected HTML
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        refreshLucideIcons();
     } catch (error) {
         console.error("Turing module load error:", error);
         studioContent.innerHTML = `<div class="library-message error">Failed to load TM: ${error.message}</div>`;
@@ -739,8 +1105,11 @@ async function loadTmStudio() {
 }
 
 // --- Main Application Startup ---
-document.addEventListener("DOMContentLoaded", () => {
+function startUnifiedApp() {
     const splashScreen = document.getElementById('splashScreen');
+    initializeShortcuts();
+    setupSplashUtility();
+    renderSplashAssignmentHint();
     
     if (!splashScreen) {
         loadStudio('FA');
@@ -753,37 +1122,53 @@ document.addEventListener("DOMContentLoaded", () => {
             const target = e.currentTarget.getAttribute('data-target');
             
             // Prevent collision with specialized loaders (PDA and Turing)
-            if (target === 'PDA' || target === 'Turing') return; 
+            if (target === 'PDA' || target === 'Turing' || target === 'Grammar') return; 
 
             if (!e.currentTarget.disabled) {
-                splashScreen.style.opacity = '0';
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                    loadStudio(target);
-                }, 800);
+                hideSplash();
+                setTimeout(() => loadStudio(target), 250);
             }
         });
     });
     
-    // Default load if no selection is made or hash is present
-    if(window.location.hash === '#mm') {
+    const hash = (window.location.hash || '').toLowerCase();
+    const sessionRoute = (safeSessionGet(SESSION_KEYS.activeRoute, '') || '').toLowerCase();
+    const persistedRoute = sessionRoute || (hash === '#fa' ? 'fa' : hash.replace('#', ''));
+
+    if (persistedRoute === 'grammar') {
+         window.location.href = 'grammar_studio.html';
+    } else if (persistedRoute === 'mm') {
          loadStudio('MM');
-    } else if(window.location.hash === '#pda') {
+    } else if (persistedRoute === 'pda') {
          loadPdaStudio();
-    } else if(window.location.hash === '#tm') {
+    } else if (persistedRoute === 'tm' || persistedRoute === 'turing') {
          loadTmStudio();
-    } else {
+    } else if (persistedRoute === 'fa') {
          loadStudio('FA');
+    } else if ((safeStorageGet(STORAGE_KEYS.autoResume, 'false') === 'true')) {
+         const lastStudio = safeStorageGet(STORAGE_KEYS.lastStudio, 'FA');
+         if (lastStudio === 'MM' || lastStudio === 'FA') loadStudio(lastStudio);
+         if (lastStudio === 'PDA') loadPdaStudio();
+         if (lastStudio === 'Turing') loadTmStudio();
     }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener("DOMContentLoaded", startUnifiedApp);
+} else {
+    startUnifiedApp();
+}
+
+document.addEventListener('click', (e) => {
+    const target = e.target instanceof Element ? e.target.closest('#backToMenuBtn, #pdaBackToMenuBtn, #tmBackToMenuBtn') : null;
+    if (!target) return;
+    showSplash();
 });
 
 // PDA Button Logic
 const pdaButton = document.querySelector('.splash-nav-btn[data-target="PDA"]');
 if (pdaButton) {
     pdaButton.disabled = false;
-    pdaButton.style.opacity = '1';
-    pdaButton.style.cursor = 'pointer';
-    pdaButton.style.background = 'rgba(255,255,255,0.2)';
     pdaButton.addEventListener('click', loadPdaStudio);
 }
 
@@ -791,10 +1176,16 @@ if (pdaButton) {
 const tmButton = document.querySelector('.splash-nav-btn[data-target="Turing"]');
 if (tmButton) {
     tmButton.disabled = false;
-    tmButton.style.opacity = '1';
-    tmButton.style.cursor = 'pointer';
-    tmButton.style.background = 'rgba(255,255,255,0.2)';
     tmButton.addEventListener('click', loadTmStudio);
+}
+
+const grammarButton = document.querySelector('.splash-nav-btn[data-target="Grammar"]');
+if (grammarButton) {
+    grammarButton.disabled = false;
+    grammarButton.addEventListener('click', () => {
+        setActiveRoute('grammar');
+        window.location.href = 'grammar_studio.html';
+    });
 }
 
 // Export context for use in all imported modules

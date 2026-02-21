@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Toc-Suite Interactive Help</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-container" style="max-width: 1100px; height: auto; min-height: 100dvh;">
+    <header class="header">
+      <h1>Interactive Help Center</h1>
+      <a href="index.html" class="splash-utility-btn">Back to Splash</a>
+    </header>
+
+    <section class="visualization-panel">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input id="topicSearch" class="modal-input" placeholder="Search topics (example: shortcuts, save, pda)" style="margin:0;flex:1;min-width:220px;" />
+        <button id="prevStepBtn" class="icon-btn" type="button">Previous</button>
+        <button id="nextStepBtn" class="icon-btn" type="button">Next</button>
+      </div>
+      <div style="margin-top:10px;font-size:0.9rem;color:#64748b;">
+        Step <span id="stepIndex">1</span> of <span id="stepTotal">1</span>
+      </div>
+      <div id="topicChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+    </section>
+
+    <section class="visualization-panel">
+      <h3 id="stepTitle">Topic</h3>
+      <div id="stepBody" class="help-step-content"></div>
+      <div style="margin-top:10px;">
+        <strong>Checklist</strong>
+        <div id="stepChecklist" style="display:grid;gap:6px;margin-top:8px;"></div>
+      </div>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Studio Recommender</h3>
+      <label for="goalSelect" style="font-weight:600;">What are you building?</label>
+      <select id="goalSelect" class="modal-input">
+        <option value="regular-language">Regular language recognizer</option>
+        <option value="output-machine">Input-output mapper</option>
+        <option value="stack-language">Stack-based language</option>
+        <option value="general-computation">General algorithm/tape model</option>
+      </select>
+      <div id="goalAnswer" class="integration-status">Pick a goal to see recommended studio.</div>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Shortcut Trainer</h3>
+      <p>Press a shortcut now. Example: <code>Ctrl+S</code>, <code>Ctrl+E</code>, <code>V</code>, <code>T</code>.</p>
+      <div id="shortcutOutput" class="integration-status">Waiting for key input...</div>
+    </section>
+
+    <section class="visualization-panel">
+      <h3>Quick Knowledge Check</h3>
+      <p id="quizQuestion" style="font-weight:600;">Question</p>
+      <div id="quizOptions" style="display:grid;gap:8px;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button id="quizSubmitBtn" class="icon-btn" type="button">Submit Answer</button>
+        <button id="quizNextBtn" class="icon-btn" type="button">Next Question</button>
+      </div>
+      <div id="quizStatus" class="integration-status" style="margin-top:10px;">Score: 0 / 0</div>
+    </section>
+  </main>
+
+  <script>
+    const HELP_KEYS = {
+      progress: 'tocHelpProgress',
+      score: 'tocHelpQuizScore'
+    };
+    const safeGet = (key, fallback = null) => {
+      try { return localStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
+    };
+    const safeSet = (key, value) => {
+      try { localStorage.setItem(key, value); } catch (_e) {}
+    };
+
+    const topics = [
+      {
+        id: 'choose-studio',
+        title: 'Choose the Right Studio',
+        body: 'FA handles DFA/NFA/e-NFA. Mealy/Moore handles output automata. PDA handles stack-based context-free patterns. Turing handles general algorithms.',
+        checklist: ['Start from splash page', 'Pick correct machine model', 'Use Back to Main Menu when switching']
+      },
+      {
+        id: 'canvas-tools',
+        title: 'Canvas Tools and Editing',
+        body: 'Use Add, Move, Transition, Rename, Delete, and State Properties. On small screens open control drawer from menu icon.',
+        checklist: ['Select tool first', 'Click/tap canvas or states', 'Validate after major changes']
+      },
+      {
+        id: 'testing-practice',
+        title: 'Testing and Practice Flow',
+        body: 'Use single test for quick checks and bulk test for assignment-grade verification. Generate practice and compare solution behavior.',
+        checklist: ['Run single test', 'Run bulk tests', 'Use Check Answer for practice']
+      },
+      {
+        id: 'save-export',
+        title: 'Save, Load, and Export',
+        body: 'Save JSON as source of truth. Load JSON for continuation. Export PNG for submissions and reports.',
+        checklist: ['Save JSON before leaving', 'Export PNG when final', 'Keep filenames meaningful']
+      },
+      {
+        id: 'shortcuts',
+        title: 'Keyboard Shortcuts',
+        body: 'Ctrl/Cmd+S Save, Ctrl/Cmd+O Load, Ctrl/Cmd+E Export, Ctrl/Cmd+Z Undo, Ctrl/Cmd+Y Redo, V/S/T/D tools, Enter Run/Validate, Esc Clear.',
+        checklist: ['Use Ctrl/Cmd+S frequently', 'Use V/S/T/D for speed', 'Use Enter after edits']
+      }
+    ];
+
+    let filtered = [...topics];
+    let index = 0;
+
+    const searchInput = document.getElementById('topicSearch');
+    const chips = document.getElementById('topicChips');
+    const titleEl = document.getElementById('stepTitle');
+    const bodyEl = document.getElementById('stepBody');
+    const checklistEl = document.getElementById('stepChecklist');
+    const stepIndex = document.getElementById('stepIndex');
+    const stepTotal = document.getElementById('stepTotal');
+    const prevBtn = document.getElementById('prevStepBtn');
+    const nextBtn = document.getElementById('nextStepBtn');
+    const goalSelect = document.getElementById('goalSelect');
+    const goalAnswer = document.getElementById('goalAnswer');
+    const shortcutOutput = document.getElementById('shortcutOutput');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizOptions = document.getElementById('quizOptions');
+    const quizSubmitBtn = document.getElementById('quizSubmitBtn');
+    const quizNextBtn = document.getElementById('quizNextBtn');
+    const quizStatus = document.getElementById('quizStatus');
+
+    const quizBank = [
+      { q: 'Which studio is best for output-emitting machines?', o: ['FA', 'Mealy/Moore', 'PDA'], a: 1 },
+      { q: 'Shortcut for Export PNG is:', o: ['Ctrl+E', 'Ctrl+P', 'Shift+E'], a: 0 },
+      { q: 'For stack-based language patterns, use:', o: ['TM', 'PDA', 'FA'], a: 1 },
+      { q: 'What should you do before leaving studio?', o: ['Save JSON', 'Only refresh page', 'Close tab directly'], a: 0 }
+    ];
+    let quizIndex = 0;
+    let quizCorrect = Number(safeGet(HELP_KEYS.score, '0')) || 0;
+    let quizTotal = Number(safeGet(`${HELP_KEYS.score}:total`, '0')) || 0;
+
+    const renderQuiz = () => {
+      const item = quizBank[quizIndex];
+      quizQuestion.textContent = item.q;
+      quizOptions.innerHTML = '';
+      item.o.forEach((choice, i) => {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.gap = '8px';
+        label.innerHTML = `<input type="radio" name="quizChoice" value="${i}"> ${choice}`;
+        quizOptions.appendChild(label);
+      });
+      quizStatus.textContent = `Score: ${quizCorrect} / ${quizTotal}`;
+    };
+
+    const renderChips = () => {
+      chips.innerHTML = '';
+      filtered.forEach((t, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'icon-btn';
+        b.style.width = 'auto';
+        b.textContent = t.title;
+        if (i === index) b.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))';
+        if (i === index) b.style.color = '#fff';
+        b.addEventListener('click', () => {
+          index = i;
+          renderStep();
+        });
+        chips.appendChild(b);
+      });
+    };
+
+    const renderStep = () => {
+      const item = filtered[index] || topics[0];
+      if (!item) return;
+      titleEl.textContent = item.title;
+      bodyEl.textContent = item.body;
+      checklistEl.innerHTML = '';
+      item.checklist.forEach((entry) => {
+        const label = document.createElement('label');
+        label.style.display = 'flex';
+        label.style.gap = '8px';
+        label.innerHTML = `<input type="checkbox"> ${entry}`;
+        checklistEl.appendChild(label);
+      });
+      stepIndex.textContent = String(index + 1);
+      stepTotal.textContent = String(filtered.length);
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index >= filtered.length - 1;
+      renderChips();
+      safeSet(HELP_KEYS.progress, String(index));
+    };
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      filtered = topics.filter((t) =>
+        `${t.title} ${t.body} ${t.checklist.join(' ')}`.toLowerCase().includes(q)
+      );
+      if (filtered.length === 0) {
+        filtered = [{ title: 'No match', body: 'Try a different keyword.', checklist: [] }];
+      }
+      index = 0;
+      renderStep();
+    });
+
+    prevBtn.addEventListener('click', () => { index = Math.max(0, index - 1); renderStep(); });
+    nextBtn.addEventListener('click', () => { index = Math.min(filtered.length - 1, index + 1); renderStep(); });
+
+    const recommendations = {
+      'regular-language': 'Recommended: Finite Automata (FA) studio.',
+      'output-machine': 'Recommended: Mealy/Moore studio.',
+      'stack-language': 'Recommended: PDA studio.',
+      'general-computation': 'Recommended: Turing Machine studio.'
+    };
+    goalSelect.addEventListener('change', () => {
+      goalAnswer.textContent = recommendations[goalSelect.value] || 'Choose a goal.';
+    });
+    goalSelect.dispatchEvent(new Event('change'));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      const keys = [];
+      if (e.ctrlKey || e.metaKey) keys.push('Ctrl/Cmd');
+      if (e.shiftKey) keys.push('Shift');
+      keys.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
+      const combo = keys.join('+');
+      const known = [
+        'Ctrl/Cmd+S', 'Ctrl/Cmd+O', 'Ctrl/Cmd+E', 'Ctrl/Cmd+Z', 'Ctrl/Cmd+Y',
+        'V', 'S', 'T', 'D', 'Enter', 'Escape'
+      ];
+      const normalized = combo.replace('Esc', 'Escape');
+      shortcutOutput.textContent = known.includes(normalized)
+        ? `Recognized shortcut: ${normalized}`
+        : `Pressed: ${normalized}`;
+    });
+
+    quizSubmitBtn.addEventListener('click', () => {
+      const selected = document.querySelector('input[name="quizChoice"]:checked');
+      if (!selected) {
+        quizStatus.textContent = 'Select an option first.';
+        return;
+      }
+      const userAns = Number(selected.value);
+      const isCorrect = userAns === quizBank[quizIndex].a;
+      quizTotal += 1;
+      if (isCorrect) quizCorrect += 1;
+      safeSet(HELP_KEYS.score, String(quizCorrect));
+      safeSet(`${HELP_KEYS.score}:total`, String(quizTotal));
+      quizStatus.textContent = isCorrect
+        ? `Correct. Score: ${quizCorrect} / ${quizTotal}`
+        : `Not correct. Score: ${quizCorrect} / ${quizTotal}`;
+    });
+    quizNextBtn.addEventListener('click', () => {
+      quizIndex = (quizIndex + 1) % quizBank.length;
+      renderQuiz();
+    });
+
+    index = Math.max(0, Number(safeGet(HELP_KEYS.progress, '0')) || 0);
+    if (index >= filtered.length) index = 0;
+    renderStep();
+    renderQuiz();
+  </script>
+</body>
+</html>

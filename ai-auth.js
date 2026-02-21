@@ -1,7 +1,6 @@
 // ai-auth.js
 
 let isAuthenticated = false;
-const CORRECT_PASSWORD = "Shiro";
 let currentResolver = null; // Stores the promise resolver function
 
 /**
@@ -35,7 +34,7 @@ function setupAiAuthModalListeners() {
 /**
  * Handles the user's attempt to enter the password.
  */
-function handleUnlockAttempt() {
+async function handleUnlockAttempt() {
     const modal = document.getElementById('aiAuthModal');
     const input = document.getElementById('aiPasswordInput');
     const password = input.value.trim();
@@ -43,7 +42,17 @@ function handleUnlockAttempt() {
     // Reset descriptive message to default
     const message = modal.querySelector('.modal-description');
     
-    if (password === CORRECT_PASSWORD) {
+    try {
+        const res = await fetch('/.netlify/functions/verify-ai-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password })
+        });
+
+        if (!res.ok) {
+            throw new Error('Invalid password');
+        }
+
         isAuthenticated = true;
         
         if (window.customAlert) {
@@ -56,7 +65,7 @@ function handleUnlockAttempt() {
         if (currentResolver) {
             currentResolver(true); // Resolve with success
         }
-    } else {
+    } catch (_err) {
         input.value = '';
         input.focus();
         
@@ -65,7 +74,7 @@ function handleUnlockAttempt() {
              message.innerHTML = 
             'Incorrect password. Try again! <span style="color:' + window.getComputedStyle(document.body).getPropertyValue('--danger') + ';">(Hint: Check the case!)</span>';
         }
-         }
+    }
 }
 
 /**
