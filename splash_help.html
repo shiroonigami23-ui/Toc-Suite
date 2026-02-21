@@ -38,13 +38,32 @@
     .quiz-option { display:flex; gap:8px; padding:8px; border-radius:8px; border:1px solid #e2e8f0; }
     .ok { color:#065f46; }
     .bad { color:#b91c1c; }
+    .help-accordion {
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+    .help-accordion > summary {
+      cursor: pointer;
+      list-style: none;
+      font-weight: 700;
+      padding: 14px 16px;
+      background: #f8fbff;
+      border-bottom: 1px solid #e5edf8;
+    }
+    .help-accordion > summary::-webkit-details-marker { display: none; }
+    .help-accordion-content {
+      padding: 14px;
+    }
   </style>
 </head>
 <body>
   <main class="app-container" style="max-width:1200px;min-height:100dvh;height:auto;">
     <header class="header">
       <h1>TOC Help and Theory Lab</h1>
-      <a href="index.html" class="splash-utility-btn">Back to Splash</a>
+      <a href="index.html" class="splash-utility-btn">Back to Menu</a>
     </header>
 
     <section class="help-hero">
@@ -58,37 +77,47 @@
       </div>
     </section>
 
-    <section class="visualization-panel" id="tool-guide">
-      <h3>App Tool Guide</h3>
-      <div class="chip-row" style="margin-bottom:10px;">
-        <a href="#tool-guide" class="splash-utility-btn">Tool Guide</a>
-        <a href="#theory-lab" class="splash-utility-btn">Theory Lab</a>
-        <a href="#quiz-lab" class="splash-utility-btn">Quiz Lab</a>
-        <a href="index.html" class="splash-utility-btn">Back to Main</a>
+    <details class="help-accordion" id="help-section-tools">
+      <summary>App Tool Guide</summary>
+      <div class="help-accordion-content" id="tool-guide">
+        <div class="chip-row" style="margin-bottom:10px;">
+          <a href="#tool-guide" class="splash-utility-btn">Tool Guide</a>
+          <a href="#theory-lab" class="splash-utility-btn">Theory Lab</a>
+          <a href="#quiz-lab" class="splash-utility-btn">Quiz Lab</a>
+          <a href="index.html" class="splash-utility-btn">Back to Menu</a>
+        </div>
+        <div class="help-grid">
+          <div class="theory-card">
+            <h4 style="margin-top:0;">Step 1: Build</h4>
+            <p>Use toolbar tools in order: <code>Add</code>, <code>Move</code>, <code>Transition</code>, <code>State Properties</code>.</p>
+          </div>
+          <div class="theory-card">
+            <h4 style="margin-top:0;">Step 2: Validate + Test</h4>
+            <p>Use Validate first, then single test, then bulk tests. Practice mode checks logic quality.</p>
+          </div>
+          <div class="theory-card">
+            <h4 style="margin-top:0;">Step 3: Save + Submit</h4>
+            <p>Save JSON for your copy. If assignment/quiz is open, submit through staged workflow from the same save path.</p>
+          </div>
+        </div>
       </div>
-      <div class="help-grid">
-        <div class="theory-card">
-          <h4 style="margin-top:0;">Step 1: Build</h4>
-          <p>Use toolbar tools in order: <code>Add</code>, <code>Move</code>, <code>Transition</code>, <code>State Properties</code>.</p>
-        </div>
-        <div class="theory-card">
-          <h4 style="margin-top:0;">Step 2: Validate + Test</h4>
-          <p>Use Validate first, then single test, then bulk tests. Practice mode checks logic quality.</p>
-        </div>
-        <div class="theory-card">
-          <h4 style="margin-top:0;">Step 3: Save + Submit</h4>
-          <p>Save JSON for your copy. If assignment/quiz is open, submit through staged workflow from the same save path.</p>
-        </div>
+    </details>
+
+    <details class="help-accordion" id="help-section-topics">
+      <summary>Topic Navigator</summary>
+      <div class="help-accordion-content">
+        <section class="visualization-panel">
+          <div id="topicChips" class="chip-row"></div>
+          <h3 id="topicTitle" style="margin-bottom:6px;">Topic</h3>
+          <div id="topicBody" class="help-step-content" style="margin-bottom:10px;"></div>
+          <div id="topicChecklist" style="display:grid;gap:6px;"></div>
+        </section>
       </div>
-    </section>
+    </details>
 
-    <section class="visualization-panel">
-      <div id="topicChips" class="chip-row"></div>
-      <h3 id="topicTitle" style="margin-bottom:6px;">Topic</h3>
-      <div id="topicBody" class="help-step-content" style="margin-bottom:10px;"></div>
-      <div id="topicChecklist" style="display:grid;gap:6px;"></div>
-    </section>
-
+    <details class="help-accordion" id="help-section-theory">
+      <summary>Theory Lab</summary>
+      <div class="help-accordion-content">
     <section class="help-grid" id="theory-lab">
       <article class="theory-card">
         <h3 style="margin-top:0;">Arden Lemma Interactive</h3>
@@ -162,7 +191,12 @@
         <div id="lbaOutput" class="integration-status" style="margin-top:8px;">Enter n and move sequence.</div>
       </article>
     </section>
+      </div>
+    </details>
 
+    <details class="help-accordion" id="help-section-practice">
+      <summary>Practice Lab</summary>
+      <div class="help-accordion-content">
     <section class="help-grid">
       <article class="theory-card">
         <h3 style="margin-top:0;">Pumping Lemma Coach</h3>
@@ -191,24 +225,32 @@
         <div id="shortcutOutput" class="integration-status">Waiting for key input...</div>
       </article>
     </section>
-
-    <section class="visualization-panel" id="quiz-lab">
-      <h3>TOC Master Quiz</h3>
-      <p id="quizQuestion" style="font-weight:700;">Question</p>
-      <div id="quizOptions" style="display:grid;gap:8px;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <button id="quizSubmit" class="icon-btn" type="button">Submit</button>
-        <button id="quizNext" class="icon-btn" type="button">Next</button>
-        <div id="quizScore" class="integration-status" style="margin:0;">Score 0/0</div>
       </div>
-    </section>
+    </details>
+
+    <details class="help-accordion" id="help-section-quiz">
+      <summary>Quiz Lab</summary>
+      <div class="help-accordion-content">
+        <section class="visualization-panel" id="quiz-lab">
+          <h3>TOC Master Quiz</h3>
+          <p id="quizQuestion" style="font-weight:700;">Question</p>
+          <div id="quizOptions" style="display:grid;gap:8px;"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button id="quizSubmit" class="icon-btn" type="button">Submit</button>
+            <button id="quizNext" class="icon-btn" type="button">Next</button>
+            <div id="quizScore" class="integration-status" style="margin:0;">Score 0/0</div>
+          </div>
+        </section>
+      </div>
+    </details>
   </main>
 
   <script>
     const HELP_KEYS = {
       topicIndex: 'tocHelpTopicIndexV2',
       quizCorrect: 'tocHelpQuizCorrectV2',
-      quizTotal: 'tocHelpQuizTotalV2'
+      quizTotal: 'tocHelpQuizTotalV2',
+      openSections: 'tocHelpOpenSectionsV1'
     };
     const safeGet = (k, d='') => { try { return localStorage.getItem(k) ?? d; } catch (_e) { return d; } };
     const safeSet = (k, v) => { try { localStorage.setItem(k, String(v)); } catch (_e) {} };
@@ -493,6 +535,22 @@
     if (topicIndex >= filtered.length) topicIndex = 0;
     renderTopic();
     renderQuiz();
+
+    const sectionIds = ['help-section-tools', 'help-section-topics', 'help-section-theory', 'help-section-practice', 'help-section-quiz'];
+    const safeParse = (raw, fallback) => {
+      try { return JSON.parse(raw); } catch (_e) { return fallback; }
+    };
+    const openState = safeParse(safeGet(HELP_KEYS.openSections, '{}'), {});
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.open = Boolean(openState[id]);
+      el.addEventListener('toggle', () => {
+        const next = safeParse(safeGet(HELP_KEYS.openSections, '{}'), {});
+        next[id] = el.open;
+        safeSet(HELP_KEYS.openSections, JSON.stringify(next));
+      });
+    });
   </script>
 </body>
 </html>
