@@ -1,17 +1,4 @@
 [build]
   publish = "."
-  command = "echo \"Static deploy\""
-  ignore = """bash -lc '
-if [ -z "$CACHED_COMMIT_REF" ] || [ -z "$COMMIT_REF" ]; then
-  exit 1
-fi
-CHANGED="$(git diff --name-only "$CACHED_COMMIT_REF" "$COMMIT_REF" || true)"
-if [ -z "$CHANGED" ]; then
-  exit 0
-fi
-if echo "$CHANGED" | grep -qvE "^(Data/|automata/|library\\.json$|pda_library\\.json$|moore_mealy_library\\.json$|tm_library\\.json$|CHANGELOG\\.md$|PREVIEW\\.md$)"; then
-  exit 1
-fi
-echo "Only data/library/docs sync files changed; skipping Netlify deploy."
-exit 0
-'"""
+  command = "echo \"Static site - no build step required\""
+  ignore = "bash scripts/ignore-build.sh"
