@@ -10,9 +10,9 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Toc--Suite-111827?style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite)
 
 Links:
-- Live App: `https://toc-suite.netlify.app/`
-- GitHub Repository: `https://github.com/shiroonigami23-ui/Toc-Suite`
-- Issues and Tracking: `https://github.com/shiroonigami23-ui/Toc-Suite/issues`
+- Live App: https://toc-suite.netlify.app/
+- GitHub Repository: https://github.com/shiroonigami23-ui/Toc-Suite
+- Issues and Tracking: https://github.com/shiroonigami23-ui/Toc-Suite/issues
 
 Unified Theory of Computation workspace for:
 - Finite Automata (FA: DFA/NFA/e-NFA + conversions)
