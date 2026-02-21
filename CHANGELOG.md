@@ -1,3 +1,7 @@
+## [2026-02-21] - Data Ingestion
+- Imported **DFA Smoke: Even number of a** into DFA Library
+- Imported **PDA Smoke: a^n b^n** into PDA Library
+
 ## [2026-01-04] - Data Ingestion
 - Imported **NFA for strings containing 'aba'** into NFA Library
 
