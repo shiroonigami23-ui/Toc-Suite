@@ -10,7 +10,7 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Toc--Suite-111827?style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite)
 
 Links:
-- Live App: https://stately-cobbler-fb1299.netlify.app/
+- Live App: https://toc-suite-v3.netlify.app/
 - GitHub Repository: https://github.com/shiroonigami23-ui/Toc-Suite
 - Issues and Tracking: https://github.com/shiroonigami23-ui/Toc-Suite/issues
 
