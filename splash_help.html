@@ -3,263 +3,495 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Toc-Suite Interactive Help</title>
+  <title>TOC Help and Theory Lab</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .help-hero {
+      background: linear-gradient(120deg, #0f766e, #0ea5e9);
+      color: #fff;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 14px 28px rgba(15, 118, 110, 0.25);
+    }
+    .help-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .theory-card {
+      background: #fff;
+      border: 1px solid #dbeafe;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .formula {
+      font-family: Consolas, monospace;
+      background: #eff6ff;
+      border: 1px dashed #93c5fd;
+      border-radius: 10px;
+      padding: 10px;
+      line-height: 1.5;
+      overflow-x: auto;
+    }
+    .chip-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .chip-row .icon-btn { width:auto; }
+    .quiz-option { display:flex; gap:8px; padding:8px; border-radius:8px; border:1px solid #e2e8f0; }
+    .ok { color:#065f46; }
+    .bad { color:#b91c1c; }
+  </style>
 </head>
 <body>
-  <main class="app-container" style="max-width: 1100px; height: auto; min-height: 100dvh;">
+  <main class="app-container" style="max-width:1200px;min-height:100dvh;height:auto;">
     <header class="header">
-      <h1>Interactive Help Center</h1>
+      <h1>TOC Help and Theory Lab</h1>
       <a href="index.html" class="splash-utility-btn">Back to Splash</a>
     </header>
 
-    <section class="visualization-panel">
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-        <input id="topicSearch" class="modal-input" placeholder="Search topics (example: shortcuts, save, pda)" style="margin:0;flex:1;min-width:220px;" />
-        <button id="prevStepBtn" class="icon-btn" type="button">Previous</button>
-        <button id="nextStepBtn" class="icon-btn" type="button">Next</button>
-      </div>
-      <div style="margin-top:10px;font-size:0.9rem;color:#64748b;">
-        Step <span id="stepIndex">1</span> of <span id="stepTotal">1</span>
-      </div>
-      <div id="topicChips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
-    </section>
-
-    <section class="visualization-panel">
-      <h3 id="stepTitle">Topic</h3>
-      <div id="stepBody" class="help-step-content"></div>
-      <div style="margin-top:10px;">
-        <strong>Checklist</strong>
-        <div id="stepChecklist" style="display:grid;gap:6px;margin-top:8px;"></div>
+    <section class="help-hero">
+      <h2 style="margin:0;">Learn App + Theory Together</h2>
+      <p style="margin:8px 0 0 0;opacity:0.95;">This page combines studio workflows, exam-ready concepts, and dynamic formula helpers (including Arden lemma).</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+        <input id="topicSearch" class="modal-input" placeholder="Search: arden, cfg, pda, pumping, closure" style="margin:0;max-width:360px;background:#ffffff;color:#0f172a;" />
+        <button id="prevTopic" class="icon-btn" type="button">Previous</button>
+        <button id="nextTopic" class="icon-btn" type="button">Next</button>
+        <div class="integration-status" id="topicCounter" style="margin:0;background:rgba(255,255,255,0.2);color:#fff;">Topic 1 / 1</div>
       </div>
     </section>
 
-    <section class="visualization-panel">
-      <h3>Studio Recommender</h3>
-      <label for="goalSelect" style="font-weight:600;">What are you building?</label>
-      <select id="goalSelect" class="modal-input">
-        <option value="regular-language">Regular language recognizer</option>
-        <option value="output-machine">Input-output mapper</option>
-        <option value="stack-language">Stack-based language</option>
-        <option value="general-computation">General algorithm/tape model</option>
-      </select>
-      <div id="goalAnswer" class="integration-status">Pick a goal to see recommended studio.</div>
+    <section class="visualization-panel" id="tool-guide">
+      <h3>App Tool Guide</h3>
+      <div class="chip-row" style="margin-bottom:10px;">
+        <a href="#tool-guide" class="splash-utility-btn">Tool Guide</a>
+        <a href="#theory-lab" class="splash-utility-btn">Theory Lab</a>
+        <a href="#quiz-lab" class="splash-utility-btn">Quiz Lab</a>
+        <a href="index.html" class="splash-utility-btn">Back to Main</a>
+      </div>
+      <div class="help-grid">
+        <div class="theory-card">
+          <h4 style="margin-top:0;">Step 1: Build</h4>
+          <p>Use toolbar tools in order: <code>Add</code>, <code>Move</code>, <code>Transition</code>, <code>State Properties</code>.</p>
+        </div>
+        <div class="theory-card">
+          <h4 style="margin-top:0;">Step 2: Validate + Test</h4>
+          <p>Use Validate first, then single test, then bulk tests. Practice mode checks logic quality.</p>
+        </div>
+        <div class="theory-card">
+          <h4 style="margin-top:0;">Step 3: Save + Submit</h4>
+          <p>Save JSON for your copy. If assignment/quiz is open, submit through staged workflow from the same save path.</p>
+        </div>
+      </div>
     </section>
 
     <section class="visualization-panel">
-      <h3>Shortcut Trainer</h3>
-      <p>Press a shortcut now. Example: <code>Ctrl+S</code>, <code>Ctrl+E</code>, <code>V</code>, <code>T</code>.</p>
-      <div id="shortcutOutput" class="integration-status">Waiting for key input...</div>
+      <div id="topicChips" class="chip-row"></div>
+      <h3 id="topicTitle" style="margin-bottom:6px;">Topic</h3>
+      <div id="topicBody" class="help-step-content" style="margin-bottom:10px;"></div>
+      <div id="topicChecklist" style="display:grid;gap:6px;"></div>
     </section>
 
-    <section class="visualization-panel">
-      <h3>Quick Knowledge Check</h3>
-      <p id="quizQuestion" style="font-weight:600;">Question</p>
+    <section class="help-grid" id="theory-lab">
+      <article class="theory-card">
+        <h3 style="margin-top:0;">Arden Lemma Interactive</h3>
+        <p>Solve equations of the form <code>R = A.R + B</code> or <code>R = R.A + B</code>.</p>
+        <div class="formula">
+          Arden (right-recursive): R = A.R + B => R = A*B<br />
+          Arden (left-recursive): R = R.A + B => R = B.A*
+        </div>
+        <div style="display:grid;gap:8px;margin-top:10px;">
+          <select id="ardenType" class="modal-input">
+            <option value="right">R = A.R + B</option>
+            <option value="left">R = R.A + B</option>
+          </select>
+          <input id="ardenA" class="modal-input" placeholder="A term (example: 0+1 or a)" />
+          <input id="ardenB" class="modal-input" placeholder="B term (example: eps or ab)" />
+          <button id="ardenSolve" class="icon-btn" type="button">Solve</button>
+          <div id="ardenResult" class="integration-status">Enter A and B, then solve.</div>
+        </div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">Machine Recommender</h3>
+        <p>Map a language/problem to the right computational model.</p>
+        <select id="goalSelect" class="modal-input">
+          <option value="regular">Regular language / regex-like constraints</option>
+          <option value="output">Input-output transformation</option>
+          <option value="stack">Nested structure / balanced symbols</option>
+          <option value="grammar">CFG to machine conversion and parse tree</option>
+          <option value="algorithmic">General algorithmic steps</option>
+        </select>
+        <div id="goalAnswer" class="help-step-content" style="margin-top:8px;"></div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">Closure Property Builder</h3>
+        <p>Select language family and operation to get expected closure behavior.</p>
+        <select id="closureFamily" class="modal-input">
+          <option value="REG">Regular</option>
+          <option value="CFL">Context-Free</option>
+          <option value="CSL">Context-Sensitive</option>
+          <option value="RE">Recursively Enumerable</option>
+        </select>
+        <select id="closureOp" class="modal-input">
+          <option value="union">Union</option>
+          <option value="intersection">Intersection</option>
+          <option value="complement">Complement</option>
+          <option value="difference">Difference</option>
+          <option value="concat">Concatenation</option>
+          <option value="star">Kleene Star</option>
+        </select>
+        <button id="closureCheck" class="icon-btn" type="button">Check Closure</button>
+        <div id="closureResult" class="integration-status" style="margin-top:8px;">Pick family and operation.</div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">L-System Explorer</h3>
+        <p>Generate formal growth strings to understand grammar rewriting systems.</p>
+        <input id="lsAxiom" class="modal-input" placeholder="Axiom (example: A)" />
+        <input id="lsRules" class="modal-input" placeholder="Rules (example: A->AB, B->A)" />
+        <input id="lsIter" class="modal-input" placeholder="Iterations (example: 5)" />
+        <button id="lsGenerate" class="icon-btn" type="button">Generate L-System</button>
+        <div id="lsOutput" class="help-step-content" style="margin-top:8px;min-height:85px;"></div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">LBA Boundary Practice</h3>
+        <p>Quickly test if a head movement sequence stays within input bounds.</p>
+        <input id="lbaInputSize" class="modal-input" placeholder="Input length n (example: 8)" />
+        <input id="lbaMoves" class="modal-input" placeholder="Moves sequence (example: R,R,R,L,R)" />
+        <button id="lbaCheck" class="icon-btn" type="button">Check Bound Safety</button>
+        <div id="lbaOutput" class="integration-status" style="margin-top:8px;">Enter n and move sequence.</div>
+      </article>
+    </section>
+
+    <section class="help-grid">
+      <article class="theory-card">
+        <h3 style="margin-top:0;">Pumping Lemma Coach</h3>
+        <p>Build a contradiction plan quickly for exam proofs.</p>
+        <input id="pumpLanguage" class="modal-input" placeholder="Language (example: {a^n b^n | n>=0})" />
+        <input id="pumpWitness" class="modal-input" placeholder="Witness w (example: a^p b^p)" />
+        <input id="pumpSplit" class="modal-input" placeholder="Pick split (example: x=a^(p-k), y=a^k, z=b^p)" />
+        <button id="pumpExplain" class="icon-btn" type="button">Generate Proof Skeleton</button>
+        <div id="pumpResult" class="help-step-content" style="margin-top:8px;min-height:90px;"></div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">CFG to PDA Checklist</h3>
+        <div class="formula">q_start --eps, Z/ S Z--> q_loop<br/>q_loop --eps, A/alpha--> q_loop<br/>q_loop --a, a/eps--> q_loop<br/>q_loop --eps, Z/Z--> q_accept</div>
+        <div style="display:grid;gap:6px;margin-top:10px;">
+          <label><input type="checkbox" /> Push start symbol over stack marker</label>
+          <label><input type="checkbox" /> Add expansion transitions for each production</label>
+          <label><input type="checkbox" /> Add terminal match transitions</label>
+          <label><input type="checkbox" /> Add accept transition</label>
+        </div>
+      </article>
+
+      <article class="theory-card">
+        <h3 style="margin-top:0;">Shortcut Trainer</h3>
+        <p>Try keys: <code>Ctrl+S</code>, <code>Ctrl+E</code>, <code>V</code>, <code>T</code>, <code>D</code>, <code>Enter</code>.</p>
+        <div id="shortcutOutput" class="integration-status">Waiting for key input...</div>
+      </article>
+    </section>
+
+    <section class="visualization-panel" id="quiz-lab">
+      <h3>TOC Master Quiz</h3>
+      <p id="quizQuestion" style="font-weight:700;">Question</p>
       <div id="quizOptions" style="display:grid;gap:8px;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button id="quizSubmitBtn" class="icon-btn" type="button">Submit Answer</button>
-        <button id="quizNextBtn" class="icon-btn" type="button">Next Question</button>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+        <button id="quizSubmit" class="icon-btn" type="button">Submit</button>
+        <button id="quizNext" class="icon-btn" type="button">Next</button>
+        <div id="quizScore" class="integration-status" style="margin:0;">Score 0/0</div>
       </div>
-      <div id="quizStatus" class="integration-status" style="margin-top:10px;">Score: 0 / 0</div>
     </section>
   </main>
 
   <script>
     const HELP_KEYS = {
-      progress: 'tocHelpProgress',
-      score: 'tocHelpQuizScore'
+      topicIndex: 'tocHelpTopicIndexV2',
+      quizCorrect: 'tocHelpQuizCorrectV2',
+      quizTotal: 'tocHelpQuizTotalV2'
     };
-    const safeGet = (key, fallback = null) => {
-      try { return localStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
-    };
-    const safeSet = (key, value) => {
-      try { localStorage.setItem(key, value); } catch (_e) {}
-    };
+    const safeGet = (k, d='') => { try { return localStorage.getItem(k) ?? d; } catch (_e) { return d; } };
+    const safeSet = (k, v) => { try { localStorage.setItem(k, String(v)); } catch (_e) {} };
 
     const topics = [
       {
-        id: 'choose-studio',
-        title: 'Choose the Right Studio',
-        body: 'FA handles DFA/NFA/e-NFA. Mealy/Moore handles output automata. PDA handles stack-based context-free patterns. Turing handles general algorithms.',
-        checklist: ['Start from splash page', 'Pick correct machine model', 'Use Back to Main Menu when switching']
+        id: 'roadmap',
+        title: 'TOC Roadmap: REG -> CFL -> TM',
+        body: 'Start from Regular Languages (Regex, DFA/NFA), then Context-Free (CFG/PDA), then Turing Machines for general computation. Each level strictly increases expressive power.',
+        checklist: ['Know what FA cannot do (a^n b^n)', 'Know PDA stack intuition', 'Know TM as full algorithm model']
       },
       {
-        id: 'canvas-tools',
-        title: 'Canvas Tools and Editing',
-        body: 'Use Add, Move, Transition, Rename, Delete, and State Properties. On small screens open control drawer from menu icon.',
-        checklist: ['Select tool first', 'Click/tap canvas or states', 'Validate after major changes']
+        id: 'arden',
+        title: 'Arden Lemma for Regex from Automata',
+        body: 'Convert equations between states into regex. Repeatedly isolate recursive variable and apply Arden to eliminate self-reference.',
+        checklist: ['Write one equation per state', 'Substitute until one variable remains', 'Apply Arden and simplify']
       },
       {
-        id: 'testing-practice',
-        title: 'Testing and Practice Flow',
-        body: 'Use single test for quick checks and bulk test for assignment-grade verification. Generate practice and compare solution behavior.',
-        checklist: ['Run single test', 'Run bulk tests', 'Use Check Answer for practice']
+        id: 'minimization',
+        title: 'DFA Minimization Logic',
+        body: 'Partition states into final and non-final, then refine partitions by transition behavior until stable.',
+        checklist: ['Remove unreachable states first', 'Start with coarse partition', 'Refine using transition signatures']
       },
       {
-        id: 'save-export',
-        title: 'Save, Load, and Export',
-        body: 'Save JSON as source of truth. Load JSON for continuation. Export PNG for submissions and reports.',
-        checklist: ['Save JSON before leaving', 'Export PNG when final', 'Keep filenames meaningful']
+        id: 'cfg-pda',
+        title: 'CFG to PDA and Parse Trees',
+        body: 'Grammar Studio builds NPDA with expansion transitions and terminal-match transitions. Parse tree and leftmost derivation are generated from bounded search.',
+        checklist: ['Validate grammar first', 'Review transition table', 'Test derived NPDA in PDA studio']
       },
       {
-        id: 'shortcuts',
-        title: 'Keyboard Shortcuts',
-        body: 'Ctrl/Cmd+S Save, Ctrl/Cmd+O Load, Ctrl/Cmd+E Export, Ctrl/Cmd+Z Undo, Ctrl/Cmd+Y Redo, V/S/T/D tools, Enter Run/Validate, Esc Clear.',
-        checklist: ['Use Ctrl/Cmd+S frequently', 'Use V/S/T/D for speed', 'Use Enter after edits']
+        id: 'tm-proof',
+        title: 'TM Design and Correctness',
+        body: 'Define tape alphabet, state invariants, and halting criteria. Validate with single-step trace and bulk tests.',
+        checklist: ['Check reject path exists', 'Check boundary behavior for LBA', 'Use bulk tests as regression']
+      },
+      {
+        id: 'complexity',
+        title: 'Decidability and Reductions',
+        body: 'Separate decidable, recognizable, and undecidable classes. Use mapping reductions to transfer hardness.',
+        checklist: ['State source problem clearly', 'Construct computable transform', 'Prove iff relationship']
       }
+    ];
+
+    const quizBank = [
+      { q: 'Arden lemma solves which type of expression?', o: ['Recursive regex equations', 'CFG ambiguity', 'PDA acceptance only'], a: 0 },
+      { q: 'Language {a^n b^n} is recognized by:', o: ['DFA', 'PDA', 'Regular expression only'], a: 1 },
+      { q: 'First step in DFA minimization:', o: ['Build parse tree', 'Partition by final/non-final', 'Convert to TM'], a: 1 },
+      { q: 'For general algorithm simulation use:', o: ['TM Studio', 'FA only', 'Mealy only'], a: 0 },
+      { q: 'CFG to NPDA key action is:', o: ['Push start symbol and apply productions on stack', 'Remove stack', 'Use only deterministic moves'], a: 0 }
     ];
 
     let filtered = [...topics];
-    let index = 0;
+    let topicIndex = Math.max(0, Number(safeGet(HELP_KEYS.topicIndex, '0')) || 0);
 
-    const searchInput = document.getElementById('topicSearch');
-    const chips = document.getElementById('topicChips');
-    const titleEl = document.getElementById('stepTitle');
-    const bodyEl = document.getElementById('stepBody');
-    const checklistEl = document.getElementById('stepChecklist');
-    const stepIndex = document.getElementById('stepIndex');
-    const stepTotal = document.getElementById('stepTotal');
-    const prevBtn = document.getElementById('prevStepBtn');
-    const nextBtn = document.getElementById('nextStepBtn');
-    const goalSelect = document.getElementById('goalSelect');
-    const goalAnswer = document.getElementById('goalAnswer');
-    const shortcutOutput = document.getElementById('shortcutOutput');
-    const quizQuestion = document.getElementById('quizQuestion');
-    const quizOptions = document.getElementById('quizOptions');
-    const quizSubmitBtn = document.getElementById('quizSubmitBtn');
-    const quizNextBtn = document.getElementById('quizNextBtn');
-    const quizStatus = document.getElementById('quizStatus');
+    const topicSearch = document.getElementById('topicSearch');
+    const prevTopic = document.getElementById('prevTopic');
+    const nextTopic = document.getElementById('nextTopic');
+    const topicCounter = document.getElementById('topicCounter');
+    const topicChips = document.getElementById('topicChips');
+    const topicTitle = document.getElementById('topicTitle');
+    const topicBody = document.getElementById('topicBody');
+    const topicChecklist = document.getElementById('topicChecklist');
 
-    const quizBank = [
-      { q: 'Which studio is best for output-emitting machines?', o: ['FA', 'Mealy/Moore', 'PDA'], a: 1 },
-      { q: 'Shortcut for Export PNG is:', o: ['Ctrl+E', 'Ctrl+P', 'Shift+E'], a: 0 },
-      { q: 'For stack-based language patterns, use:', o: ['TM', 'PDA', 'FA'], a: 1 },
-      { q: 'What should you do before leaving studio?', o: ['Save JSON', 'Only refresh page', 'Close tab directly'], a: 0 }
-    ];
-    let quizIndex = 0;
-    let quizCorrect = Number(safeGet(HELP_KEYS.score, '0')) || 0;
-    let quizTotal = Number(safeGet(`${HELP_KEYS.score}:total`, '0')) || 0;
-
-    const renderQuiz = () => {
-      const item = quizBank[quizIndex];
-      quizQuestion.textContent = item.q;
-      quizOptions.innerHTML = '';
-      item.o.forEach((choice, i) => {
-        const label = document.createElement('label');
-        label.style.display = 'flex';
-        label.style.gap = '8px';
-        label.innerHTML = `<input type="radio" name="quizChoice" value="${i}"> ${choice}`;
-        quizOptions.appendChild(label);
-      });
-      quizStatus.textContent = `Score: ${quizCorrect} / ${quizTotal}`;
-    };
-
-    const renderChips = () => {
-      chips.innerHTML = '';
-      filtered.forEach((t, i) => {
+    function renderTopicChips() {
+      topicChips.innerHTML = '';
+      filtered.forEach((t, idx) => {
         const b = document.createElement('button');
-        b.type = 'button';
         b.className = 'icon-btn';
-        b.style.width = 'auto';
+        b.type = 'button';
         b.textContent = t.title;
-        if (i === index) b.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))';
-        if (i === index) b.style.color = '#fff';
+        if (idx === topicIndex) {
+          b.style.background = 'linear-gradient(90deg,var(--accent1),var(--accent2))';
+          b.style.color = '#fff';
+        }
         b.addEventListener('click', () => {
-          index = i;
-          renderStep();
+          topicIndex = idx;
+          renderTopic();
         });
-        chips.appendChild(b);
+        topicChips.appendChild(b);
       });
-    };
+    }
 
-    const renderStep = () => {
-      const item = filtered[index] || topics[0];
-      if (!item) return;
-      titleEl.textContent = item.title;
-      bodyEl.textContent = item.body;
-      checklistEl.innerHTML = '';
-      item.checklist.forEach((entry) => {
+    function renderTopic() {
+      const topic = filtered[topicIndex] || filtered[0];
+      if (!topic) return;
+      topicTitle.textContent = topic.title;
+      topicBody.textContent = topic.body;
+      topicChecklist.innerHTML = '';
+      topic.checklist.forEach((item) => {
         const label = document.createElement('label');
-        label.style.display = 'flex';
-        label.style.gap = '8px';
-        label.innerHTML = `<input type="checkbox"> ${entry}`;
-        checklistEl.appendChild(label);
+        label.innerHTML = `<input type="checkbox" /> ${item}`;
+        topicChecklist.appendChild(label);
       });
-      stepIndex.textContent = String(index + 1);
-      stepTotal.textContent = String(filtered.length);
-      prevBtn.disabled = index === 0;
-      nextBtn.disabled = index >= filtered.length - 1;
-      renderChips();
-      safeSet(HELP_KEYS.progress, String(index));
-    };
+      topicCounter.textContent = `Topic ${topicIndex + 1} / ${filtered.length}`;
+      prevTopic.disabled = topicIndex === 0;
+      nextTopic.disabled = topicIndex >= filtered.length - 1;
+      renderTopicChips();
+      safeSet(HELP_KEYS.topicIndex, topicIndex);
+    }
 
-    searchInput.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
-      filtered = topics.filter((t) =>
-        `${t.title} ${t.body} ${t.checklist.join(' ')}`.toLowerCase().includes(q)
-      );
-      if (filtered.length === 0) {
-        filtered = [{ title: 'No match', body: 'Try a different keyword.', checklist: [] }];
-      }
-      index = 0;
-      renderStep();
+    topicSearch.addEventListener('input', () => {
+      const q = topicSearch.value.trim().toLowerCase();
+      filtered = topics.filter((t) => `${t.title} ${t.body} ${t.checklist.join(' ')}`.toLowerCase().includes(q));
+      if (!filtered.length) filtered = [{ title: 'No match', body: 'Try another keyword.', checklist: [] }];
+      topicIndex = 0;
+      renderTopic();
     });
 
-    prevBtn.addEventListener('click', () => { index = Math.max(0, index - 1); renderStep(); });
-    nextBtn.addEventListener('click', () => { index = Math.min(filtered.length - 1, index + 1); renderStep(); });
+    prevTopic.addEventListener('click', () => { topicIndex = Math.max(0, topicIndex - 1); renderTopic(); });
+    nextTopic.addEventListener('click', () => { topicIndex = Math.min(filtered.length - 1, topicIndex + 1); renderTopic(); });
 
-    const recommendations = {
-      'regular-language': 'Recommended: Finite Automata (FA) studio.',
-      'output-machine': 'Recommended: Mealy/Moore studio.',
-      'stack-language': 'Recommended: PDA studio.',
-      'general-computation': 'Recommended: Turing Machine studio.'
+    const goalAnswer = document.getElementById('goalAnswer');
+    const goalSelect = document.getElementById('goalSelect');
+    const goalMap = {
+      regular: 'Use FA Studio. For regex equations and conversion, use Arden helper here.',
+      output: 'Use Mealy/Moore Studio. Validate output trace against expected stream.',
+      stack: 'Use PDA Studio. Good for balanced/nested constructs and CFG-linked languages.',
+      grammar: 'Use Grammar Studio. Build NPDA and inspect derivation + parse tree.',
+      algorithmic: 'Use TM Studio. This model can encode full algorithms and decidability experiments.'
     };
     goalSelect.addEventListener('change', () => {
-      goalAnswer.textContent = recommendations[goalSelect.value] || 'Choose a goal.';
+      goalAnswer.textContent = goalMap[goalSelect.value] || 'Choose a problem type.';
     });
     goalSelect.dispatchEvent(new Event('change'));
 
-    document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      const keys = [];
-      if (e.ctrlKey || e.metaKey) keys.push('Ctrl/Cmd');
-      if (e.shiftKey) keys.push('Shift');
-      keys.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
-      const combo = keys.join('+');
-      const known = [
-        'Ctrl/Cmd+S', 'Ctrl/Cmd+O', 'Ctrl/Cmd+E', 'Ctrl/Cmd+Z', 'Ctrl/Cmd+Y',
-        'V', 'S', 'T', 'D', 'Enter', 'Escape'
-      ];
-      const normalized = combo.replace('Esc', 'Escape');
-      shortcutOutput.textContent = known.includes(normalized)
-        ? `Recognized shortcut: ${normalized}`
-        : `Pressed: ${normalized}`;
+    const ardenType = document.getElementById('ardenType');
+    const ardenA = document.getElementById('ardenA');
+    const ardenB = document.getElementById('ardenB');
+    const ardenSolve = document.getElementById('ardenSolve');
+    const ardenResult = document.getElementById('ardenResult');
+    ardenSolve.addEventListener('click', () => {
+      const A = ardenA.value.trim() || 'A';
+      const B = ardenB.value.trim() || 'B';
+      if (ardenType.value === 'right') {
+        ardenResult.innerHTML = `<strong>R = (${A})*(${B})</strong><br/>Derived from R = ${A}.R + ${B}`;
+      } else {
+        ardenResult.innerHTML = `<strong>R = (${B})(${A})*</strong><br/>Derived from R = R.${A} + ${B}`;
+      }
     });
 
-    quizSubmitBtn.addEventListener('click', () => {
-      const selected = document.querySelector('input[name="quizChoice"]:checked');
-      if (!selected) {
-        quizStatus.textContent = 'Select an option first.';
+    const closureCheck = document.getElementById('closureCheck');
+    const closureFamily = document.getElementById('closureFamily');
+    const closureOp = document.getElementById('closureOp');
+    const closureResult = document.getElementById('closureResult');
+    const closureTable = {
+      REG: { union: true, intersection: true, complement: true, difference: true, concat: true, star: true },
+      CFL: { union: true, intersection: false, complement: false, difference: false, concat: true, star: true },
+      CSL: { union: true, intersection: true, complement: true, difference: true, concat: true, star: true },
+      RE: { union: true, intersection: true, complement: false, difference: false, concat: true, star: true }
+    };
+    closureCheck.addEventListener('click', () => {
+      const fam = closureFamily.value;
+      const op = closureOp.value;
+      const isClosed = Boolean(closureTable[fam] && closureTable[fam][op]);
+      closureResult.innerHTML = isClosed
+        ? `<span class="ok"><strong>${fam}</strong> is closed under <strong>${op}</strong>.</span>`
+        : `<span class="bad"><strong>${fam}</strong> is not generally closed under <strong>${op}</strong>.</span>`;
+    });
+
+    const lsAxiom = document.getElementById('lsAxiom');
+    const lsRules = document.getElementById('lsRules');
+    const lsIter = document.getElementById('lsIter');
+    const lsGenerate = document.getElementById('lsGenerate');
+    const lsOutput = document.getElementById('lsOutput');
+    lsGenerate.addEventListener('click', () => {
+      const axiom = (lsAxiom.value || 'A').trim();
+      const rulesRaw = (lsRules.value || '').trim();
+      const iterations = Math.max(0, Math.min(8, Number(lsIter.value || '4')));
+      const rules = {};
+      rulesRaw.split(',').map((v) => v.trim()).filter(Boolean).forEach((rule) => {
+        const [lhs, rhs] = rule.split('->').map((x) => x.trim());
+        if (lhs && rhs !== undefined) rules[lhs] = rhs;
+      });
+      let current = axiom;
+      const lines = [`0: ${current}`];
+      for (let i = 1; i <= iterations; i += 1) {
+        current = current.split('').map((ch) => rules[ch] ?? ch).join('');
+        lines.push(`${i}: ${current}`);
+      }
+      lsOutput.innerHTML = lines.map((line) => `<div>${line}</div>`).join('');
+    });
+
+    const lbaInputSize = document.getElementById('lbaInputSize');
+    const lbaMoves = document.getElementById('lbaMoves');
+    const lbaCheck = document.getElementById('lbaCheck');
+    const lbaOutput = document.getElementById('lbaOutput');
+    lbaCheck.addEventListener('click', () => {
+      const n = Number(lbaInputSize.value || '0');
+      const moves = (lbaMoves.value || '').split(',').map((m) => m.trim().toUpperCase()).filter(Boolean);
+      if (!Number.isFinite(n) || n <= 0) {
+        lbaOutput.textContent = 'Input length must be > 0.';
         return;
       }
-      const userAns = Number(selected.value);
-      const isCorrect = userAns === quizBank[quizIndex].a;
-      quizTotal += 1;
-      if (isCorrect) quizCorrect += 1;
-      safeSet(HELP_KEYS.score, String(quizCorrect));
-      safeSet(`${HELP_KEYS.score}:total`, String(quizTotal));
-      quizStatus.textContent = isCorrect
-        ? `Correct. Score: ${quizCorrect} / ${quizTotal}`
-        : `Not correct. Score: ${quizCorrect} / ${quizTotal}`;
+      let head = 0;
+      let safe = true;
+      for (let i = 0; i < moves.length; i += 1) {
+        const m = moves[i];
+        if (m === 'R') head += 1;
+        if (m === 'L') head -= 1;
+        if (head < 0 || head >= n) {
+          safe = false;
+          lbaOutput.innerHTML = `<span class="bad">Out of bound at step ${i + 1} (head=${head}). LBA rejects this run.</span>`;
+          break;
+        }
+      }
+      if (safe) {
+        lbaOutput.innerHTML = `<span class="ok">Bound-safe sequence. Final head position: ${head} in [0, ${n - 1}].</span>`;
+      }
     });
-    quizNextBtn.addEventListener('click', () => {
+
+    const pumpExplain = document.getElementById('pumpExplain');
+    const pumpLanguage = document.getElementById('pumpLanguage');
+    const pumpWitness = document.getElementById('pumpWitness');
+    const pumpSplit = document.getElementById('pumpSplit');
+    const pumpResult = document.getElementById('pumpResult');
+    pumpExplain.addEventListener('click', () => {
+      const L = pumpLanguage.value.trim() || 'L';
+      const w = pumpWitness.value.trim() || 'w';
+      const split = pumpSplit.value.trim() || 'w = xyz';
+      pumpResult.innerHTML = [
+        `<strong>Goal:</strong> show ${L} is not regular (or not CFL depending on lemma).`,
+        `<strong>Assume:</strong> ${L} satisfies pumping lemma with pumping length p.`,
+        `<strong>Pick witness:</strong> ${w} with |w| >= p.`,
+        `<strong>Any valid split:</strong> ${split}.`,
+        '<strong>Pump:</strong> choose i=0 or i=2 and show pumped string exits L, contradiction.'
+      ].join('<br/>');
+    });
+
+    const shortcutOutput = document.getElementById('shortcutOutput');
+    document.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
+      const parts = [];
+      if (e.ctrlKey || e.metaKey) parts.push('Ctrl/Cmd');
+      if (e.shiftKey) parts.push('Shift');
+      parts.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
+      const combo = parts.join('+').replace('Esc', 'Escape');
+      const known = ['Ctrl/Cmd+S', 'Ctrl/Cmd+O', 'Ctrl/Cmd+E', 'Ctrl/Cmd+Z', 'Ctrl/Cmd+Y', 'V', 'S', 'T', 'D', 'Enter', 'Escape'];
+      shortcutOutput.textContent = known.includes(combo) ? `Recognized shortcut: ${combo}` : `Pressed: ${combo}`;
+    });
+
+    let quizIndex = 0;
+    let quizCorrect = Number(safeGet(HELP_KEYS.quizCorrect, '0')) || 0;
+    let quizTotal = Number(safeGet(HELP_KEYS.quizTotal, '0')) || 0;
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizOptions = document.getElementById('quizOptions');
+    const quizSubmit = document.getElementById('quizSubmit');
+    const quizNext = document.getElementById('quizNext');
+    const quizScore = document.getElementById('quizScore');
+
+    function renderQuiz() {
+      const item = quizBank[quizIndex];
+      quizQuestion.textContent = item.q;
+      quizOptions.innerHTML = '';
+      item.o.forEach((opt, idx) => {
+        const label = document.createElement('label');
+        label.className = 'quiz-option';
+        label.innerHTML = `<input type="radio" name="tocQuiz" value="${idx}" /> ${opt}`;
+        quizOptions.appendChild(label);
+      });
+      quizScore.textContent = `Score ${quizCorrect}/${quizTotal}`;
+    }
+
+    quizSubmit.addEventListener('click', () => {
+      const selected = document.querySelector('input[name="tocQuiz"]:checked');
+      if (!selected) {
+        quizScore.textContent = `Select an answer first. Score ${quizCorrect}/${quizTotal}`;
+        return;
+      }
+      const correct = Number(selected.value) === quizBank[quizIndex].a;
+      quizTotal += 1;
+      if (correct) quizCorrect += 1;
+      safeSet(HELP_KEYS.quizCorrect, quizCorrect);
+      safeSet(HELP_KEYS.quizTotal, quizTotal);
+      quizScore.textContent = correct ? `Correct. Score ${quizCorrect}/${quizTotal}` : `Incorrect. Score ${quizCorrect}/${quizTotal}`;
+    });
+
+    quizNext.addEventListener('click', () => {
       quizIndex = (quizIndex + 1) % quizBank.length;
       renderQuiz();
     });
 
-    index = Math.max(0, Number(safeGet(HELP_KEYS.progress, '0')) || 0);
-    if (index >= filtered.length) index = 0;
-    renderStep();
+    if (topicIndex >= filtered.length) topicIndex = 0;
+    renderTopic();
     renderQuiz();
   </script>
 </body>

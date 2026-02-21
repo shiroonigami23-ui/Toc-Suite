@@ -7,6 +7,7 @@ import { MACHINE, pushUndo } from './tm_state.js';
 import { addLogMessage, customAlert } from './utils.js';
 import { animateTmDrawing } from './tm_animation.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
+import { routeMachineImport } from './machine_router.js';
 
 /**
  * Intelligent Naming for TM
@@ -146,15 +147,11 @@ export async function loadTmMachine(event) {
             const machineData = data.machine || data;
 
             if (machineData.type === 'TM' || machineData.states) {
-                pushUndo();
-                event.target.value = ''; // Reset input
-
-                addLogMessage(`Importing Turing Machine: <strong>${machineData.title || "External File"}</strong>`, 'folder-open');
-                
-                // Trigger the animated construction loop from tm_animation.js
-                await animateTmDrawing(machineData);
-                
-                customAlert("Load Complete", "The machine has been constructed on the tape.");
+                const rerouted = routeMachineImport(machineData, 'tm');
+                if (!rerouted.handled) {
+                    await loadTmFromObject(machineData);
+                    customAlert("Load Complete", "The machine has been constructed on the tape.");
+                }
             } else {
                 customAlert("Invalid File", "This is not a valid Turing Machine configuration.");
             }
@@ -163,4 +160,11 @@ export async function loadTmMachine(event) {
         }
     };
     reader.readAsText(file);
+}
+
+export async function loadTmFromObject(machineData) {
+    if (!machineData || !machineData.states || !machineData.transitions) return;
+    pushUndo();
+    addLogMessage(`Importing Turing Machine: <strong>${machineData.title || "External File"}</strong>`, 'folder-open');
+    await animateTmDrawing(machineData);
 }

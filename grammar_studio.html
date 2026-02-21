@@ -8,15 +8,18 @@
   <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 </head>
-<body>
-  <div class="app-container" style="max-width:1400px;">
-    <header class="header" style="background:linear-gradient(90deg,#0ea5e9,#0f766e);">
-      <h1>Grammar Studio</h1>
-      <button id="grammarBackBtn" class="splash-utility-btn" type="button">Back to Splash</button>
+<body class="grammar-page">
+  <div class="app-container grammar-app" style="max-width:1400px;">
+    <header class="header grammar-header">
+      <div>
+        <h1>Grammar Studio</h1>
+        <p class="grammar-subtitle">CFG to NPDA, animated conversion, parse trees, and derivation tracing.</p>
+      </div>
+      <button id="grammarBackBtn" class="splash-utility-btn grammar-back-btn" type="button">Back to Splash</button>
     </header>
 
-    <main class="main-content" style="align-items:stretch;">
-      <aside class="control-panel" style="position:relative;top:auto;max-height:none;">
+    <main class="main-content grammar-main" style="align-items:stretch;">
+      <aside class="control-panel grammar-panel" style="position:relative;top:auto;max-height:none;">
         <details class="control-section" open>
           <summary><i data-lucide="book-open"></i><span>CFG Input</span></summary>
           <div class="control-section-content">
@@ -48,12 +51,35 @@
             <div style="font-size:0.82rem;color:#475569;">Use `eps` for epsilon. No spaces in target string.</div>
           </div>
         </details>
+
+        <details class="control-section" open>
+          <summary><i data-lucide="workflow"></i><span>Regex and Machine Bridge</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <label for="grammarRegexInput" style="font-weight:600;font-size:0.85rem;">Regular Expression</label>
+            <input id="grammarRegexInput" class="modal-input" placeholder="Example: a or ab" />
+            <button id="grammarRegexToFaBtn" class="icon-btn" type="button">Convert Regex and Open FA</button>
+            <button id="grammarOpenTmBtn" class="icon-btn" type="button">Open TM Workspace</button>
+            <div style="font-size:0.8rem;color:#64748b;">Regex converter currently supports single-symbol regex and the `ab` demo concatenation.</div>
+          </div>
+        </details>
+
+        <details class="control-section" open>
+          <summary><i data-lucide="book-check"></i><span>Context-Free Pumping Lemma</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <input id="cfgLanguageInput" class="modal-input" placeholder="Language (e.g., {a^n b^n c^n})" />
+            <input id="cfgWitnessInput" class="modal-input" placeholder="Witness string w (e.g., a^p b^p c^p)" />
+            <input id="cfgSplitInput" class="modal-input" placeholder="Split guess uvxyz (e.g., u=a^(p-k), v=a^k, x=b^p, y=c^k, z=c^(p-k))" />
+            <button id="cfgLemmaGuideBtn" class="icon-btn" type="button">Build Proof Plan</button>
+            <div id="cfgLemmaOutput" class="integration-status">Fill fields and generate a contradiction plan.</div>
+          </div>
+        </details>
       </aside>
 
-      <section class="visualization-panel" style="min-height:600px;">
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <section class="visualization-panel grammar-visual" style="min-height:600px;">
+        <div class="grammar-tab-strip" style="display:flex;flex-wrap:wrap;gap:8px;">
           <button class="icon-btn grammar-tab-btn" data-tab="steps" type="button">Steps</button>
           <button class="icon-btn grammar-tab-btn" data-tab="npda" type="button">NPDA</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="table" type="button">Logic Table</button>
           <button class="icon-btn grammar-tab-btn" data-tab="tree" type="button">Parse Tree</button>
           <button class="icon-btn grammar-tab-btn" data-tab="derivation" type="button">Derivation</button>
         </div>
@@ -68,6 +94,37 @@
           <pre id="grammarNpdaJson" class="help-step-content" style="min-height:420px;overflow:auto;font-family:Consolas,monospace;"></pre>
         </div>
 
+        <div id="grammarTabTable" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Grammar and NPDA Transition Table</h3>
+          <div class="help-step-content" style="overflow:auto;max-height:210px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">Production</th>
+                  <th style="text-align:left;">Type</th>
+                </tr>
+              </thead>
+              <tbody id="grammarRulesTableBody"></tbody>
+            </table>
+          </div>
+          <div class="help-step-content" style="overflow:auto;max-height:220px;margin-top:10px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">From</th>
+                  <th style="text-align:left;">Input</th>
+                  <th style="text-align:left;">Pop</th>
+                  <th style="text-align:left;">Push</th>
+                  <th style="text-align:left;">To</th>
+                </tr>
+              </thead>
+              <tbody id="grammarTransitionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div id="grammarTabTree" class="grammar-tab-panel" style="display:none;">
           <h3 style="margin:0 0 8px 0;">Parse Tree</h3>
           <div style="border:1px solid #e2e8f0;border-radius:12px;background:#fff;overflow:auto;min-height:420px;">
@@ -78,6 +135,8 @@
         <div id="grammarTabDerivation" class="grammar-tab-panel" style="display:none;">
           <h3 style="margin:0 0 8px 0;">Leftmost Derivation</h3>
           <ol id="grammarDerivationList" class="help-step-content" style="min-height:420px;overflow:auto;margin:0;padding:16px 22px;"></ol>
+          <h4 style="margin:10px 0 8px 0;">Derivation Timeline</h4>
+          <div id="grammarDerivationTimeline" class="help-step-content" style="min-height:180px;max-height:260px;overflow:auto;"></div>
         </div>
       </section>
     </main>

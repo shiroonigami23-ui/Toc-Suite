@@ -17,6 +17,11 @@ export async function handleModeChange(newMode, oldMode) {
     if (newMode === 'STANDARD' && oldMode !== 'STANDARD') {
         // Use specific algorithmic flattening logic
         await convertToStandard(MACHINE, oldMode);
+    } else if (['COPY_BLOCK', 'INCREMENT_BLOCK', 'PAL_CHECK_BLOCK'].includes(newMode)) {
+        const template = buildBlockTemplate(newMode);
+        resetMachine();
+        await animateTmDrawing(template);
+        addLogMessage(`Template loaded: ${template.title}`, 'sparkles');
     } else {
         // For other mode entries, update the type and trigger visual reconstruction
         let transformedMachine = JSON.parse(JSON.stringify(MACHINE));
@@ -118,4 +123,81 @@ function determinizeNTM(machine) {
     addLogMessage("Determinizing NTM: Consolidating branching paths into indexed states...", 'share-2');
     // For visual reconstruction, NTM transitions are preserved but flagged as Deterministic.
     return machine;
+}
+
+function buildBlockTemplate(mode) {
+    if (mode === 'COPY_BLOCK') {
+        return {
+            type: 'MULTI_TAPE',
+            numTapes: 2,
+            title: 'multi-tape-copy-block',
+            states: [
+                { id: 'q0', x: 260, y: 260, initial: true, accepting: false },
+                { id: 'qCopy0', x: 520, y: 170, initial: false, accepting: false },
+                { id: 'qCopy1', x: 520, y: 350, initial: false, accepting: false },
+                { id: 'qH', x: 800, y: 260, initial: false, accepting: true }
+            ],
+            transitions: [
+                { from: 'q0', to: 'qCopy0', reads: ['0', 'B'], writes: ['0', '0'], moves: ['R', 'R'] },
+                { from: 'q0', to: 'qCopy1', reads: ['1', 'B'], writes: ['1', '1'], moves: ['R', 'R'] },
+                { from: 'qCopy0', to: 'qCopy0', reads: ['0', 'B'], writes: ['0', '0'], moves: ['R', 'R'] },
+                { from: 'qCopy1', to: 'qCopy1', reads: ['1', 'B'], writes: ['1', '1'], moves: ['R', 'R'] },
+                { from: 'qCopy0', to: 'qCopy1', reads: ['1', 'B'], writes: ['1', '1'], moves: ['R', 'R'] },
+                { from: 'qCopy1', to: 'qCopy0', reads: ['0', 'B'], writes: ['0', '0'], moves: ['R', 'R'] },
+                { from: 'qCopy0', to: 'qH', reads: ['B', 'B'], writes: ['B', 'B'], moves: ['S', 'S'] },
+                { from: 'qCopy1', to: 'qH', reads: ['B', 'B'], writes: ['B', 'B'], moves: ['S', 'S'] }
+            ]
+        };
+    }
+
+    if (mode === 'INCREMENT_BLOCK') {
+        return {
+            type: 'STANDARD',
+            title: 'binary-incrementer-block',
+            states: [
+                { id: 'q0', x: 240, y: 250, initial: true, accepting: false },
+                { id: 'qSeekEnd', x: 460, y: 250, initial: false, accepting: false },
+                { id: 'qCarry', x: 680, y: 250, initial: false, accepting: false },
+                { id: 'qH', x: 920, y: 250, initial: false, accepting: true }
+            ],
+            transitions: [
+                { from: 'q0', to: 'qSeekEnd', read: '0', write: '0', move: 'R' },
+                { from: 'q0', to: 'qSeekEnd', read: '1', write: '1', move: 'R' },
+                { from: 'qSeekEnd', to: 'qSeekEnd', read: '0', write: '0', move: 'R' },
+                { from: 'qSeekEnd', to: 'qSeekEnd', read: '1', write: '1', move: 'R' },
+                { from: 'qSeekEnd', to: 'qCarry', read: 'B', write: 'B', move: 'L' },
+                { from: 'qCarry', to: 'qH', read: '0', write: '1', move: 'R' },
+                { from: 'qCarry', to: 'qCarry', read: '1', write: '0', move: 'L' },
+                { from: 'qCarry', to: 'qH', read: 'B', write: '1', move: 'R' }
+            ]
+        };
+    }
+
+    return {
+        type: 'LBA',
+        title: 'palindrome-check-skeleton',
+        boundMode: 'INPUT_BOUNDED',
+        states: [
+            { id: 'q0', x: 220, y: 250, initial: true, accepting: false },
+            { id: 'qMarkLeft', x: 430, y: 150, initial: false, accepting: false },
+            { id: 'qMarkRight', x: 430, y: 350, initial: false, accepting: false },
+            { id: 'qReturn', x: 680, y: 250, initial: false, accepting: false },
+            { id: 'qH', x: 920, y: 250, initial: false, accepting: true }
+        ],
+        transitions: [
+            { from: 'q0', to: 'qMarkLeft', read: 'a', write: 'X', move: 'R' },
+            { from: 'q0', to: 'qMarkRight', read: 'b', write: 'Y', move: 'R' },
+            { from: 'q0', to: 'qH', read: 'B', write: 'B', move: 'R' },
+            { from: 'qMarkLeft', to: 'qMarkLeft', read: 'a', write: 'a', move: 'R' },
+            { from: 'qMarkLeft', to: 'qMarkLeft', read: 'b', write: 'b', move: 'R' },
+            { from: 'qMarkLeft', to: 'qReturn', read: 'B', write: 'B', move: 'L' },
+            { from: 'qMarkRight', to: 'qMarkRight', read: 'a', write: 'a', move: 'R' },
+            { from: 'qMarkRight', to: 'qMarkRight', read: 'b', write: 'b', move: 'R' },
+            { from: 'qMarkRight', to: 'qReturn', read: 'B', write: 'B', move: 'L' },
+            { from: 'qReturn', to: 'qReturn', read: 'a', write: 'a', move: 'L' },
+            { from: 'qReturn', to: 'qReturn', read: 'b', write: 'b', move: 'L' },
+            { from: 'qReturn', to: 'q0', read: 'X', write: 'X', move: 'R' },
+            { from: 'qReturn', to: 'q0', read: 'Y', write: 'Y', move: 'R' }
+        ]
+    };
 }

@@ -1116,3 +1116,76 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .toolbar-icon#tm-tool-trans svg {
     stroke: #10b981;
 }
+
+/* Grammar Studio */
+.grammar-page {
+  background:
+    radial-gradient(circle at 12% 15%, rgba(14, 165, 233, 0.22), transparent 30%),
+    radial-gradient(circle at 86% 8%, rgba(20, 184, 166, 0.2), transparent 32%),
+    var(--bg1);
+}
+
+.grammar-app {
+  height: auto;
+  min-height: calc(100vh - 24px);
+}
+
+.grammar-header {
+  background: linear-gradient(90deg, #0ea5e9, #0f766e);
+  padding: 12px 16px;
+}
+
+.grammar-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.86rem;
+  opacity: 0.92;
+}
+
+.grammar-back-btn {
+  background: rgba(15, 23, 42, 0.24);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.grammar-main {
+  align-items: stretch;
+}
+
+.grammar-panel {
+  width: 320px;
+}
+
+.grammar-visual {
+  border: 1px solid #dbeafe;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+}
+
+.grammar-tab-strip {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.grammar-tab-btn {
+  border: 1px solid #dbeafe !important;
+  border-radius: 10px;
+  background: #eff6ff !important;
+  color: #0c4a6e !important;
+  font-weight: 700;
+}
+
+.grammar-tab-btn.active {
+  background: linear-gradient(90deg, #0284c7, #0f766e) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.grammar-tab-panel h3 {
+  color: #0f172a;
+}
+
+@media (max-width: 1024px) {
+  .grammar-panel {
+    width: calc(100% - 24px);
+  }
+}

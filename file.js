@@ -6,6 +6,7 @@ import { animateMachineDrawing } from './animation.js';
 import { convertNfaToDfa, minimizeDfa } from './automata.js';
 import { authenticateAiAccess } from './ai-auth.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
+import { routeMachineImport } from './machine_router.js';
 // --- Machine Analysis Helpers for Smart Save ---
 
 /**
@@ -315,17 +316,10 @@ export function loadMachine(e, updateUIFunction) {
             const machineData = data.machine || data; // Handles both file formats
 
             if (machineData.states && machineData.transitions) {
-                pushUndo(updateUIFunction);
-                const machineType = machineData.type || data.type || 'DFA';
-                document.getElementById('modeSelect').value = machineType;
-                
-                const machineToAnimate = {
-                    ...machineData,
-                    type: machineType
-                };
-
-                animateMachineDrawing(machineToAnimate);
-                
+                const rerouted = routeMachineImport(machineData, 'fa');
+                if (!rerouted.handled) {
+                    loadMachineFromObject(machineData, updateUIFunction, data.type || 'DFA');
+                }
             } else {
                 setValidationMessage("Invalid machine file format.", 'error');
             }
@@ -336,6 +330,21 @@ export function loadMachine(e, updateUIFunction) {
         }
     };
     reader.readAsText(file);
+}
+
+export function loadMachineFromObject(machineData, updateUIFunction, fallbackType = 'DFA') {
+    if (!machineData || !machineData.states || !machineData.transitions) return;
+    pushUndo(updateUIFunction);
+    const machineType = machineData.type || fallbackType || 'DFA';
+    const modeSelect = document.getElementById('modeSelect');
+    if (modeSelect) modeSelect.value = machineType;
+
+    const machineToAnimate = {
+        ...machineData,
+        type: machineType
+    };
+
+    animateMachineDrawing(machineToAnimate);
 }
 
 export function exportPng(fileName = 'automaton') {

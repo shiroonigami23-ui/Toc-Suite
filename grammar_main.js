@@ -1,5 +1,9 @@
+import { parseRegexAndBuildEnfa } from './regex-converter.js';
+import { consumePendingImportedMachine, setPendingImportedMachine } from './machine_router.js';
+
 const EPSILON_TOKENS = new Set(['eps', 'epsilon', 'e', 'ε', 'lambda', 'λ']);
 const PENDING_PDA_KEY = 'tocPendingPdaMachine';
+const ACTIVE_ROUTE_KEY = 'tocActiveRoute';
 
 let latestGrammar = null;
 let latestNpda = null;
@@ -390,8 +394,44 @@ function renderNpdaJson(npda) {
 }
 
 function tabSwitch(tab) {
-  ['steps', 'npda', 'tree', 'derivation'].forEach((id) => {
+  ['steps', 'npda', 'table', 'tree', 'derivation'].forEach((id) => {
     byId(`grammarTab${id[0].toUpperCase()}${id.slice(1)}`).style.display = id === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.grammar-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+  });
+}
+
+function renderLogicTables(grammar, npda) {
+  const rulesBody = byId('grammarRulesTableBody');
+  const transitionsBody = byId('grammarTransitionTableBody');
+  if (!rulesBody || !transitionsBody) return;
+
+  rulesBody.innerHTML = '';
+  grammar.rules.forEach((rule, idx) => {
+    const row = document.createElement('tr');
+    const rhs = rule.rhs.length ? rule.rhs.join(' ') : 'eps';
+    const kind = rule.rhs.length === 0 ? 'epsilon' : (rule.rhs.every((s) => isNonTerminal(s)) ? 'non-terminal expansion' : 'mixed/terminal');
+    row.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${escHtml(rule.lhs)} -> ${escHtml(rhs)}</td>
+      <td>${escHtml(kind)}</td>
+    `;
+    rulesBody.appendChild(row);
+  });
+
+  transitionsBody.innerHTML = '';
+  npda.transitions.forEach((tr, idx) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${escHtml(tr.from)}</td>
+      <td>${escHtml(tr.symbol || 'eps')}</td>
+      <td>${escHtml(tr.pop || 'eps')}</td>
+      <td>${escHtml(tr.push || 'eps')}</td>
+      <td>${escHtml(tr.to)}</td>
+    `;
+    transitionsBody.appendChild(row);
   });
 }
 
@@ -435,6 +475,7 @@ function validateGrammarFlow() {
 function createNpdaFlow() {
   const grammar = latestGrammar || validateGrammarFlow();
   latestNpda = buildNpda(grammar);
+  renderLogicTables(grammar, latestNpda);
   renderNpdaJson(latestNpda);
   return { grammar, npda: latestNpda };
 }
@@ -458,10 +499,18 @@ function parseTreeFlow() {
   tabSwitch('tree');
 
   const list = byId('grammarDerivationList');
+  const timeline = byId('grammarDerivationTimeline');
   list.innerHTML = '';
+  if (timeline) timeline.innerHTML = '';
   const first = document.createElement('li');
   first.textContent = grammar.startSymbol;
   list.appendChild(first);
+  if (timeline) {
+    const startCard = document.createElement('div');
+    startCard.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
+    startCard.innerHTML = `<strong>Step 0:</strong> Start with ${escHtml(grammar.startSymbol)}`;
+    timeline.appendChild(startCard);
+  }
 
   let current = grammar.startSymbol;
   result.result.steps.forEach((s) => {
@@ -474,6 +523,12 @@ function parseTreeFlow() {
     const li = document.createElement('li');
     li.textContent = `${s}    =>    ${current || 'ε'}`;
     list.appendChild(li);
+    if (timeline) {
+      const card = document.createElement('div');
+      card.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
+      card.innerHTML = `<strong>Step ${list.children.length - 1}:</strong> ${escHtml(s)} <br/><span style="color:#0f766e;font-weight:600;">${escHtml(current || 'ε')}</span>`;
+      timeline.appendChild(card);
+    }
   });
 
   setStatus(`Parse tree generated for string: <strong>${escHtml(target)}</strong>`);
@@ -495,7 +550,53 @@ function downloadNpdaFlow() {
 function openInPdaFlow() {
   if (!latestNpda) createNpdaFlow();
   localStorage.setItem(PENDING_PDA_KEY, JSON.stringify(latestNpda));
+  try {
+    sessionStorage.setItem(ACTIVE_ROUTE_KEY, 'pda');
+  } catch (_e) {}
   window.location.href = 'index.html#pda';
+}
+
+function regexToFaFlow() {
+  const regex = byId('grammarRegexInput').value.trim();
+  if (!regex) throw new Error('Enter a regex first.');
+  const machine = parseRegexAndBuildEnfa(regex);
+  setPendingImportedMachine('fa', machine);
+  try {
+    sessionStorage.setItem(ACTIVE_ROUTE_KEY, 'fa');
+  } catch (_e) {}
+  window.location.href = 'index.html#fa';
+}
+
+function openTmFlow() {
+  try {
+    sessionStorage.setItem(ACTIVE_ROUTE_KEY, 'tm');
+  } catch (_e) {}
+  window.location.href = 'index.html#tm';
+}
+
+function cfgLemmaGuideFlow() {
+  const lang = byId('cfgLanguageInput').value.trim() || 'L';
+  const witness = byId('cfgWitnessInput').value.trim() || 'w';
+  const split = byId('cfgSplitInput').value.trim() || 'w = uvxyz';
+  const output = byId('cfgLemmaOutput');
+  output.innerHTML = [
+    `Assume <strong>${escHtml(lang)}</strong> is context-free and pumping length is p.`,
+    `Pick witness <strong>${escHtml(witness)}</strong> with |w| >= p.`,
+    `For every split <strong>${escHtml(split)}</strong> with |vxy| <= p and |vy| > 0,`,
+    'choose i=0 or i=2 and show uv^i x y^i z is not in the language.',
+    'Contradiction implies language is not context-free (or refine witness if contradiction fails).'
+  ].join('<br/>');
+}
+
+function hydratePendingGrammarImport() {
+  const pendingGrammar = consumePendingImportedMachine('grammar');
+  if (!pendingGrammar) return;
+  if (Array.isArray(pendingGrammar.rules) && pendingGrammar.startSymbol) {
+    const lines = pendingGrammar.rules.map((r) => `${r.lhs} -> ${r.rhs && r.rhs.length ? r.rhs.join(' ') : 'eps'}`);
+    byId('grammarInput').value = lines.join('\n');
+    byId('grammarStart').value = pendingGrammar.startSymbol;
+    setStatus('Imported grammar JSON from cross-studio loader.');
+  }
 }
 
 function init() {
@@ -504,6 +605,9 @@ function init() {
   });
 
   byId('grammarBackBtn').addEventListener('click', () => {
+    try {
+      sessionStorage.removeItem(ACTIVE_ROUTE_KEY);
+    } catch (_e) {}
     window.location.href = 'index.html';
   });
 
@@ -536,7 +640,7 @@ function init() {
   byId('parseGenerateBtn').addEventListener('click', () => {
     try {
       parseTreeFlow();
-      tabSwitch('derivation');
+      tabSwitch('tree');
     } catch (err) {
       setStatus(escHtml(err.message), true);
     }
@@ -558,13 +662,39 @@ function init() {
     }
   });
 
+  byId('grammarRegexToFaBtn').addEventListener('click', () => {
+    try {
+      regexToFaFlow();
+    } catch (err) {
+      setStatus(escHtml(err.message), true);
+    }
+  });
+
+  byId('grammarOpenTmBtn').addEventListener('click', () => {
+    try {
+      openTmFlow();
+    } catch (err) {
+      setStatus(escHtml(err.message), true);
+    }
+  });
+
+  byId('cfgLemmaGuideBtn').addEventListener('click', () => {
+    try {
+      cfgLemmaGuideFlow();
+    } catch (err) {
+      setStatus(escHtml(err.message), true);
+    }
+  });
+
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
   }
 
   try {
+    hydratePendingGrammarImport();
     validateGrammarFlow();
     createNpdaFlow();
+    tabSwitch('steps');
   } catch (_e) {
     // keep UI interactive even with malformed default input
   }

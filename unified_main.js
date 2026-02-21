@@ -9,6 +9,7 @@ import * as MM_FILE from './moore_mealy_file.js';
 import * as FA_LIB from './library-loader.js';
 import * as MM_LIB from './moore_mealy_library_loader.js';
 import { initializeShortcuts, refreshLucideIcons } from './utils.js';
+import { consumePendingImportedMachine } from './machine_router.js';
 
 
 // --- Context Object for Dynamic Switching ---
@@ -1018,7 +1019,17 @@ function loadStudio(target) {
         }
         
         // 5. Final render
-        StudioContext.renderAll(); 
+        StudioContext.renderAll();
+
+        const route = target === 'MM' ? 'mm' : 'fa';
+        const pending = consumePendingImportedMachine(route);
+        if (pending) {
+            if (target === 'MM' && typeof MM_FILE.loadMachineFromObject === 'function') {
+                MM_FILE.loadMachineFromObject(pending, StudioContext.updateUndoRedoButtons, pending.type || 'MOORE');
+            } else if (target === 'FA' && typeof FA_FILE.loadMachineFromObject === 'function') {
+                FA_FILE.loadMachineFromObject(pending, StudioContext.updateUndoRedoButtons, pending.type || 'DFA');
+            }
+        }
     }, 50); 
 }
 /**
@@ -1049,6 +1060,12 @@ async function loadPdaStudio() {
 
         const { initializePDA } = await import('./pda_main.js');
         initializePDA();
+
+        const pending = consumePendingImportedMachine('pda');
+        if (pending) {
+            const { loadPdaFromObject } = await import('./pda_file.js');
+            await loadPdaFromObject(pending);
+        }
         
         window.currentStudio = 'PDA';
         StudioContext.current = 'PDA'; // Keep context in sync
@@ -1089,6 +1106,12 @@ async function loadTmStudio() {
         // 2. Import and Initialize the TM Engine
         const { initializeTM } = await import('./tm_main.js');
         initializeTM();
+
+        const pending = consumePendingImportedMachine('tm');
+        if (pending) {
+            const { loadTmFromObject } = await import('./tm_file.js');
+            await loadTmFromObject(pending);
+        }
         
         // 3. Keep global state in sync
         window.currentStudio = 'Turing';
@@ -1132,8 +1155,9 @@ function startUnifiedApp() {
     });
     
     const hash = (window.location.hash || '').toLowerCase();
+    const hashRoute = hash === '#fa' ? 'fa' : hash.replace('#', '');
     const sessionRoute = (safeSessionGet(SESSION_KEYS.activeRoute, '') || '').toLowerCase();
-    const persistedRoute = sessionRoute || (hash === '#fa' ? 'fa' : hash.replace('#', ''));
+    const persistedRoute = hashRoute || sessionRoute;
 
     if (persistedRoute === 'grammar') {
          window.location.href = 'grammar_studio.html';

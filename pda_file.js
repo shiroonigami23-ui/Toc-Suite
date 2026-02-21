@@ -11,6 +11,7 @@ import { customAlert, addLogMessage } from './utils.js';
 import { runPdaSimulation } from './pda_simulation.js';
 import { animatePdaDrawing } from './pda_animation.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
+import { routeMachineImport } from './machine_router.js';
 
 /**
  * ARCHITECT UPGRADE: PDA Intelligence Naming
@@ -166,23 +167,11 @@ export async function loadPdaMachine(event) {
             const machineData = data.machine || data;
 
             if (machineData.type === 'PDA' || machineData.states) {
-                // Save current work to undo stack
-                pushUndo();
-                
-                // Clear the input to allow re-loading the same file if needed
-                event.target.value = '';
-
-                // Apply auto-layout if coordinates are missing
-                if (machineData.states.some(s => s.x === undefined)) {
-                    layoutStatesCircular(machineData.states);
+                const rerouted = routeMachineImport(machineData, 'pda');
+                if (!rerouted.handled) {
+                    await loadPdaFromObject(machineData);
+                    customAlert("Load Complete", "The machine has been constructed from the file.");
                 }
-
-                addLogMessage(`Importing PDA: <strong>${machineData.id || "External File"}</strong>`, 'folder-open');
-                
-                // Trigger the animated construction loop
-                await animatePdaDrawing(machineData);
-                
-                customAlert("Load Complete", "The machine has been constructed from the file.");
             } else {
                 customAlert("Invalid File", "This file does not appear to be a valid PDA machine.");
             }
@@ -191,6 +180,18 @@ export async function loadPdaMachine(event) {
         }
     };
     reader.readAsText(file);
+}
+
+export async function loadPdaFromObject(machineData) {
+    if (!machineData || !machineData.states || !machineData.transitions) return;
+    pushUndo();
+
+    if (machineData.states.some((s) => s.x === undefined)) {
+        layoutStatesCircular(machineData.states);
+    }
+
+    addLogMessage(`Importing PDA: <strong>${machineData.id || "External File"}</strong>`, 'folder-open');
+    await animatePdaDrawing(machineData);
 }
 
 /**

@@ -7,6 +7,7 @@ import { animateMachineDrawing } from './animation.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { authenticateAiAccess } from './ai-auth.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from './assignment-client.js';
+import { routeMachineImport } from './machine_router.js';
 // --- Machine Analysis Helpers (Used for smart save metadata) ---
 
 /**
@@ -350,33 +351,10 @@ export function loadMachine(e, updateUIFunction) {
             const machineData = data.machine || data; // Handles both file formats
 
             if (machineData.states && machineData.transitions) {
-                
-                // 1. Push Undo State
-                if (updateUIFunction) {
-                    pushUndo(updateUIFunction);
+                const rerouted = routeMachineImport(machineData, 'mm');
+                if (!rerouted.handled) {
+                    loadMachineFromObject(machineData, updateUIFunction, data.type || 'MOORE');
                 }
-
-                const machineToLoad = {
-                    // Ensure the type is correctly pulled from the JSON metadata
-                    type: machineData.type || data.type || 'MOORE', 
-                    ...machineData,
-                };
-                
-                // 2. Handle Layout if coordinates are missing
-                const needsLayout = machineToLoad.states.every(s => s.x === undefined || s.y === undefined);
-                if (needsLayout) {
-                    layoutStatesCircular(machineToLoad.states);
-                }
-                
-                // CRITICAL FIX: Set the machine state immediately before animation
-                setMachine(machineToLoad);
-
-                // 3. Set machine state and trigger animation/render
-                animateMachineDrawing(machineToLoad);
-                
-                // 4. Update UI mode
-                document.getElementById('modeSelect').value = machineToLoad.type;
-
             } else {
                 setValidationMessage("Invalid machine file format (Missing states or transitions).", 'error');
             }
@@ -388,6 +366,30 @@ export function loadMachine(e, updateUIFunction) {
         }
     };
     reader.readAsText(file);
+}
+
+export function loadMachineFromObject(machineData, updateUIFunction, fallbackType = 'MOORE') {
+    if (!machineData || !machineData.states || !machineData.transitions) return;
+
+    if (updateUIFunction) {
+        pushUndo(updateUIFunction);
+    }
+
+    const machineToLoad = {
+        type: machineData.type || fallbackType || 'MOORE',
+        ...machineData
+    };
+
+    const needsLayout = machineToLoad.states.every((s) => s.x === undefined || s.y === undefined);
+    if (needsLayout) {
+        layoutStatesCircular(machineToLoad.states);
+    }
+
+    setMachine(machineToLoad);
+    animateMachineDrawing(machineToLoad);
+
+    const modeSelect = document.getElementById('modeSelect');
+    if (modeSelect) modeSelect.value = machineToLoad.type;
 }
 
 // --- PNG EXPORT (Logic remains correct for MM context) ---
