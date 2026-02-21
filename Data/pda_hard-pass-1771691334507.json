@@ -1,0 +1,24 @@
+{
+  "type": "PDA",
+  "states": [
+    {
+      "id": "q0",
+      "initial": true,
+      "accepting": false
+    },
+    {
+      "id": "q1",
+      "initial": false,
+      "accepting": true
+    }
+  ],
+  "transitions": [
+    {
+      "from": "q0",
+      "to": "q1",
+      "symbol": "a",
+      "pop": "Z",
+      "push": "AZ"
+    }
+  ]
+}
