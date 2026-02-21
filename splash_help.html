@@ -57,6 +57,71 @@
     .help-accordion-content {
       padding: 14px;
     }
+    .guide-hero {
+      background: radial-gradient(circle at top left, #e0f2fe, #ecfeff 45%, #f8fafc 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .guide-kpi-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .guide-kpi {
+      border: 1px solid #dbeafe;
+      border-radius: 10px;
+      background: #ffffff;
+      padding: 10px;
+    }
+    .guide-kpi strong {
+      display: block;
+      color: #0f766e;
+      font-size: 1.05rem;
+    }
+    .guide-board {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+      grid-template-columns: 1fr;
+    }
+    .guide-block {
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 12px;
+    }
+    .guide-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+    }
+    .guide-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .guide-pill {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1e3a8a;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .guide-alert {
+      margin-top: 8px;
+      border-left: 4px solid #f59e0b;
+      background: #fffbeb;
+      color: #92400e;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -86,18 +151,60 @@
           <a href="#quiz-lab" class="splash-utility-btn">Quiz Lab</a>
           <a href="index.html" class="splash-utility-btn">Back to Menu</a>
         </div>
-        <div class="help-grid">
-          <div class="theory-card">
-            <h4 style="margin-top:0;">Step 1: Build</h4>
-            <p>Use toolbar tools in order: <code>Add</code>, <code>Move</code>, <code>Transition</code>, <code>State Properties</code>.</p>
+        <div class="guide-hero">
+          <h3 style="margin:0;">Operator Playbook</h3>
+          <p style="margin:8px 0 0 0;">Choose a studio and get a focused workflow, core shortcuts, and failure checks before submission.</p>
+          <div class="guide-kpi-grid">
+            <div class="guide-kpi"><strong>Build</strong><span>Draw machine/grammar with proper mode.</span></div>
+            <div class="guide-kpi"><strong>Validate</strong><span>Run structural checker before tests.</span></div>
+            <div class="guide-kpi"><strong>Test</strong><span>Single + bulk + practice checks.</span></div>
+            <div class="guide-kpi"><strong>Ship</strong><span>Save JSON, export PNG, submit when required.</span></div>
           </div>
-          <div class="theory-card">
-            <h4 style="margin-top:0;">Step 2: Validate + Test</h4>
-            <p>Use Validate first, then single test, then bulk tests. Practice mode checks logic quality.</p>
+        </div>
+
+        <div class="guide-board">
+          <div class="guide-block">
+            <label for="guideStudioSelect" style="font-weight:700;">Studio Playbook</label>
+            <select id="guideStudioSelect" class="modal-input" style="margin-top:8px;">
+              <option value="fa">Finite Automata</option>
+              <option value="mm">Mealy/Moore</option>
+              <option value="pda">PDA</option>
+              <option value="tm">Turing Machine</option>
+              <option value="grammar">Grammar Studio</option>
+            </select>
+            <h4 id="guideTitle" style="margin:10px 0 6px 0;">Title</h4>
+            <div id="guideSummary" class="help-step-content"></div>
+            <div class="guide-pills" id="guidePills"></div>
           </div>
-          <div class="theory-card">
-            <h4 style="margin-top:0;">Step 3: Save + Submit</h4>
-            <p>Save JSON for your copy. If assignment/quiz is open, submit through staged workflow from the same save path.</p>
+
+          <div class="help-grid">
+            <div class="guide-block">
+              <h4 style="margin:0 0 8px 0;">Workflow Steps</h4>
+              <ol id="guideSteps" class="guide-list"></ol>
+            </div>
+            <div class="guide-block">
+              <h4 style="margin:0 0 8px 0;">Common Mistakes</h4>
+              <ul id="guideMistakes" class="guide-list"></ul>
+            </div>
+            <div class="guide-block">
+              <h4 style="margin:0 0 8px 0;">Pre-Submit Checklist</h4>
+              <div id="guideChecklist" style="display:grid;gap:6px;"></div>
+            </div>
+          </div>
+
+          <div class="guide-block">
+            <h4 style="margin:0 0 8px 0;">Global Speed Shortcuts</h4>
+            <div class="guide-pills">
+              <span class="guide-pill">Ctrl/Cmd+S Save</span>
+              <span class="guide-pill">Ctrl/Cmd+O Load</span>
+              <span class="guide-pill">Ctrl/Cmd+E Export</span>
+              <span class="guide-pill">Ctrl/Cmd+Z Undo</span>
+              <span class="guide-pill">Ctrl/Cmd+Y Redo</span>
+              <span class="guide-pill">V/S/T/D Tool Switch</span>
+              <span class="guide-pill">Enter Run</span>
+              <span class="guide-pill">Esc Clear</span>
+            </div>
+            <div class="guide-alert">Tip: If import looks wrong, re-import from any studio. Smart router will auto-switch to the right machine page and animate drawing.</div>
           </div>
         </div>
       </div>
@@ -313,6 +420,143 @@
     const topicTitle = document.getElementById('topicTitle');
     const topicBody = document.getElementById('topicBody');
     const topicChecklist = document.getElementById('topicChecklist');
+    const guideStudioSelect = document.getElementById('guideStudioSelect');
+    const guideTitle = document.getElementById('guideTitle');
+    const guideSummary = document.getElementById('guideSummary');
+    const guidePills = document.getElementById('guidePills');
+    const guideSteps = document.getElementById('guideSteps');
+    const guideMistakes = document.getElementById('guideMistakes');
+    const guideChecklist = document.getElementById('guideChecklist');
+
+    const GUIDE_DATA = {
+      fa: {
+        title: 'Finite Automata Workflow',
+        summary: 'Best for regular languages. Handle DFA/NFA/e-NFA creation, conversion, minimization, and acceptance testing.',
+        pills: ['DFA/NFA/e-NFA', 'Regex-level languages', 'Fast minimization checks'],
+        steps: [
+          'Pick mode first: DFA, NFA, ENFA, or conversion mode.',
+          'Create states and mark exactly one initial for DFA.',
+          'Add transitions with complete symbol coverage.',
+          'Run Validate, then single test and bulk test.',
+          'Save JSON and export PNG when finalized.'
+        ],
+        mistakes: [
+          'Missing transitions in DFA mode.',
+          'Using epsilon transition in DFA mode.',
+          'Unreachable states left before minimization.'
+        ],
+        checklist: ['Mode is correct', 'Validation green', 'Bulk test executed', 'JSON saved']
+      },
+      mm: {
+        title: 'Mealy/Moore Workflow',
+        summary: 'Use for input-output machines. Validate output trace consistency across transitions/states.',
+        pills: ['Output automata', 'Trace-based grading', 'Conversion support'],
+        steps: [
+          'Select Moore or Mealy mode before drawing.',
+          'For Moore: assign output per state.',
+          'For Mealy: assign output per transition.',
+          'Run I/O trace test with expected outputs.',
+          'Use logic table to verify transition-output mapping.'
+        ],
+        mistakes: [
+          'Output assigned to wrong element (state vs transition).',
+          'Mode changed without re-validating outputs.',
+          'Random test passing but edge trace failing.'
+        ],
+        checklist: ['Mode locked', 'I/O trace checked', 'Logic table reviewed', 'Saved/exported']
+      },
+      pda: {
+        title: 'PDA Workflow',
+        summary: 'Use stack logic for context-free patterns. Verify push/pop and acceptance mode behavior.',
+        pills: ['Stack machine', 'CFG-linked', 'Acceptance mode aware'],
+        steps: [
+          'Set PDA mode and acceptance rule (final/empty/both).',
+          'Build transitions with input, pop, and push fields.',
+          'Use live stack visualizer during step-run.',
+          'Run random and bulk tests on boundary strings.',
+          'Check logic table for ambiguous stack operations.'
+        ],
+        mistakes: [
+          'Pop symbol mismatch against expected stack top.',
+          'Acceptance rule differs from intended design.',
+          'Epsilon usage creates unintended branches.'
+        ],
+        checklist: ['Acceptance rule verified', 'Stack trace tested', 'Bulk tested', 'Saved/submitted']
+      },
+      tm: {
+        title: 'Turing Machine Workflow',
+        summary: 'Use for algorithmic computation, tape rewriting, and advanced language recognition.',
+        pills: ['General computation', 'Tape operations', 'Template blocks available'],
+        steps: [
+          'Choose TM mode (standard, multi-tape, NTM, LBA, or block templates).',
+          'Define read/write/move transitions carefully.',
+          'Use Step run to inspect tape and head movement.',
+          'Validate determinism and structural constraints.',
+          'Run bulk tests for regression before save.'
+        ],
+        mistakes: [
+          'Write symbol or move direction missing.',
+          'LBA boundaries crossed in bounded mode.',
+          'Transition loops causing timeout without halt.'
+        ],
+        checklist: ['Mode-specific validate pass', 'Step log inspected', 'Bulk regression done', 'JSON saved']
+      },
+      grammar: {
+        title: 'Grammar Studio Workflow',
+        summary: 'Use for CFG validation, derivation, parse tree generation, and CFG->NPDA bridge.',
+        pills: ['CFG validation', 'Parse tree', 'NPDA bridge'],
+        steps: [
+          'Enter grammar rules and start symbol.',
+          'Validate grammar and inspect symbols.',
+          'Generate NPDA and review logic table.',
+          'Generate parse tree and derivation timeline.',
+          'Use bridge actions to open FA/PDA/TM workflows.'
+        ],
+        mistakes: [
+          'Undefined start symbol or malformed production.',
+          'Target string not derivable within depth bound.',
+          'Forgetting to inspect generated NPDA transitions.'
+        ],
+        checklist: ['Grammar valid', 'NPDA checked', 'Parse tree generated', 'Bridge tested if needed']
+      }
+    };
+
+    function renderGuide(studioKey) {
+      const pack = GUIDE_DATA[studioKey] || GUIDE_DATA.fa;
+      guideTitle.textContent = pack.title;
+      guideSummary.textContent = pack.summary;
+
+      guidePills.innerHTML = '';
+      pack.pills.forEach((pill) => {
+        const node = document.createElement('span');
+        node.className = 'guide-pill';
+        node.textContent = pill;
+        guidePills.appendChild(node);
+      });
+
+      guideSteps.innerHTML = '';
+      pack.steps.forEach((step) => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        guideSteps.appendChild(li);
+      });
+
+      guideMistakes.innerHTML = '';
+      pack.mistakes.forEach((entry) => {
+        const li = document.createElement('li');
+        li.textContent = entry;
+        guideMistakes.appendChild(li);
+      });
+
+      guideChecklist.innerHTML = '';
+      pack.checklist.forEach((item) => {
+        const label = document.createElement('label');
+        label.innerHTML = `<input type="checkbox" /> ${item}`;
+        guideChecklist.appendChild(label);
+      });
+    }
+
+    guideStudioSelect.addEventListener('change', () => renderGuide(guideStudioSelect.value));
 
     function renderTopicChips() {
       topicChips.innerHTML = '';
@@ -535,6 +779,7 @@
     if (topicIndex >= filtered.length) topicIndex = 0;
     renderTopic();
     renderQuiz();
+    renderGuide(guideStudioSelect.value);
 
     const sectionIds = ['help-section-tools', 'help-section-topics', 'help-section-theory', 'help-section-practice', 'help-section-quiz'];
     const safeParse = (raw, fallback) => {
