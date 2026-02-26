@@ -76,131 +76,6 @@
     }
   },
   {
-    "type": "PDA",
-    "id": "pda_an_bn",
-    "title": "PDA: a^n b^n (n >= 1)",
-    "description": "Pushes 'A' to the stack for every 'a' input and pops 'A' for every 'b' input.",
-    "states": [
-      {
-        "id": "q_start",
-        "x": 100,
-        "y": 200,
-        "initial": true,
-        "accepting": false
-      },
-      {
-        "id": "q_push",
-        "x": 250,
-        "y": 200,
-        "initial": false,
-        "accepting": false
-      },
-      {
-        "id": "q_pop",
-        "x": 400,
-        "y": 200,
-        "initial": false,
-        "accepting": false
-      },
-      {
-        "id": "q_accept",
-        "x": 550,
-        "y": 200,
-        "initial": false,
-        "accepting": true
-      }
-    ],
-    "transitions": [
-      {
-        "from": "q_start",
-        "to": "q_push",
-        "symbol": "a",
-        "pop": "Z",
-        "push": "AZ"
-      },
-      {
-        "from": "q_push",
-        "to": "q_push",
-        "symbol": "a",
-        "pop": "A",
-        "push": "AA"
-      },
-      {
-        "from": "q_push",
-        "to": "q_pop",
-        "symbol": "b",
-        "pop": "A",
-        "push": "\u03b5"
-      },
-      {
-        "from": "q_pop",
-        "to": "q_pop",
-        "symbol": "b",
-        "pop": "A",
-        "push": "\u03b5"
-      },
-      {
-        "from": "q_pop",
-        "to": "q_accept",
-        "symbol": "\u03b5",
-        "pop": "Z",
-        "push": "Z"
-      }
-    ]
-  },
-  {
-    "type": "PDA",
-    "id": "pda_balanced_parens",
-    "title": "PDA: Balanced Parentheses",
-    "description": "Accepts strings of balanced brackets ( ) using a stack.",
-    "states": [
-      {
-        "id": "q0",
-        "x": 150,
-        "y": 200,
-        "initial": true,
-        "accepting": false
-      },
-      {
-        "id": "q1",
-        "x": 400,
-        "y": 200,
-        "initial": false,
-        "accepting": true
-      }
-    ],
-    "transitions": [
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": "(",
-        "pop": "Z",
-        "push": "(Z"
-      },
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": "(",
-        "pop": "(",
-        "push": "(("
-      },
-      {
-        "from": "q0",
-        "to": "q0",
-        "symbol": ")",
-        "pop": "(",
-        "push": "\u03b5"
-      },
-      {
-        "from": "q0",
-        "to": "q1",
-        "symbol": "\u03b5",
-        "pop": "Z",
-        "push": "Z"
-      }
-    ]
-  },
-  {
     "id": "pda_smoke_anbn_2026",
     "title": "PDA Smoke: a^n b^n",
     "type": "PDA",
@@ -274,5 +149,130 @@
     ],
     "initialStackSymbol": "Z",
     "acceptanceMode": "FINAL_STATE"
+  },
+  {
+    "type": "PDA",
+    "id": "pda_balanced_parens",
+    "title": "PDA: Balanced Parentheses",
+    "description": "Accepts strings of balanced brackets ( ) using a stack.",
+    "states": [
+      {
+        "id": "q0",
+        "x": 150,
+        "y": 200,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q1",
+        "x": 400,
+        "y": 200,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "Z",
+        "push": "(Z"
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": "(",
+        "pop": "(",
+        "push": "(("
+      },
+      {
+        "from": "q0",
+        "to": "q0",
+        "symbol": ")",
+        "pop": "(",
+        "push": "\u03b5"
+      },
+      {
+        "from": "q0",
+        "to": "q1",
+        "symbol": "\u03b5",
+        "pop": "Z",
+        "push": "Z"
+      }
+    ]
+  },
+  {
+    "type": "PDA",
+    "id": "pda_an_bn",
+    "title": "PDA: a^n b^n (n >= 1)",
+    "description": "Pushes 'A' to the stack for every 'a' input and pops 'A' for every 'b' input.",
+    "states": [
+      {
+        "id": "q_start",
+        "x": 100,
+        "y": 200,
+        "initial": true,
+        "accepting": false
+      },
+      {
+        "id": "q_push",
+        "x": 250,
+        "y": 200,
+        "initial": false,
+        "accepting": false
+      },
+      {
+        "id": "q_pop",
+        "x": 400,
+        "y": 200,
+        "initial": false,
+        "accepting": false
+      },
+      {
+        "id": "q_accept",
+        "x": 550,
+        "y": 200,
+        "initial": false,
+        "accepting": true
+      }
+    ],
+    "transitions": [
+      {
+        "from": "q_start",
+        "to": "q_push",
+        "symbol": "a",
+        "pop": "Z",
+        "push": "AZ"
+      },
+      {
+        "from": "q_push",
+        "to": "q_push",
+        "symbol": "a",
+        "pop": "A",
+        "push": "AA"
+      },
+      {
+        "from": "q_push",
+        "to": "q_pop",
+        "symbol": "b",
+        "pop": "A",
+        "push": "\u03b5"
+      },
+      {
+        "from": "q_pop",
+        "to": "q_pop",
+        "symbol": "b",
+        "pop": "A",
+        "push": "\u03b5"
+      },
+      {
+        "from": "q_pop",
+        "to": "q_accept",
+        "symbol": "\u03b5",
+        "pop": "Z",
+        "push": "Z"
+      }
+    ]
   }
 ]
