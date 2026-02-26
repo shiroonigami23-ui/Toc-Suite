@@ -203,8 +203,15 @@
                         <select id="assignmentFilter" onchange="filterRows()" class="filter-select" style="min-width:220px;">
                             <option value="all">All Assignments</option>
                         </select>
+                        <label style="display:flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;font-size:0.82rem;color:#475569;">
+                            <input type="checkbox" id="showPushedFilter" onchange="filterRows()">
+                            Show pushed
+                        </label>
                     </div>
                     <div style="display:flex;gap:8px;">
+                        <button id="restoreRemovedBtn" onclick="restoreRemovedItems()" class="btn" style="background:#fff;color:#475569;border:1px solid #e2e8f0;">
+                            <i data-lucide="rotate-ccw"></i> Restore Removed
+                        </button>
                         <button id="exportCsvBtn" onclick="exportFilteredCsv()" class="btn" style="background:#0f766e;color:#fff;">
                             <i data-lucide="download"></i> Export CSV
                         </button>
@@ -324,6 +331,7 @@
         let currentSubmissions = [];
         let filteredSubmissions = [];
         let reviewContext = { originalName: '', originalJsonText: '', activeId: null };
+        const DISMISSED_QUEUE_KEY = 'architect-portal-removed-submissions-v1';
 
         const RUBRIC_TEMPLATES = {
             fast_consistent: {
@@ -351,6 +359,35 @@
                 note: 'Major revision required: transitions and workflow assumptions are currently inconsistent.'
             }
         };
+
+        function getRemovedSubmissionIds() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(DISMISSED_QUEUE_KEY) || '[]');
+                if (!Array.isArray(parsed)) return new Set();
+                return new Set(parsed.map((v) => String(v)));
+            } catch (_e) {
+                return new Set();
+            }
+        }
+
+        function saveRemovedSubmissionIds(ids) {
+            localStorage.setItem(DISMISSED_QUEUE_KEY, JSON.stringify(Array.from(ids)));
+        }
+
+        function dismissSubmission(id, silent = false) {
+            const key = String(id);
+            const removed = getRemovedSubmissionIds();
+            removed.add(key);
+            saveRemovedSubmissionIds(removed);
+            filterRows();
+            if (!silent) showToast('Submission removed from queue view');
+        }
+
+        function restoreRemovedItems() {
+            localStorage.removeItem(DISMISSED_QUEUE_KEY);
+            filterRows();
+            showToast('Removed submissions restored');
+        }
 
         function esc(v) {
             return String(v ?? '')
@@ -467,7 +504,15 @@
         }
 
         function updateSlaDashboard(rows) {
-            const all = Array.isArray(rows) ? rows : [];
+            const removed = getRemovedSubmissionIds();
+            const workflowFilter = document.getElementById('workflowFilter')?.value || 'all';
+            const showPushed = !!document.getElementById('showPushedFilter')?.checked;
+            const all = (Array.isArray(rows) ? rows : []).filter((s) => {
+                if (removed.has(String(s?.id ?? ''))) return false;
+                const state = workflowStateOf(s);
+                if (!showPushed && workflowFilter !== 'pushed' && state === 'pushed') return false;
+                return true;
+            });
             const openRows = all.filter((s) => ['pending', 'review', 'approved'].includes(workflowStateOf(s)));
             const warn24 = all.filter((s) => workflowStateOf(s) === 'pending' && ageHours(s) >= 24 && ageHours(s) < 48);
             const crit48 = all.filter((s) => workflowStateOf(s) === 'pending' && ageHours(s) >= 48);
@@ -520,7 +565,11 @@
             if (!res.ok) { showToast("Invalid access key"); logout(); return; }
             
             currentSubmissions = await res.json();
-            const pendingOnly = currentSubmissions.filter((s) => workflowStateOf(s) === 'pending').length;
+            const removed = getRemovedSubmissionIds();
+            const pendingOnly = currentSubmissions.filter((s) => {
+                if (removed.has(String(s?.id ?? ''))) return false;
+                return workflowStateOf(s) === 'pending';
+            }).length;
             document.getElementById('pendingCount').textContent = `${pendingOnly} Pending`;
             rebuildAssignmentFilter();
             rebuildTypeFilter();
@@ -561,6 +610,9 @@
                         <button onclick="openReview(${Number(sub.id)})" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 6px 12px; margin-left: auto;">
                             <i data-lucide="edit-3" style="width: 14px;"></i> Review
                         </button>
+                        <button onclick="dismissSubmission(${Number(sub.id)})" class="btn" style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:6px 12px;margin-top:6px;margin-left:auto;">
+                            <i data-lucide="x"></i> Remove
+                        </button>
                     </td>
                 </tr>
             `).join('');
@@ -599,13 +651,18 @@
             const flag = document.getElementById('flagFilter')?.value || 'all';
             const workflow = document.getElementById('workflowFilter')?.value || 'all';
             const assignment = document.getElementById('assignmentFilter')?.value || 'all';
+            const showPushed = !!document.getElementById('showPushedFilter')?.checked;
+            const removed = getRemovedSubmissionIds();
             const filtered = currentSubmissions.filter((s) => {
+                const state = workflowStateOf(s);
+                if (removed.has(String(s?.id ?? ''))) return false;
+                if (!showPushed && workflow !== 'pushed' && state === 'pushed') return false;
                 const hitSearch = (s.name || '').toLowerCase().includes(q) || (s.type || '').toLowerCase().includes(q);
                 const hitMode = mode === 'all' || (s.submission_mode || '').toLowerCase() === mode;
                 const hitType = type === 'all' || (s.type || '').toUpperCase() === decodeURIComponent(type);
                 const hitRepo = repo === 'all' || (repo === 'repo' ? !!s.repo_eligible : !s.repo_eligible);
                 const hitFlag = flag === 'all' || (flag === 'flagged' ? !!s.suspicious_flag : !s.suspicious_flag);
-                const hitWorkflow = workflow === 'all' || workflowStateOf(s) === workflow;
+                const hitWorkflow = workflow === 'all' || state === workflow;
                 let hitAssignment = true;
                 if (assignment === 'none') hitAssignment = !(s.assignment_title || '').trim();
                 else if (assignment !== 'all') hitAssignment = (s.assignment_title || '') === decodeURIComponent(assignment);
@@ -641,36 +698,7 @@
                 showToast("Submission not found");
                 return;
             }
-            const workflow = workflowStateOf(sub);
-            const originalPretty = JSON.stringify(sub.data || {}, null, 2);
-            reviewContext = {
-                originalName: String(sub.name || ''),
-                originalJsonText: originalPretty,
-                activeId: Number(sub.id)
-            };
-            document.getElementById('prefixLabel').textContent = sub.type.toLowerCase() + "_";
-            document.getElementById('editName').value = sub.name;
-            document.getElementById('editJson').value = originalPretty;
-            document.getElementById('submissionMode').value = sub.submission_mode || 'practice';
-            document.getElementById('gradeInput').value = (sub.grade ?? '') === '' ? '' : sub.grade;
-            document.getElementById('reviewNoteInput').value = sub.review_note || '';
-            document.getElementById('approvalState').value = workflow === 'pushed' ? 'approved' : workflow;
-            document.getElementById('rubricTemplate').value = '';
-            document.getElementById('workflowTimeline').innerHTML = buildTimelineHtml(sub);
-            document.getElementById('workflowStatusBadge').innerHTML = stateBadgeHtml(workflow);
-            document.getElementById('reviewModal').style.display = 'flex';
-            renderJsonDiffPreview();
-            const pushBtn = document.getElementById('pushConfirmBtn');
-            const pushAllowed = !!sub.repo_eligible && !['rejected', 'pushed'].includes(workflow);
-            pushBtn.disabled = !pushAllowed;
-            pushBtn.style.opacity = pushAllowed ? '1' : '0.5';
-            pushBtn.style.pointerEvents = pushAllowed ? 'auto' : 'none';
-            if (!sub.repo_eligible) pushBtn.textContent = 'DB-Only Submission';
-            else if (workflow === 'pushed') pushBtn.textContent = 'Already Pushed';
-            else if (workflow === 'rejected') pushBtn.textContent = 'Rejected: Push Blocked';
-            else pushBtn.textContent = 'Confirm & Commit to GitHub';
-            pushBtn.onclick = () => pushToLibrary(sub.id);
-            document.getElementById('saveReviewBtn').onclick = () => saveReview(sub.id);
+            window.location.href = `architect-review-2026.html?id=${encodeURIComponent(String(sub.id))}`;
         }
 
         async function saveReview(id) {
@@ -728,7 +756,13 @@
 
             if (res.ok) {
                 showToast("Machine Pushed to Library");
+                const target = currentSubmissions.find((x) => Number(x.id) === Number(id));
+                if (target) {
+                    target.status = 'pushed';
+                    target.pushed_at = new Date().toISOString();
+                }
                 document.getElementById('reviewModal').style.display = 'none';
+                filterRows();
                 fetchSubmissions();
             } else {
                 const msg = await res.text();
@@ -750,6 +784,18 @@
                 const out = await res.json().catch(() => []);
                 const okCount = out.filter((x) => x.status === 'success').length;
                 const failCount = out.length - okCount;
+                const successIds = out.filter((x) => x.status === 'success').map((x) => Number(x.id));
+                if (successIds.length) {
+                    currentSubmissions = currentSubmissions.map((s) => {
+                        if (!successIds.includes(Number(s.id))) return s;
+                        return {
+                            ...s,
+                            status: 'pushed',
+                            pushed_at: s.pushed_at || new Date().toISOString()
+                        };
+                    });
+                    filterRows();
+                }
                 showToast(`Bulk push: ${okCount} success, ${failCount} blocked/failed`);
                 fetchSubmissions();
             } else {

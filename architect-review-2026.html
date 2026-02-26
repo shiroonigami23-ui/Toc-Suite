@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Submission | Architect Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --primary: #6366f1; --emerald: #10b981; }
+        body { margin: 0; padding: 24px; background: #f8fafc; color: #334155; font-family: 'Inter', sans-serif; }
+        .wrap { max-width: 1100px; margin: 0 auto; }
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; padding: 18px 20px; border-bottom:1px solid #e2e8f0; }
+        .btn { padding: 9px 14px; border-radius: 8px; border: 1px solid transparent; font-weight: 700; cursor: pointer; display:inline-flex; align-items:center; gap:8px; }
+        .btn-ghost { background:#fff; color:#475569; border-color:#e2e8f0; }
+        .btn-primary { background: var(--primary); color:#fff; }
+        .btn-push { background: var(--emerald); color:#fff; }
+        .btn-danger { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+        .grid-3 { display:grid; grid-template-columns:1fr 180px 220px; gap:10px; }
+        .grid-2 { display:grid; grid-template-columns:1fr 180px; gap:10px; }
+        .panel { padding: 18px 20px; }
+        .field-label { display:block; font-size:0.76rem; font-weight:800; color:#94a3b8; text-transform:uppercase; margin-bottom:8px; letter-spacing:0.03em; }
+        .input, .select, .textarea { width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; font-family:inherit; font-size:0.96rem; }
+        .textarea-code { min-height: 360px; resize: vertical; background:#0f172a; color:#e2e8f0; font-family:'Cascadia Code', Consolas, monospace; line-height:1.5; }
+        .name-wrap { display:flex; align-items:center; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#f8fafc; }
+        .name-prefix { padding:10px 12px; font-weight:800; color:#475569; border-right:1px solid #e2e8f0; background:#eef2ff; }
+        .name-input { flex:1; border:none; background:transparent; outline:none; padding:10px 12px; font-weight:700; color:#0f172a; }
+        .wf-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+        .wf-pending { background:#e2e8f0; color:#334155; }
+        .wf-review { background:#dbeafe; color:#1d4ed8; }
+        .wf-approved { background:#dcfce7; color:#166534; }
+        .wf-rejected { background:#fee2e2; color:#b91c1c; }
+        .wf-pushed { background:#ede9fe; color:#5b21b6; }
+        .timeline { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+        .timeline-step { font-size:0.72rem; padding:2px 6px; border-radius:999px; border:1px solid #e2e8f0; color:#64748b; background:#fff; }
+        .timeline-step.done { background:#e2e8f0; color:#0f172a; border-color:#cbd5e1; }
+        .diff-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .diff-pane { border:1px solid #e2e8f0; border-radius:10px; overflow:auto; max-height:220px; background:#0b1220; color:#e2e8f0; font-family:'Cascadia Code',Consolas,monospace; font-size:12px; line-height:1.45; }
+        .diff-pane pre { margin:0; padding:10px; white-space:pre; }
+        .diff-add { background:rgba(16,185,129,0.2); }
+        .diff-del { background:rgba(239,68,68,0.2); }
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; background: #1e293b; color: white; display: none; z-index: 10001; box-shadow: 0 10px 15px rgba(0,0,0,0.2); }
+        @media (max-width: 960px) {
+            body { padding: 14px; }
+            .grid-3, .grid-2, .diff-grid { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="topbar">
+                <div>
+                    <div style="font-size:1.3rem;font-weight:800;color:#0f172a;">Submission Review Workspace</div>
+                    <div id="submissionMeta" style="font-size:0.9rem;color:#64748b;margin-top:3px;">Loading submission...</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <div id="workflowStatusBadge"></div>
+                    <button class="btn btn-ghost" onclick="goBackToQueue()"><i data-lucide="arrow-left"></i> Back to Queue</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;">
+                    <label class="field-label" style="margin:0;">Target Filename</label>
+                    <button class="btn btn-ghost" onclick="prettifyJson()"><i data-lucide="code"></i> Prettify JSON</button>
+                </div>
+                <div class="name-wrap" style="margin-bottom:14px;">
+                    <span id="prefixLabel" class="name-prefix">pda_</span>
+                    <input id="editName" class="name-input" placeholder="name">
+                </div>
+
+                <label class="field-label">Logic Definition</label>
+                <textarea id="editJson" class="textarea textarea-code" spellcheck="false"></textarea>
+
+                <div class="grid-3" style="margin-top:14px;">
+                    <div>
+                        <label class="field-label">Submission Mode</label>
+                        <select id="submissionMode" class="select">
+                            <option value="practice">Practice</option>
+                            <option value="quiz">Quiz</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="field-label">Grade</label>
+                        <input id="gradeInput" class="input" type="number" min="0" max="100" step="1" placeholder="0-100">
+                    </div>
+                    <div>
+                        <label class="field-label">Workflow State</label>
+                        <select id="approvalState" class="select">
+                            <option value="review">Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top:10px;">
+                    <div>
+                        <label class="field-label">Rubric Template</label>
+                        <select id="rubricTemplate" class="select">
+                            <option value="">Choose template...</option>
+                            <option value="fast_consistent">Fast + Consistent</option>
+                            <option value="accurate_but_slow">Accurate but Slow</option>
+                            <option value="needs_consistency">Needs Consistency</option>
+                            <option value="needs_major_revision">Major Revision Required</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;align-items:flex-end;">
+                        <button id="applyRubricBtn" class="btn btn-ghost" style="width:100%;justify-content:center;background:#ede9fe;color:#5b21b6;border-color:#ddd6fe;">Apply Rubric</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <label class="field-label">Reviewer Note</label>
+                    <textarea id="reviewNoteInput" class="textarea" style="min-height:90px;resize:vertical;" placeholder="Optional note for student/admin..."></textarea>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                        <label class="field-label" style="margin:0;">Workflow Timeline</label>
+                        <span id="submissionAge" style="font-size:0.8rem;color:#64748b;"></span>
+                    </div>
+                    <div id="workflowTimeline" class="timeline"></div>
+                </div>
+
+                <details open style="margin-top:14px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                    <summary style="padding:10px 12px;background:#f8fafc;cursor:pointer;font-weight:700;color:#334155;">Side-by-side JSON Diff Preview</summary>
+                    <div style="padding:10px;">
+                        <div id="jsonDiffSummary" style="font-size:0.82rem;color:#64748b;margin-bottom:8px;">No changes.</div>
+                        <div class="diff-grid">
+                            <div class="diff-pane"><pre id="originalJsonView"></pre></div>
+                            <div class="diff-pane"><pre id="editedJsonView"></pre></div>
+                        </div>
+                    </div>
+                </details>
+
+                <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;margin-top:16px;">
+                    <button id="removeFromQueueBtn" class="btn btn-danger"><i data-lucide="x"></i> Remove from Queue</button>
+                    <button id="saveReviewBtn" class="btn btn-primary"><i data-lucide="save"></i> Save Review</button>
+                    <button id="pushConfirmBtn" class="btn btn-push"><i data-lucide="upload"></i> Confirm and Commit to GitHub</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Saved</div>
+
+    <script>
+        let activeSubmission = null;
+        let reviewContext = { originalJsonText: '', activeId: null };
+        const DISMISSED_QUEUE_KEY = 'architect-portal-removed-submissions-v1';
+
+        const RUBRIC_TEMPLATES = {
+            fast_consistent: {
+                grade: 95,
+                submissionMode: 'quiz',
+                approvalState: 'approved',
+                note: 'Fast delivery with strong consistency in transitions and naming. Ready for approval.'
+            },
+            accurate_but_slow: {
+                grade: 84,
+                submissionMode: 'quiz',
+                approvalState: 'review',
+                note: 'Logic is accurate, but speed and timing can improve. Keep consistency and optimize execution.'
+            },
+            needs_consistency: {
+                grade: 68,
+                submissionMode: 'practice',
+                approvalState: 'review',
+                note: 'Core idea is visible, but transition consistency and state labeling need improvement.'
+            },
+            needs_major_revision: {
+                grade: 42,
+                submissionMode: 'practice',
+                approvalState: 'rejected',
+                note: 'Major revision required: transitions and workflow assumptions are currently inconsistent.'
+            }
+        };
+
+        function esc(v) {
+            return String(v ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function toLocalDate(v) {
+            if (!v) return '-';
+            const d = new Date(v);
+            return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
+        }
+
+        function workflowStateOf(sub) {
+            const raw = String(sub?.status || 'pending').trim().toLowerCase();
+            if (['pending', 'review', 'approved', 'rejected', 'pushed'].includes(raw)) return raw;
+            return 'pending';
+        }
+
+        function stateBadgeHtml(status) {
+            const map = {
+                pending: '<span class="wf-badge wf-pending">pending</span>',
+                review: '<span class="wf-badge wf-review">review</span>',
+                approved: '<span class="wf-badge wf-approved">approved</span>',
+                rejected: '<span class="wf-badge wf-rejected">rejected</span>',
+                pushed: '<span class="wf-badge wf-pushed">pushed</span>'
+            };
+            return map[status] || map.pending;
+        }
+
+        function buildTimelineHtml(sub) {
+            const status = workflowStateOf(sub);
+            const done = new Set(['pending']);
+            if (sub.reviewed_at || ['review', 'approved', 'rejected', 'pushed'].includes(status)) done.add('review');
+            if (sub.approved_at || ['approved', 'pushed'].includes(status)) done.add('approved');
+            if (sub.rejected_at || status === 'rejected') done.add('rejected');
+            if (sub.pushed_at || status === 'pushed') done.add('pushed');
+
+            const item = (key, label, stamp) => `<span class="timeline-step ${done.has(key) ? 'done' : ''}" title="${esc(stamp || '')}">${label}${stamp ? ` - ${esc(toLocalDate(stamp))}` : ''}</span>`;
+            return [
+                item('pending', 'Pending', sub.created_at),
+                item('review', 'Review', sub.reviewed_at),
+                item('approved', 'Approved', sub.approved_at),
+                item('rejected', 'Rejected', sub.rejected_at),
+                item('pushed', 'Pushed', sub.pushed_at)
+            ].join('');
+        }
+
+        function htmlLine(text, cls = '') {
+            const classAttr = cls ? ` class="${cls}"` : '';
+            return `<div${classAttr}>${esc(text)}</div>`;
+        }
+
+        function renderJsonDiffPreview() {
+            const original = String(reviewContext.originalJsonText || '');
+            let edited = '';
+            try {
+                edited = JSON.stringify(JSON.parse(document.getElementById('editJson').value || '{}'), null, 2);
+            } catch (_e) {
+                edited = document.getElementById('editJson').value || '';
+            }
+
+            const left = original.split('\n');
+            const right = edited.split('\n');
+            const max = Math.max(left.length, right.length);
+            let changed = 0;
+            let added = 0;
+            let removed = 0;
+
+            const leftHtml = [];
+            const rightHtml = [];
+            for (let i = 0; i < max; i += 1) {
+                const l = left[i] ?? '';
+                const r = right[i] ?? '';
+                if (l === r) {
+                    leftHtml.push(htmlLine(l));
+                    rightHtml.push(htmlLine(r));
+                } else {
+                    changed += 1;
+                    if (l && !r) removed += 1;
+                    if (!l && r) added += 1;
+                    leftHtml.push(htmlLine(l, l ? 'diff-del' : ''));
+                    rightHtml.push(htmlLine(r, r ? 'diff-add' : ''));
+                }
+            }
+
+            const summary = changed === 0
+                ? 'No JSON changes detected.'
+                : `Changed lines: ${changed} | Added: ${added} | Removed: ${removed}`;
+
+            document.getElementById('originalJsonView').innerHTML = leftHtml.join('');
+            document.getElementById('editedJsonView').innerHTML = rightHtml.join('');
+            document.getElementById('jsonDiffSummary').textContent = summary;
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        }
+
+        function getSubmissionIdFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            return Number(params.get('id'));
+        }
+
+        function goBackToQueue() {
+            window.location.href = 'architect-portal-2026.html';
+        }
+
+        function getRemovedSubmissionIds() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(DISMISSED_QUEUE_KEY) || '[]');
+                if (!Array.isArray(parsed)) return new Set();
+                return new Set(parsed.map((v) => String(v)));
+            } catch (_e) {
+                return new Set();
+            }
+        }
+
+        function saveRemovedSubmissionIds(ids) {
+            localStorage.setItem(DISMISSED_QUEUE_KEY, JSON.stringify(Array.from(ids)));
+        }
+
+        function updatePushButton() {
+            const pushBtn = document.getElementById('pushConfirmBtn');
+            const workflow = workflowStateOf(activeSubmission || {});
+            const pushAllowed = !!activeSubmission?.repo_eligible && !['rejected', 'pushed'].includes(workflow);
+            pushBtn.disabled = !pushAllowed;
+            pushBtn.style.opacity = pushAllowed ? '1' : '0.5';
+            pushBtn.style.pointerEvents = pushAllowed ? 'auto' : 'none';
+            if (!activeSubmission?.repo_eligible) pushBtn.textContent = 'DB-Only Submission';
+            else if (workflow === 'pushed') pushBtn.textContent = 'Already Pushed';
+            else if (workflow === 'rejected') pushBtn.textContent = 'Rejected: Push Blocked';
+            else pushBtn.textContent = 'Confirm and Commit to GitHub';
+        }
+
+        function refreshWorkflowVisuals() {
+            if (!activeSubmission) return;
+            const workflow = workflowStateOf(activeSubmission);
+            document.getElementById('workflowTimeline').innerHTML = buildTimelineHtml(activeSubmission);
+            document.getElementById('workflowStatusBadge').innerHTML = stateBadgeHtml(workflow);
+            updatePushButton();
+            lucide.createIcons();
+        }
+
+        function prettifyJson() {
+            try {
+                const raw = document.getElementById('editJson').value;
+                document.getElementById('editJson').value = JSON.stringify(JSON.parse(raw), null, 4);
+                renderJsonDiffPreview();
+            } catch (_e) {
+                showToast('JSON syntax error');
+            }
+        }
+
+        function applyRubricTemplate() {
+            const key = document.getElementById('rubricTemplate').value;
+            const t = RUBRIC_TEMPLATES[key];
+            if (!t) return;
+            document.getElementById('gradeInput').value = String(t.grade);
+            document.getElementById('submissionMode').value = t.submissionMode;
+            document.getElementById('approvalState').value = t.approvalState;
+            document.getElementById('reviewNoteInput').value = t.note;
+            showToast('Rubric template applied');
+        }
+
+        async function saveReview() {
+            if (!activeSubmission) return;
+            const mode = document.getElementById('submissionMode').value;
+            const gradeRaw = document.getElementById('gradeInput').value.trim();
+            const note = document.getElementById('reviewNoteInput').value.trim();
+            const approvalState = document.getElementById('approvalState').value || 'review';
+            const grade = gradeRaw === '' ? null : Number(gradeRaw);
+
+            if (grade !== null && (Number.isNaN(grade) || grade < 0 || grade > 100)) {
+                showToast('Grade must be between 0 and 100');
+                return;
+            }
+
+            const res = await fetch('/.netlify/functions/save-review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Architect-Key': sessionStorage.getItem('architect_key')
+                },
+                body: JSON.stringify({
+                    id: activeSubmission.id,
+                    submissionMode: mode,
+                    grade,
+                    reviewNote: note,
+                    approvalState
+                })
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                showToast(`Failed to save review: ${msg}`);
+                return;
+            }
+
+            const now = new Date().toISOString();
+            activeSubmission.submission_mode = mode;
+            activeSubmission.grade = grade;
+            activeSubmission.review_note = note;
+            activeSubmission.status = approvalState;
+            activeSubmission.reviewed_at = activeSubmission.reviewed_at || now;
+            if (approvalState === 'approved') activeSubmission.approved_at = now;
+            if (approvalState === 'rejected') activeSubmission.rejected_at = now;
+            refreshWorkflowVisuals();
+            showToast(`Review saved (${approvalState})`);
+        }
+
+        async function pushToLibrary() {
+            if (!activeSubmission) return;
+            const newName = document.getElementById('editName').value.trim();
+            let newData;
+            try {
+                newData = JSON.parse(document.getElementById('editJson').value);
+            } catch (_e) {
+                showToast('JSON error');
+                return;
+            }
+
+            const res = await fetch('/.netlify/functions/push-to-github', {
+                method: 'POST',
+                headers: { 'X-Architect-Key': sessionStorage.getItem('architect_key') },
+                body: JSON.stringify({
+                    id: activeSubmission.id,
+                    editedName: newName,
+                    editedData: newData
+                })
+            });
+
+            if (!res.ok) {
+                const msg = await res.text();
+                showToast(`Push blocked: ${msg}`);
+                return;
+            }
+
+            activeSubmission.status = 'pushed';
+            activeSubmission.pushed_at = new Date().toISOString();
+            refreshWorkflowVisuals();
+            showToast('Machine pushed to library');
+            setTimeout(() => { goBackToQueue(); }, 700);
+        }
+
+        function removeCurrentFromQueue() {
+            if (!activeSubmission) return;
+            const ids = getRemovedSubmissionIds();
+            ids.add(String(activeSubmission.id));
+            saveRemovedSubmissionIds(ids);
+            showToast('Removed from queue view');
+            setTimeout(() => { goBackToQueue(); }, 300);
+        }
+
+        function bindEvents() {
+            document.getElementById('applyRubricBtn').addEventListener('click', applyRubricTemplate);
+            document.getElementById('editJson').addEventListener('input', renderJsonDiffPreview);
+            document.getElementById('approvalState').addEventListener('change', (e) => {
+                if (!activeSubmission) return;
+                activeSubmission.status = String(e.target.value || 'review');
+                refreshWorkflowVisuals();
+            });
+            document.getElementById('saveReviewBtn').addEventListener('click', saveReview);
+            document.getElementById('pushConfirmBtn').addEventListener('click', pushToLibrary);
+            document.getElementById('removeFromQueueBtn').addEventListener('click', removeCurrentFromQueue);
+        }
+
+        async function initPage() {
+            const key = sessionStorage.getItem('architect_key');
+            if (!key) {
+                goBackToQueue();
+                return;
+            }
+
+            const id = getSubmissionIdFromQuery();
+            if (!Number.isFinite(id)) {
+                showToast('Invalid submission id');
+                return;
+            }
+
+            const res = await fetch('/.netlify/functions/get-submissions', {
+                headers: { 'X-Architect-Key': key }
+            });
+            if (!res.ok) {
+                showToast('Failed to load submissions');
+                return;
+            }
+
+            const rows = await res.json();
+            const sub = rows.find((x) => Number(x.id) === Number(id));
+            if (!sub) {
+                showToast('Submission not found');
+                return;
+            }
+
+            activeSubmission = sub;
+            const workflow = workflowStateOf(sub);
+            const originalPretty = JSON.stringify(sub.data || {}, null, 2);
+            reviewContext = { originalJsonText: originalPretty, activeId: Number(sub.id) };
+
+            document.getElementById('submissionMeta').textContent = `${sub.type} / ${sub.name} / ${toLocalDate(sub.created_at)}`;
+            document.getElementById('submissionAge').textContent = `Staged: ${toLocalDate(sub.created_at)}`;
+            document.getElementById('prefixLabel').textContent = String(sub.type || 'pda').toLowerCase() + '_';
+            document.getElementById('editName').value = sub.name || '';
+            document.getElementById('editJson').value = originalPretty;
+            document.getElementById('submissionMode').value = sub.submission_mode || 'practice';
+            document.getElementById('gradeInput').value = (sub.grade ?? '') === '' ? '' : sub.grade;
+            document.getElementById('reviewNoteInput').value = sub.review_note || '';
+            document.getElementById('approvalState').value = workflow === 'pushed' ? 'approved' : workflow;
+            document.getElementById('rubricTemplate').value = '';
+
+            refreshWorkflowVisuals();
+            renderJsonDiffPreview();
+            lucide.createIcons();
+        }
+
+        bindEvents();
+        initPage();
+    </script>
+</body>
+</html>
