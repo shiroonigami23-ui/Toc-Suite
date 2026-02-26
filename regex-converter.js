@@ -1,114 +1,321 @@
 // regex-converter.js
 
-// State counter for creating unique state IDs
 let stateCounter = 0;
 
-/**
- * Creates a new state ID.
- * @returns {string} A new state ID (e.g., 's3').
- */
 function newStateId() {
-    return 's' + stateCounter++;
+  return `s${stateCounter++}`;
 }
 
-/**
- * Creates a basic NFA component structure (start/end state references).
- * @returns {{start: string, end: string, states: Array, transitions: Array}}
- */
-function createBaseNfa() {
-    return {
-        start: newStateId(),
-        end: newStateId(),
-        states: [],
-        transitions: []
-    };
+function makeState(id) {
+  return { id, initial: false, accepting: false, x: 0, y: 0 };
 }
 
-/**
- * Creates an epsilon NFA for a single literal symbol.
- *  * @param {string} symbol The input symbol.
- * @returns {object} The complete ENFA component.
- */
+function makeFragment(start, end, states, transitions) {
+  return { start, end, states, transitions };
+}
+
+function createEpsilonFragment() {
+  const start = newStateId();
+  const end = newStateId();
+  return makeFragment(
+    start,
+    end,
+    [makeState(start), makeState(end)],
+    [{ from: start, to: end, symbol: '' }]
+  );
+}
+
 export function createSymbolNfa(symbol) {
-    const nfa = createBaseNfa();
-    nfa.transitions.push({ from: nfa.start, to: nfa.end, symbol: symbol });
-    // States need full properties for the machine object later
-    nfa.states.push({ id: nfa.start, initial: false, accepting: false, x: 0, y: 0 });
-    nfa.states.push({ id: nfa.end, initial: false, accepting: false, x: 0, y: 0 });
-    return nfa;
+  const start = newStateId();
+  const end = newStateId();
+  return makeFragment(
+    start,
+    end,
+    [makeState(start), makeState(end)],
+    [{ from: start, to: end, symbol: String(symbol || '') }]
+  );
 }
 
-/**
- * Creates an epsilon NFA for the Concatenation operation (R1 R2).
- *  * @param {object} nfa1 The NFA for the first part (R1).
- * @param {object} nfa2 The NFA for the second part (R2).
- * @returns {object} The complete ENFA component.
- */
 export function createConcatenationNfa(nfa1, nfa2) {
-    const newNfa = {
-        start: nfa1.start,
-        end: nfa2.end,
-        states: [...nfa1.states, ...nfa2.states],
-        transitions: [...nfa1.transitions, ...nfa2.transitions]
-    };
-
-    // Add epsilon transition from the end of R1 to the start of R2
-    newNfa.transitions.push({ from: nfa1.end, to: nfa2.start, symbol: "" });
-
-    // Since R1's end is no longer final and R2's start is no longer initial in the combined machine:
-    newNfa.states.find(s => s.id === nfa1.end).accepting = false;
-    newNfa.states.find(s => s.id === nfa2.start).initial = false;
-    
-    // Clean up temporary initial/final flags for non-starting/ending states
-    newNfa.states.forEach(s => {
-        if (s.id !== newNfa.start && s.id !== newNfa.end) {
-            s.initial = false;
-            s.accepting = false;
-        }
-    });
-
-    return newNfa;
+  return makeFragment(
+    nfa1.start,
+    nfa2.end,
+    [...nfa1.states, ...nfa2.states],
+    [...nfa1.transitions, ...nfa2.transitions, { from: nfa1.end, to: nfa2.start, symbol: '' }]
+  );
 }
 
-/**
- * THE MAIN ENTRY POINT: Converts a regular expression string into a final ENFA machine.
- * This is currently a placeholder for a full shunting-yard/tree-based parser.
- * @param {string} regex The regular expression string.
- * @returns {object} The complete ENFA machine structure.
- */
-export function parseRegexAndBuildEnfa(regex) {
-    stateCounter = 0;
-    
-    if (regex.length === 1 && /[a-z0-9]/.test(regex)) {
-        // Handle single symbol (e.g., 'a')
-        const nfa = createSymbolNfa(regex);
-        nfa.states.find(s => s.id === nfa.start).initial = true;
-        nfa.states.find(s => s.id === nfa.end).accepting = true;
-        
-        return {
-            type: 'ENFA',
-            states: nfa.states,
-            transitions: nfa.transitions,
-            alphabet: [regex]
-        };
+function createUnionNfa(nfa1, nfa2) {
+  const start = newStateId();
+  const end = newStateId();
+  return makeFragment(
+    start,
+    end,
+    [makeState(start), makeState(end), ...nfa1.states, ...nfa2.states],
+    [
+      ...nfa1.transitions,
+      ...nfa2.transitions,
+      { from: start, to: nfa1.start, symbol: '' },
+      { from: start, to: nfa2.start, symbol: '' },
+      { from: nfa1.end, to: end, symbol: '' },
+      { from: nfa2.end, to: end, symbol: '' }
+    ]
+  );
+}
+
+function createStarNfa(nfa) {
+  const start = newStateId();
+  const end = newStateId();
+  return makeFragment(
+    start,
+    end,
+    [makeState(start), makeState(end), ...nfa.states],
+    [
+      ...nfa.transitions,
+      { from: start, to: nfa.start, symbol: '' },
+      { from: start, to: end, symbol: '' },
+      { from: nfa.end, to: nfa.start, symbol: '' },
+      { from: nfa.end, to: end, symbol: '' }
+    ]
+  );
+}
+
+function normalizeRegexInput(regex) {
+  const raw = String(regex || '').trim();
+  if (!raw) throw new Error('Regex input is empty.');
+  return raw.replace(/\bor\b/gi, '|').replace(/\s+/g, '');
+}
+
+function tokenize(regex) {
+  const src = normalizeRegexInput(regex);
+  const tokens = [];
+  let i = 0;
+
+  while (i < src.length) {
+    const ch = src[i];
+    const rest = src.slice(i).toLowerCase();
+
+    if (ch === '(') {
+      tokens.push({ type: 'LPAREN' });
+      i += 1;
+      continue;
     }
-    
-    // --- TEMPORARY DEMO FOR CONCATENATION ---
-    if (regex === 'ab') {
-        const nfaA = createSymbolNfa('a');
-        const nfaB = createSymbolNfa('b');
-        const concatenated = createConcatenationNfa(nfaA, nfaB);
-        
-        concatenated.states.find(s => s.id === concatenated.start).initial = true;
-        concatenated.states.find(s => s.id === concatenated.end).accepting = true;
-        
-        return {
-            type: 'ENFA',
-            states: concatenated.states,
-            transitions: concatenated.transitions,
-            alphabet: ['a', 'b']
-        };
+    if (ch === ')') {
+      tokens.push({ type: 'RPAREN' });
+      i += 1;
+      continue;
+    }
+    if (ch === '|') {
+      tokens.push({ type: 'UNION' });
+      i += 1;
+      continue;
+    }
+    if (ch === '*') {
+      tokens.push({ type: 'STAR' });
+      i += 1;
+      continue;
+    }
+    if (ch === '.') {
+      tokens.push({ type: 'CONCAT' });
+      i += 1;
+      continue;
+    }
+    if (ch === 'e' && rest.startsWith('epsilon')) {
+      tokens.push({ type: 'EPS' });
+      i += 7;
+      continue;
+    }
+    if (ch === 'e' && rest.startsWith('eps')) {
+      tokens.push({ type: 'EPS' });
+      i += 3;
+      continue;
+    }
+    if (ch === 'l' && rest.startsWith('lambda')) {
+      tokens.push({ type: 'EPS' });
+      i += 6;
+      continue;
+    }
+    if (ch === 'ε' || ch === 'ϵ' || ch === 'λ') {
+      tokens.push({ type: 'EPS' });
+      i += 1;
+      continue;
+    }
+    if (/[a-z0-9_]/i.test(ch)) {
+      tokens.push({ type: 'SYMBOL', value: ch });
+      i += 1;
+      continue;
     }
 
-    throw new Error(`The regex converter can currently only handle single characters (e.g., 'a') or the hardcoded concatenation example ('ab'). Full implementation requires a proper parser.`);
+    throw new Error(`Unsupported regex token '${ch}'`);
+  }
+
+  const expanded = [];
+  const needsConcat = (left, right) => {
+    const leftOk = ['SYMBOL', 'EPS', 'RPAREN', 'STAR'].includes(left.type);
+    const rightOk = ['SYMBOL', 'EPS', 'LPAREN'].includes(right.type);
+    return leftOk && rightOk;
+  };
+
+  for (let idx = 0; idx < tokens.length; idx += 1) {
+    const cur = tokens[idx];
+    const prev = expanded.length ? expanded[expanded.length - 1] : null;
+    if (prev && needsConcat(prev, cur)) {
+      expanded.push({ type: 'CONCAT' });
+    }
+    expanded.push(cur);
+  }
+
+  return expanded;
+}
+
+function toPostfix(tokens) {
+  const output = [];
+  const stack = [];
+  const precedence = { UNION: 1, CONCAT: 2, STAR: 3 };
+
+  tokens.forEach((token) => {
+    if (token.type === 'SYMBOL' || token.type === 'EPS') {
+      output.push(token);
+      return;
+    }
+    if (token.type === 'LPAREN') {
+      stack.push(token);
+      return;
+    }
+    if (token.type === 'RPAREN') {
+      while (stack.length && stack[stack.length - 1].type !== 'LPAREN') {
+        output.push(stack.pop());
+      }
+      if (!stack.length) throw new Error('Unbalanced parentheses in regex.');
+      stack.pop();
+      return;
+    }
+
+    while (
+      stack.length &&
+      stack[stack.length - 1].type !== 'LPAREN' &&
+      precedence[stack[stack.length - 1].type] >= precedence[token.type]
+    ) {
+      output.push(stack.pop());
+    }
+    stack.push(token);
+  });
+
+  while (stack.length) {
+    const op = stack.pop();
+    if (op.type === 'LPAREN' || op.type === 'RPAREN') {
+      throw new Error('Unbalanced parentheses in regex.');
+    }
+    output.push(op);
+  }
+
+  return output;
+}
+
+function buildFromPostfix(postfix) {
+  const st = [];
+
+  postfix.forEach((token) => {
+    if (token.type === 'SYMBOL') {
+      st.push(createSymbolNfa(token.value));
+      return;
+    }
+    if (token.type === 'EPS') {
+      st.push(createEpsilonFragment());
+      return;
+    }
+    if (token.type === 'STAR') {
+      if (st.length < 1) throw new Error('Invalid regex: missing operand for *');
+      const a = st.pop();
+      st.push(createStarNfa(a));
+      return;
+    }
+    if (token.type === 'CONCAT') {
+      if (st.length < 2) throw new Error('Invalid regex: missing operands for concatenation');
+      const right = st.pop();
+      const left = st.pop();
+      st.push(createConcatenationNfa(left, right));
+      return;
+    }
+    if (token.type === 'UNION') {
+      if (st.length < 2) throw new Error('Invalid regex: missing operands for union');
+      const right = st.pop();
+      const left = st.pop();
+      st.push(createUnionNfa(left, right));
+      return;
+    }
+  });
+
+  if (st.length !== 1) throw new Error('Invalid regex: could not resolve expression.');
+  return st[0];
+}
+
+function layoutStates(states, transitions, startId) {
+  const stateMap = new Map(states.map((s) => [s.id, s]));
+  const outgoing = new Map();
+  transitions.forEach((tr) => {
+    if (!outgoing.has(tr.from)) outgoing.set(tr.from, []);
+    outgoing.get(tr.from).push(tr.to);
+  });
+
+  const levels = new Map();
+  const q = [startId];
+  levels.set(startId, 0);
+
+  while (q.length) {
+    const cur = q.shift();
+    const lvl = levels.get(cur) ?? 0;
+    const next = outgoing.get(cur) || [];
+    next.forEach((to) => {
+      if (!levels.has(to)) {
+        levels.set(to, lvl + 1);
+        q.push(to);
+      }
+    });
+  }
+
+  let fallbackLevel = Math.max(0, ...Array.from(levels.values()));
+  states.forEach((s) => {
+    if (!levels.has(s.id)) {
+      fallbackLevel += 1;
+      levels.set(s.id, fallbackLevel);
+    }
+  });
+
+  const grouped = new Map();
+  states.forEach((s) => {
+    const lvl = levels.get(s.id) ?? 0;
+    if (!grouped.has(lvl)) grouped.set(lvl, []);
+    grouped.get(lvl).push(s.id);
+  });
+
+  Array.from(grouped.keys()).sort((a, b) => a - b).forEach((lvl) => {
+    const ids = grouped.get(lvl);
+    ids.forEach((id, idx) => {
+      const node = stateMap.get(id);
+      node.x = 160 + (lvl * 170);
+      node.y = 180 + (idx * 110);
+    });
+  });
+}
+
+export function parseRegexAndBuildEnfa(regex) {
+  stateCounter = 0;
+  const tokens = tokenize(regex);
+  const postfix = toPostfix(tokens);
+  const nfa = buildFromPostfix(postfix);
+
+  nfa.states.forEach((s) => {
+    s.initial = s.id === nfa.start;
+    s.accepting = s.id === nfa.end;
+  });
+
+  layoutStates(nfa.states, nfa.transitions, nfa.start);
+
+  return {
+    type: 'ENFA',
+    states: nfa.states,
+    transitions: nfa.transitions,
+    alphabet: Array.from(new Set(nfa.transitions.map((t) => t.symbol).filter((s) => s !== '')))
+  };
 }

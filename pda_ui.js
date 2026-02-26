@@ -18,6 +18,7 @@ import { initializePdaLibrary } from './pda_library_loader.js';
 let currentMode = 'move';
 let dragTarget = null;
 let transFromState = null;
+let dragStartSnapshot = null;
 
 export function initializePdaUI() {
     setupToolbar();
@@ -268,6 +269,7 @@ function setupCanvasInteractions() {
                 if (e.cancelable) e.preventDefault(); 
                 
                 dragTarget = stateObj;
+                dragStartSnapshot = { id: stateObj.id, x: stateObj.x, y: stateObj.y };
                 // Calculate offset to prevent state "snapping" to cursor center
                 dragTarget._offsetX = stateObj.x - pt.x;
                 dragTarget._offsetY = stateObj.y - pt.y;
@@ -302,8 +304,13 @@ function setupCanvasInteractions() {
             pushUndo();
             // Remove visual feedback from the state that was being moved
             document.querySelectorAll('.state-active').forEach(c => c.classList.remove('state-active'));
+            addLogMessage(
+                `PDA state moved: <strong>${dragTarget.id}</strong> (${Math.round(dragStartSnapshot?.x ?? dragTarget.x)},${Math.round(dragStartSnapshot?.y ?? dragTarget.y)}) -> (${Math.round(dragTarget.x)},${Math.round(dragTarget.y)}).`,
+                'move'
+            );
         }
         dragTarget = null;
+        dragStartSnapshot = null;
     };
 
     // Unified Listeners for Desktop and Mobile
@@ -320,8 +327,10 @@ function handleTransitionMode(target, stateId) {
     if (!transFromState) {
         transFromState = stateId;
         target.querySelector('circle').classList.add('state-active');
+        addLogMessage(`PDA transition start selected: <strong>${stateId}</strong>.`, 'git-branch');
     } else {
         openPdaModal(transFromState, stateId);
+        addLogMessage(`PDA transition target selected: <strong>${stateId}</strong>.`, 'git-branch');
         transFromState = null;
         document.querySelectorAll('.state-active').forEach(c => c.classList.remove('state-active'));
     }
@@ -344,6 +353,7 @@ function openRenameModal(state) {
                 if (t.from === oldId) t.from = newName;
                 if (t.to === oldId) t.to = newName;
             });
+            addLogMessage(`PDA state renamed: <strong>${oldId}</strong> -> <strong>${newName}</strong>.`, 'edit-3');
             modal.style.display = 'none';
             renderAll();
         } else {
@@ -366,6 +376,7 @@ function openStatePropsModal(state) {
         }
         state.initial = isInitial;
         state.accepting = document.getElementById('pdaPropFinal').checked;
+        addLogMessage(`PDA state updated: <strong>${state.id}</strong> (initial=${state.initial}, accepting=${state.accepting}).`, 'settings');
         modal.style.display = 'none';
         renderAll();
     };
@@ -424,6 +435,7 @@ function openPdaModal(from, to) {
             
             // Push the formal transition object
             MACHINE.transitions.push({ from, to, symbol, pop, push });
+            addLogMessage(`PDA transition added: <strong>${from}</strong> --(${symbol}, ${pop} -> ${push})--> <strong>${to}</strong>.`, 'git-branch');
             
             modal.style.display = 'none';
             renderAll(); // Syncs canvas and sidebar intelligence
@@ -434,6 +446,7 @@ function deleteState(id) {
     pushUndo();
     MACHINE.states = MACHINE.states.filter(s => s.id !== id);
     MACHINE.transitions = MACHINE.transitions.filter(t => t.from !== id && t.to !== id);
+    addLogMessage(`PDA state deleted: <strong>${id}</strong> (with linked transitions).`, 'trash-2');
     renderAll();
 }
 
@@ -441,6 +454,7 @@ function addNewState(x, y) {
     pushUndo();
     const id = `q${MACHINE.states.length}`;
     MACHINE.states.push({ id, x, y, initial: MACHINE.states.length === 0, accepting: false });
+    addLogMessage(`PDA state added: <strong>${id}</strong> at (${Math.round(x)}, ${Math.round(y)}).`, 'plus-circle');
     renderAll();
 }
 
@@ -477,6 +491,7 @@ function setupTestingUI() {
                 outputDisplay.style.color = "var(--success)";
             }
             if (progress) progress.style.width = "100%";
+            addLogMessage(`String "${input || 'ε'}" accepted by machine.`, "check-circle");
             await animatePdaPath(result.path);
         } else {
             if (outputDisplay) {

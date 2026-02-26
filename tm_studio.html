@@ -196,6 +196,15 @@
       <details class="control-section">
         <summary><i data-lucide="home"></i> Navigation</summary>
         <div class="control-section-content">
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;">
+            <button id="switchToFaBtn" class="icon-btn machine-switch-btn" data-machine-switch="FA" type="button">FA Studio</button>
+            <button id="switchToMmBtn" class="icon-btn machine-switch-btn" data-machine-switch="MM" type="button">Mealy/Moore</button>
+            <button id="switchToPdaBtn" class="icon-btn machine-switch-btn" data-machine-switch="PDA" type="button">PDA Studio</button>
+            <button id="switchToTmBtn" class="icon-btn machine-switch-btn" data-machine-switch="TM" type="button" disabled>TM Studio</button>
+          </div>
+          <button id="switchToGrammarBtn" class="icon-btn machine-switch-btn" data-machine-switch="Grammar" type="button" style="width:100%;margin-bottom:10px;">
+            Grammar Studio
+          </button>
           <button id="tmBackToMenuBtn" class="icon-btn" style="width:100%;">
             <i data-lucide="arrow-left-circle"></i> Back to Main Menu
           </button>

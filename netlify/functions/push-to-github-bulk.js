@@ -18,6 +18,13 @@ exports.handler = async (event) => {
 
     try {
         await client.connect();
+        await client.query(`
+            ALTER TABLE machine_submissions
+            ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS approved_by VARCHAR(120),
+            ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS pushed_by VARCHAR(120)
+        `).catch(() => {});
         const results = [];
         const repo = process.env.GITHUB_REPO || 'shiroonigami23-ui/toc-suite';
 
@@ -35,8 +42,17 @@ exports.handler = async (event) => {
                 results.push({ id, status: 'failed', reason: 'not_found' });
                 continue;
             }
-            if (sub.status !== 'pending') {
-                results.push({ id, status: 'failed', reason: 'not_pending' });
+            const workflowState = String(sub.status || 'pending').toLowerCase();
+            if (workflowState === 'rejected') {
+                results.push({ id, status: 'failed', reason: 'rejected' });
+                continue;
+            }
+            if (workflowState === 'pushed') {
+                results.push({ id, status: 'failed', reason: 'already_pushed' });
+                continue;
+            }
+            if (!['pending', 'review', 'approved'].includes(workflowState)) {
+                results.push({ id, status: 'failed', reason: 'not_push_ready' });
                 continue;
             }
 
@@ -65,7 +81,16 @@ exports.handler = async (event) => {
             });
 
             if (ghResponse.ok) {
-                await client.query("UPDATE machine_submissions SET status = 'approved' WHERE id = $1", [id]);
+                await client.query(
+                    `UPDATE machine_submissions
+                     SET status = 'pushed',
+                         approved_at = COALESCE(approved_at, NOW()),
+                         approved_by = COALESCE(approved_by, 'Architect'),
+                         pushed_at = NOW(),
+                         pushed_by = 'Architect'
+                     WHERE id = $1`,
+                    [id]
+                );
                 results.push({ id, status: 'success' });
             } else {
                 const ghErr = await ghResponse.json().catch(() => ({}));

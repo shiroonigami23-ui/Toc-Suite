@@ -14,6 +14,13 @@ exports.handler = async (event) => {
 
     try {
         await client.connect();
+        await client.query(`
+            ALTER TABLE machine_submissions
+            ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS approved_by VARCHAR(120),
+            ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS pushed_by VARCHAR(120)
+        `).catch(() => {});
         const res = await client.query(
             `SELECT ms.type, ms.repo_eligible, ms.assignment_id, ms.status, a.repo_eligible AS assignment_repo_eligible
              FROM machine_submissions ms
@@ -26,7 +33,12 @@ exports.handler = async (event) => {
         if (!res.rows.length) return { statusCode: 404, body: 'Submission not found' };
 
         const row = res.rows[0];
-        if (row.status !== 'pending') return { statusCode: 409, body: 'Submission is not pending' };
+        const status = String(row.status || 'pending').toLowerCase();
+        if (status === 'rejected') return { statusCode: 409, body: 'Submission is rejected and cannot be pushed' };
+        if (status === 'pushed') return { statusCode: 409, body: 'Submission is already pushed' };
+        if (!['pending', 'review', 'approved'].includes(status)) {
+            return { statusCode: 409, body: `Submission status '${status}' is not push-ready` };
+        }
 
         const isRepoEligible = Boolean(row.repo_eligible) || Boolean(row.assignment_repo_eligible);
         if (!isRepoEligible) {
@@ -57,7 +69,16 @@ exports.handler = async (event) => {
         });
 
         if (ghResponse.ok) {
-            await client.query("UPDATE machine_submissions SET status = 'approved' WHERE id = $1", [id]);
+            await client.query(
+                `UPDATE machine_submissions
+                 SET status = 'pushed',
+                     approved_at = COALESCE(approved_at, NOW()),
+                     approved_by = COALESCE(approved_by, 'Architect'),
+                     pushed_at = NOW(),
+                     pushed_by = 'Architect'
+                 WHERE id = $1`,
+                [id]
+            );
             return { statusCode: 200, body: 'Pushed successfully' };
         }
 

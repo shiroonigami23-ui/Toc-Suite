@@ -28,6 +28,16 @@ This project combines:
 - assignment/quiz submission flow backed by Netlify Functions + Postgres (Neon)
 - architect/admin review and selective GitHub push pipeline
 
+## 0) Recent Enhancements (Current Build)
+
+- Grammar Studio now includes dedicated RL and REL conversion tabs (separate, not merged).
+- RL and REL panels now render dynamic transition tables with animated step cards.
+- `Open RL in FA` now performs real conversion and opens FA with imported machine data.
+- `Open REL in TM` now opens TM with generated TM transition/state data (not only prompt text).
+- FA/MM/TM route boot now auto-opens studio directly (splash bypass on routed launch, same feel as PDA).
+- Action logs were expanded across FA, MM, and PDA to match TM-level descriptive tracing.
+- Architect portal UI upgraded with collapsible sections and advanced dropdown filters for review queue.
+
 ## 1) Current App Surfaces
 
 - `index.html`: splash + FA/MM/PDA/TM studio entry and routing
@@ -77,7 +87,13 @@ Primary router file:
 - Parse tree render
 - Leftmost derivation + derivation timeline
 - Grammar/NPDA logic-table view
-- Regex bridge to FA studio (via current regex converter capability)
+- RL conversion designer tab (dynamic transition table + animated conversion steps)
+- REL conversion designer tab (dynamic TM-style table + animated conversion steps)
+- Regex bridge to FA studio with parser support for union, concat, star, parentheses, and epsilon tokens
+- Cross-open flows:
+  - RL -> FA (machine import)
+  - RL -> Mealy/Moore (prompt handoff)
+  - REL -> TM (machine import + prompt handoff)
 - Context-free pumping lemma helper
 
 Main files:
@@ -113,6 +129,21 @@ Main files:
 Main files:
 - `splash_help.html`
 - `splash_settings.html`
+
+### 3.6 Architect Portal (admin moderation)
+- Collapsible operational panels for cleaner top-level navigation.
+- Rich review queue filters:
+  - mode
+  - assignment
+  - machine type
+  - repo policy (repo-eligible vs DB-only)
+  - integrity flag (flagged vs clean)
+- Persistent panel open/closed state via local storage.
+- CSV export for filtered rows.
+- Assignment creation and active-assignment hints remain function-backed.
+
+Main file:
+- `architect-portal-2026.html`
 
 ## 4) Assignment / Quiz / Submission Pipeline
 
@@ -153,6 +184,7 @@ Regular student submissions remain DB-side and are not direct repo writes.
 - `tm_library.json`
 - `CHANGELOG.md`
 - `PREVIEW.md`
+- `README.md`
 
 This prevents unnecessary redeploy cycles from data-only updates.
 
@@ -205,9 +237,9 @@ Used by current function code:
 
 ## 11) Known Limitations
 
-- Current regex converter is intentionally limited (single-symbol and `ab` demo path).
-- Full regex parser (union/concat/star with nested parentheses) can be added as next upgrade.
-- Some advanced policy/admin UX can still be expanded in architect portal.
+- Regex parser handles core operators (union/concat/star/parentheses/epsilon), but this is still not a full industrial regex engine.
+- Conversion output quality for REL -> TM is heuristic and intended for editable starting machines.
+- Additional policy dashboards (audit analytics, reviewer SLA widgets, role-bound approval workflows) can still be expanded in architect portal.
 
 ## 12) Quick Start Checklist
 

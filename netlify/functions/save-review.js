@@ -19,6 +19,7 @@ exports.handler = async (event) => {
     const id = Number(payload.id);
     const submissionMode = String(payload.submissionMode || 'practice').toLowerCase();
     const reviewNote = String(payload.reviewNote || '');
+    const approvalState = String(payload.approvalState || 'review').toLowerCase();
     const grade = payload.grade === null || payload.grade === '' ? null : Number(payload.grade);
 
     if (!Number.isInteger(id) || id <= 0) {
@@ -26,6 +27,9 @@ exports.handler = async (event) => {
     }
     if (!['practice', 'quiz'].includes(submissionMode)) {
         return { statusCode: 400, body: 'submissionMode must be practice or quiz' };
+    }
+    if (!['review', 'approved', 'rejected', 'pending'].includes(approvalState)) {
+        return { statusCode: 400, body: 'approvalState must be pending/review/approved/rejected' };
     }
     if (grade !== null && (Number.isNaN(grade) || grade < 0 || grade > 100)) {
         return { statusCode: 400, body: 'grade must be null or 0..100' };
@@ -45,7 +49,13 @@ exports.handler = async (event) => {
             ADD COLUMN IF NOT EXISTS grade INTEGER,
             ADD COLUMN IF NOT EXISTS review_note TEXT,
             ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP,
-            ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR(120)
+            ADD COLUMN IF NOT EXISTS reviewed_by VARCHAR(120),
+            ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS approved_by VARCHAR(120),
+            ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS rejected_by VARCHAR(120),
+            ADD COLUMN IF NOT EXISTS pushed_at TIMESTAMP,
+            ADD COLUMN IF NOT EXISTS pushed_by VARCHAR(120)
         `);
 
         const reviewedBy = 'Architect';
@@ -55,9 +65,14 @@ exports.handler = async (event) => {
                  grade = $2,
                  review_note = $3,
                  reviewed_at = NOW(),
-                 reviewed_by = $4
-             WHERE id = $5`,
-            [submissionMode, grade, reviewNote, reviewedBy, id]
+                 reviewed_by = $4,
+                 status = $5,
+                 approved_at = CASE WHEN $5 = 'approved' THEN COALESCE(approved_at, NOW()) ELSE approved_at END,
+                 approved_by = CASE WHEN $5 = 'approved' THEN COALESCE(approved_by, $4) ELSE approved_by END,
+                 rejected_at = CASE WHEN $5 = 'rejected' THEN NOW() ELSE rejected_at END,
+                 rejected_by = CASE WHEN $5 = 'rejected' THEN $4 ELSE rejected_by END
+             WHERE id = $6`,
+            [submissionMode, grade, reviewNote, reviewedBy, approvalState, id]
         );
 
         return {

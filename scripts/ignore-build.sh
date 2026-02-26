@@ -17,7 +17,7 @@ fi
 
 # Skip deploys for admin/student content-sync commits only.
 # Any core app file change (HTML/JS/CSS/functions/config) still triggers deploy.
-ALLOWED='^(Data/|automata/|submissions/|archives/|library\.json$|pda_library\.json$|moore_mealy_library\.json$|tm_library\.json$|CHANGELOG\.md$|PREVIEW\.md$)'
+ALLOWED='^(Data/|automata/|submissions/|archives/|library\.json$|pda_library\.json$|moore_mealy_library\.json$|tm_library\.json$|CHANGELOG\.md$|PREVIEW\.md$|README\.md$)'
 
 if echo "$CHANGED" | grep -qvE "$ALLOWED"; then
   exit 1

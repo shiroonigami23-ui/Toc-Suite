@@ -27,6 +27,41 @@
         
         .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; background: #1e293b; color: white; display: none; z-index: 10001; box-shadow: 0 10px 15px rgba(0,0,0,0.2); animation: slideUp 0.3s ease; }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .portal-section { border: 1px solid #e2e8f0; border-radius: 14px; background: #ffffff; margin-bottom: 18px; overflow: hidden; }
+        .portal-section summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; color: #0f172a; }
+        .portal-section summary::-webkit-details-marker { display: none; }
+        .panel-body { padding: 16px; }
+        .mini-metric { background: #eff6ff; color: #1e40af; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+        .filter-wrap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-select { padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+        .section-count { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+        .sla-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; }
+        .sla-card { border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; background:#fff; }
+        .sla-num { font-size:1.35rem; font-weight:800; color:#0f172a; margin-top:2px; }
+        .sla-critical { background:#fff1f2; border-color:#fecdd3; }
+        .sla-warning { background:#fffbeb; border-color:#fde68a; }
+        .wf-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+        .wf-pending { background:#e2e8f0; color:#334155; }
+        .wf-review { background:#dbeafe; color:#1d4ed8; }
+        .wf-approved { background:#dcfce7; color:#166534; }
+        .wf-rejected { background:#fee2e2; color:#b91c1c; }
+        .wf-pushed { background:#ede9fe; color:#5b21b6; }
+        .timeline { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+        .timeline-step { font-size:0.7rem; padding:2px 6px; border-radius:999px; border:1px solid #e2e8f0; color:#64748b; background:#fff; }
+        .timeline-step.done { background:#e2e8f0; color:#0f172a; border-color:#cbd5e1; }
+        .row-sla-warning td { background:#fffbeb; }
+        .row-sla-critical td { background:#fff1f2; }
+        .diff-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .diff-pane { border:1px solid #e2e8f0; border-radius:10px; overflow:auto; max-height:200px; background:#0b1220; color:#e2e8f0; font-family:'Cascadia Code',Consolas,monospace; font-size:12px; line-height:1.45; }
+        .diff-pane pre { margin:0; padding:10px; white-space:pre; }
+        .diff-add { background:rgba(16,185,129,0.2); }
+        .diff-del { background:rgba(239,68,68,0.2); }
+        @media (max-width: 960px) {
+            body { padding: 20px; }
+            .search-box { width: 220px; }
+            .diff-grid { grid-template-columns:1fr; }
+        }
     </style>
 </head>
 <body>
@@ -53,87 +88,147 @@
             <button onclick="logout()" style="color: #ef4444; background: #fef2f2; border: 1px solid #fee2e2; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">Logout</button>
         </header>
         
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:20px;">
-            <h3 style="margin:0 0 10px;color:#0f172a;">Assignment / Quiz Giver</h3>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
-                <input id="asgTitle" placeholder="Assignment title" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                <select id="asgMachineType" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                    <option value="FA">FA</option>
-                    <option value="MM">MM</option>
-                    <option value="PDA">PDA</option>
-                    <option value="TM">TM</option>
-                    <option value="ALL">ALL</option>
-                </select>
-                <select id="asgMode" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                    <option value="quiz">Quiz</option>
-                    <option value="practice">Practice</option>
-                </select>
-                <input id="asgMarks" type="number" min="1" max="100" value="100" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                <input id="asgStartAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                <input id="asgEndAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-                <input id="asgMaxSubmissions" type="number" min="1" max="20" value="1" title="Max submissions per student" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-                <input id="asgArchiveDays" type="number" min="7" max="15" value="10" title="Archive pending submissions after end (days)" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
-            </div>
-            <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px;">
-                <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
-                    <input id="asgRepoEligible" type="checkbox">
-                    Special Hard Category (repo push allowed)
-                </label>
-                <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
-                    <input id="asgStrictDeviceLock" type="checkbox" checked>
-                    Strict device lock (1 roll + 1 email + 1 device)
-                </label>
-            </div>
-            <textarea id="asgPrompt" placeholder="Question / prompt for students..." style="width:100%;min-height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;"></textarea>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-                <button onclick="createAssignment()" class="btn" style="background:#6366f1;color:#fff;">Create Assignment</button>
-                <div id="activeAssignmentHint" style="font-size:0.85em;color:#64748b;"></div>
-            </div>
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; gap: 16px; align-items: center;">
-                <input type="checkbox" id="selectAll" onclick="toggleAll(this)" style="width: 18px; height: 18px; cursor: pointer;">
-                <div style="position: relative;">
-                    <i data-lucide="search" style="position: absolute; left: 12px; top: 10px; width: 18px; color: #94a3b8;"></i>
-                    <input type="text" id="searchTerm" oninput="filterRows()" placeholder="Search by name or type..." class="search-box">
+        <details id="slaPanel" class="portal-section" open>
+            <summary>
+                <span>Reviewer SLA Dashboard</span>
+                <span class="section-count">Auto-aging monitor for queue discipline</span>
+            </summary>
+            <div class="panel-body">
+                <div class="sla-grid">
+                    <div class="sla-card">
+                        <div style="font-size:0.78rem;color:#64748b;">Open Review Items</div>
+                        <div id="slaOpenCount" class="sla-num">0</div>
+                    </div>
+                    <div class="sla-card sla-warning">
+                        <div style="font-size:0.78rem;color:#92400e;">Pending > 24h</div>
+                        <div id="slaWarn24Count" class="sla-num" style="color:#92400e;">0</div>
+                    </div>
+                    <div class="sla-card sla-critical">
+                        <div style="font-size:0.78rem;color:#9f1239;">Pending > 48h</div>
+                        <div id="slaCrit48Count" class="sla-num" style="color:#9f1239;">0</div>
+                    </div>
+                    <div class="sla-card">
+                        <div style="font-size:0.78rem;color:#64748b;">Pushed to GitHub</div>
+                        <div id="slaPushedCount" class="sla-num">0</div>
+                    </div>
                 </div>
-                <select id="modeFilter" onchange="filterRows()" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
-                    <option value="all">All Modes</option>
-                    <option value="quiz">Quiz</option>
-                    <option value="practice">Practice</option>
-                </select>
-                <select id="assignmentFilter" onchange="filterRows()" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;min-width:220px;">
-                    <option value="all">All Assignments</option>
-                </select>
             </div>
-            <div style="display:flex;gap:8px;">
-                <button id="exportCsvBtn" onclick="exportFilteredCsv()" class="btn" style="background:#0f766e;color:#fff;">
-                    <i data-lucide="download"></i> Export CSV
-                </button>
-                <button id="bulkPushBtn" onclick="pushSelected()" class="btn" style="background: var(--emerald); color: white; opacity: 0.5; pointer-events: none;">
-                    <i data-lucide="layers"></i> Push Selected (0)
-                </button>
-            </div>
-        </div>
+        </details>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 40px;"></th>
-                    <th>TYPE</th>
-                    <th>IDENTIFIER / FILENAME</th>
-                    <th>MODE / GRADE</th>
-                    <th>STAGED DATE</th>
-                    <th style="text-align: right;">REVIEW</th>
-                </tr>
-            </thead>
-            <tbody id="submissionRows"></tbody>
-        </table>
+        <details id="assignmentPanel" class="portal-section" open>
+            <summary>
+                <span>Assignment / Quiz Giver</span>
+                <span id="activeAssignmentHint" class="section-count">0 active assignment(s)</span>
+            </summary>
+            <div class="panel-body">
+                <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <input id="asgTitle" placeholder="Assignment title" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <select id="asgMachineType" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                        <option value="FA">FA</option>
+                        <option value="MM">MM</option>
+                        <option value="PDA">PDA</option>
+                        <option value="TM">TM</option>
+                        <option value="ALL">ALL</option>
+                    </select>
+                    <select id="asgMode" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                        <option value="quiz">Quiz</option>
+                        <option value="practice">Practice</option>
+                    </select>
+                    <input id="asgMarks" type="number" min="1" max="100" value="100" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <input id="asgStartAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <input id="asgEndAt" type="datetime-local" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <input id="asgMaxSubmissions" type="number" min="1" max="20" value="1" title="Max submissions per student" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                    <input id="asgArchiveDays" type="number" min="7" max="15" value="10" title="Archive pending submissions after end (days)" style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;">
+                </div>
+                <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:8px;">
+                    <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
+                        <input id="asgRepoEligible" type="checkbox">
+                        Special Hard Category (repo push allowed)
+                    </label>
+                    <label style="display:flex;gap:8px;align-items:center;color:#334155;font-size:0.9rem;">
+                        <input id="asgStrictDeviceLock" type="checkbox" checked>
+                        Strict device lock (1 roll + 1 email + 1 device)
+                    </label>
+                </div>
+                <textarea id="asgPrompt" placeholder="Question / prompt for students..." style="width:100%;min-height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;"></textarea>
+                <div style="display:flex;justify-content:flex-start;align-items:center;margin-top:8px;">
+                    <button onclick="createAssignment()" class="btn" style="background:#6366f1;color:#fff;">Create Assignment</button>
+                </div>
+            </div>
+        </details>
+
+        <details id="queuePanel" class="portal-section" open>
+            <summary>
+                <span>Submission Review Queue</span>
+                <span id="visibleCount" class="mini-metric">0 visible</span>
+            </summary>
+            <div class="panel-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; gap: 10px; flex-wrap: wrap;">
+                    <div class="filter-wrap">
+                        <input type="checkbox" id="selectAll" onclick="toggleAll(this)" style="width: 18px; height: 18px; cursor: pointer;">
+                        <div style="position: relative;">
+                            <i data-lucide="search" style="position: absolute; left: 12px; top: 10px; width: 18px; color: #94a3b8;"></i>
+                            <input type="text" id="searchTerm" oninput="filterRows()" placeholder="Search by name or type..." class="search-box">
+                        </div>
+                        <select id="modeFilter" onchange="filterRows()" class="filter-select">
+                            <option value="all">All Modes</option>
+                            <option value="quiz">Quiz</option>
+                            <option value="practice">Practice</option>
+                        </select>
+                        <select id="typeFilter" onchange="filterRows()" class="filter-select">
+                            <option value="all">All Types</option>
+                        </select>
+                        <select id="repoFilter" onchange="filterRows()" class="filter-select">
+                            <option value="all">All Repo Policy</option>
+                            <option value="repo">Repo Eligible</option>
+                            <option value="db">DB Only</option>
+                        </select>
+                        <select id="flagFilter" onchange="filterRows()" class="filter-select">
+                            <option value="all">All Integrity</option>
+                            <option value="flagged">Flagged</option>
+                            <option value="clean">Clean</option>
+                        </select>
+                        <select id="workflowFilter" onchange="filterRows()" class="filter-select">
+                            <option value="all">All Workflow</option>
+                            <option value="pending">Pending</option>
+                            <option value="review">Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="pushed">Pushed</option>
+                        </select>
+                        <select id="assignmentFilter" onchange="filterRows()" class="filter-select" style="min-width:220px;">
+                            <option value="all">All Assignments</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button id="exportCsvBtn" onclick="exportFilteredCsv()" class="btn" style="background:#0f766e;color:#fff;">
+                            <i data-lucide="download"></i> Export CSV
+                        </button>
+                        <button id="bulkPushBtn" onclick="pushSelected()" class="btn" style="background: var(--emerald); color: white; opacity: 0.5; pointer-events: none;">
+                            <i data-lucide="layers"></i> Push Selected (0)
+                        </button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>TYPE</th>
+                            <th>IDENTIFIER / FILENAME</th>
+                            <th>MODE / GRADE</th>
+                            <th>STAGED DATE</th>
+                            <th style="text-align: right;">REVIEW</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionRows"></tbody>
+                </table>
+            </div>
+        </details>
     </div>
 
     <div id="reviewModal" class="modal-overlay" style="display:none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
@@ -158,7 +253,7 @@
                 <textarea id="editJson" class="edit-area" spellcheck="false"></textarea>
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 160px; gap: 10px; margin-bottom: 24px;">
+            <div style="display: grid; grid-template-columns: 1fr 160px 190px; gap: 10px; margin-bottom: 14px;">
                 <div>
                     <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Submission Mode</label>
                     <select id="submissionMode" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
@@ -170,11 +265,52 @@
                     <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Grade</label>
                     <input id="gradeInput" type="number" min="0" max="100" step="1" placeholder="0-100" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;box-sizing:border-box;">
                 </div>
+                <div>
+                    <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Workflow State</label>
+                    <select id="approvalState" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                        <option value="review">Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 180px;gap:10px;margin-bottom:14px;">
+                <div>
+                    <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Rubric Template</label>
+                    <select id="rubricTemplate" style="width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;">
+                        <option value="">Choose template...</option>
+                        <option value="fast_consistent">Fast + Consistent</option>
+                        <option value="accurate_but_slow">Accurate but Slow</option>
+                        <option value="needs_consistency">Needs Consistency</option>
+                        <option value="needs_major_revision">Major Revision Required</option>
+                    </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                    <button id="applyRubricBtn" class="btn" style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;width:100%;justify-content:center;">Apply Rubric</button>
+                </div>
             </div>
             <div style="margin-bottom: 24px;">
                 <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Reviewer Note</label>
                 <textarea id="reviewNoteInput" placeholder="Optional note for student/admin..." style="width:100%;min-height:70px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;resize:vertical;box-sizing:border-box;"></textarea>
             </div>
+            <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <label style="display:block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Workflow Timeline</label>
+                    <div id="workflowStatusBadge"></div>
+                </div>
+                <div id="workflowTimeline" class="timeline"></div>
+            </div>
+            <details open style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+                <summary style="padding:10px 12px;background:#f8fafc;cursor:pointer;font-weight:700;color:#334155;">Side-by-side JSON Diff Preview</summary>
+                <div style="padding:10px;">
+                    <div id="jsonDiffSummary" style="font-size:0.82rem;color:#64748b;margin-bottom:8px;">No changes.</div>
+                    <div class="diff-grid">
+                        <div class="diff-pane"><pre id="originalJsonView"></pre></div>
+                        <div class="diff-pane"><pre id="editedJsonView"></pre></div>
+                    </div>
+                </div>
+            </details>
 
             <div style="display: flex; justify-content: flex-end; gap: 12px;">
                 <button onclick="document.getElementById('reviewModal').style.display='none'" class="btn" style="background: transparent; color: #64748b;">Cancel</button>
@@ -187,6 +323,34 @@
     <script>
         let currentSubmissions = [];
         let filteredSubmissions = [];
+        let reviewContext = { originalName: '', originalJsonText: '', activeId: null };
+
+        const RUBRIC_TEMPLATES = {
+            fast_consistent: {
+                grade: 95,
+                submissionMode: 'quiz',
+                approvalState: 'approved',
+                note: 'Fast delivery with strong consistency in transitions and naming. Ready for approval.'
+            },
+            accurate_but_slow: {
+                grade: 84,
+                submissionMode: 'quiz',
+                approvalState: 'review',
+                note: 'Logic is accurate, but speed/timing can improve. Keep consistency and optimize execution.'
+            },
+            needs_consistency: {
+                grade: 68,
+                submissionMode: 'practice',
+                approvalState: 'review',
+                note: 'Core idea is visible, but transition consistency and state labeling need improvement.'
+            },
+            needs_major_revision: {
+                grade: 42,
+                submissionMode: 'practice',
+                approvalState: 'rejected',
+                note: 'Major revision required: transitions and workflow assumptions are currently inconsistent.'
+            }
+        };
 
         function esc(v) {
             return String(v ?? '')
@@ -208,10 +372,135 @@
             return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
         }
 
+        function workflowStateOf(sub) {
+            const raw = String(sub?.status || 'pending').trim().toLowerCase();
+            if (['pending', 'review', 'approved', 'rejected', 'pushed'].includes(raw)) return raw;
+            return 'pending';
+        }
+
+        function stateBadgeHtml(status) {
+            const map = {
+                pending: '<span class="wf-badge wf-pending">pending</span>',
+                review: '<span class="wf-badge wf-review">review</span>',
+                approved: '<span class="wf-badge wf-approved">approved</span>',
+                rejected: '<span class="wf-badge wf-rejected">rejected</span>',
+                pushed: '<span class="wf-badge wf-pushed">pushed</span>'
+            };
+            return map[status] || map.pending;
+        }
+
+        function ageHours(sub) {
+            const n = Number(sub?.age_hours);
+            if (Number.isFinite(n)) return n;
+            const created = new Date(sub?.created_at || '');
+            if (Number.isNaN(created.getTime())) return 0;
+            return (Date.now() - created.getTime()) / 3600000;
+        }
+
+        function buildTimelineHtml(sub) {
+            const status = workflowStateOf(sub);
+            const done = new Set(['pending']);
+            if (sub.reviewed_at || ['review', 'approved', 'rejected', 'pushed'].includes(status)) done.add('review');
+            if (sub.approved_at || ['approved', 'pushed'].includes(status)) done.add('approved');
+            if (sub.rejected_at || status === 'rejected') done.add('rejected');
+            if (sub.pushed_at || status === 'pushed') done.add('pushed');
+
+            const item = (key, label, stamp) => `<span class="timeline-step ${done.has(key) ? 'done' : ''}" title="${esc(stamp || '')}">${label}${stamp ? ` • ${esc(toLocalDate(stamp))}` : ''}</span>`;
+            return [
+                item('pending', 'Pending', sub.created_at),
+                item('review', 'Review', sub.reviewed_at),
+                item('approved', 'Approved', sub.approved_at),
+                item('rejected', 'Rejected', sub.rejected_at),
+                item('pushed', 'Pushed', sub.pushed_at)
+            ].join('');
+        }
+
+        function htmlLine(text, cls = '') {
+            const classAttr = cls ? ` class="${cls}"` : '';
+            return `<div${classAttr}>${esc(text)}</div>`;
+        }
+
+        function renderJsonDiffPreview() {
+            const original = String(reviewContext.originalJsonText || '');
+            let edited = '';
+            try {
+                edited = JSON.stringify(JSON.parse(document.getElementById('editJson').value || '{}'), null, 2);
+            } catch (_e) {
+                edited = document.getElementById('editJson').value || '';
+            }
+
+            const left = original.split('\n');
+            const right = edited.split('\n');
+            const max = Math.max(left.length, right.length);
+            let changed = 0;
+            let added = 0;
+            let removed = 0;
+
+            const leftHtml = [];
+            const rightHtml = [];
+            for (let i = 0; i < max; i += 1) {
+                const l = left[i] ?? '';
+                const r = right[i] ?? '';
+                if (l === r) {
+                    leftHtml.push(htmlLine(l));
+                    rightHtml.push(htmlLine(r));
+                } else {
+                    changed += 1;
+                    if (l && !r) removed += 1;
+                    if (!l && r) added += 1;
+                    leftHtml.push(htmlLine(l, l ? 'diff-del' : ''));
+                    rightHtml.push(htmlLine(r, r ? 'diff-add' : ''));
+                }
+            }
+
+            const same = changed === 0;
+            const summary = same
+                ? 'No JSON changes detected.'
+                : `Changed lines: ${changed} | Added: ${added} | Removed: ${removed}`;
+
+            const leftHost = document.getElementById('originalJsonView');
+            const rightHost = document.getElementById('editedJsonView');
+            const summaryHost = document.getElementById('jsonDiffSummary');
+            if (leftHost) leftHost.innerHTML = leftHtml.join('');
+            if (rightHost) rightHost.innerHTML = rightHtml.join('');
+            if (summaryHost) summaryHost.textContent = summary;
+        }
+
+        function updateSlaDashboard(rows) {
+            const all = Array.isArray(rows) ? rows : [];
+            const openRows = all.filter((s) => ['pending', 'review', 'approved'].includes(workflowStateOf(s)));
+            const warn24 = all.filter((s) => workflowStateOf(s) === 'pending' && ageHours(s) >= 24 && ageHours(s) < 48);
+            const crit48 = all.filter((s) => workflowStateOf(s) === 'pending' && ageHours(s) >= 48);
+            const pushed = all.filter((s) => workflowStateOf(s) === 'pushed');
+
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = String(val);
+            };
+            setText('slaOpenCount', openRows.length);
+            setText('slaWarn24Count', warn24.length);
+            setText('slaCrit48Count', crit48.length);
+            setText('slaPushedCount', pushed.length);
+        }
+
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg; t.style.display = 'block';
             setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        function persistPortalPanels() {
+            ['slaPanel', 'assignmentPanel', 'queuePanel'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const key = `portal-panel-${id}`;
+                const cached = localStorage.getItem(key);
+                if (cached === 'closed') el.open = false;
+                if (cached === 'open') el.open = true;
+                el.addEventListener('toggle', () => {
+                    localStorage.setItem(key, el.open ? 'open' : 'closed');
+                });
+            });
         }
 
         function checkAccess() {
@@ -231,16 +520,19 @@
             if (!res.ok) { showToast("Invalid access key"); logout(); return; }
             
             currentSubmissions = await res.json();
-            document.getElementById('pendingCount').textContent = `${currentSubmissions.length} Pending`;
+            const pendingOnly = currentSubmissions.filter((s) => workflowStateOf(s) === 'pending').length;
+            document.getElementById('pendingCount').textContent = `${pendingOnly} Pending`;
             rebuildAssignmentFilter();
+            rebuildTypeFilter();
             filterRows();
+            updateSlaDashboard(currentSubmissions);
             refreshActiveAssignmentsHint();
         }
 
         function renderTable(data) {
             filteredSubmissions = data;
             document.getElementById('submissionRows').innerHTML = data.map((sub, idx) => `
-                <tr>
+                <tr class="${workflowStateOf(sub) === 'pending' && ageHours(sub) >= 48 ? 'row-sla-critical' : (workflowStateOf(sub) === 'pending' && ageHours(sub) >= 24 ? 'row-sla-warning' : '')}">
                     <td style="text-align: center;"><input type="checkbox" class="sub-checker" value="${sub.id}" onclick="updateBulkButtonStyle()" style="cursor:pointer;"></td>
                     <td><span class="badge ${esc(sub.type)}" style="padding: 4px 10px; border-radius: 6px; font-size: 0.7em; font-weight: 800;">${esc(sub.type)}</span></td>
                     <td style="font-weight: 600; color: #1e293b;">
@@ -253,11 +545,18 @@
                     <td style="font-size: 0.85em; color: #475569;">
                         <div>${esc(sub.submission_mode || '-')}</div>
                         <div style="color:#0f766e;font-weight:700;">${(sub.grade ?? sub.grade === 0) ? `Grade: ${sub.grade}` : 'Ungraded'}</div>
-                        <div style="color:${sub.suspicious_flag ? '#b91c1c' : '#64748b'};font-weight:${sub.suspicious_flag ? '700' : '500'};" title="${esc(sub.suspicious_reason || '')}">
+                        <div style="margin-top:3px;">${stateBadgeHtml(workflowStateOf(sub))}</div>
+                        <div style="color:${sub.suspicious_flag ? '#b91c1c' : '#64748b'};font-weight:${sub.suspicious_flag ? '700' : '500'};margin-top:3px;" title="${esc(sub.suspicious_reason || '')}">
                             ${sub.suspicious_flag ? 'Flagged' : 'Clean'}
                         </div>
+                        <div class="timeline">${buildTimelineHtml(sub)}</div>
                     </td>
-                    <td style="color: #94a3b8; font-size: 0.85em;">${esc(toLocalDate(sub.created_at))}</td>
+                    <td style="color: #94a3b8; font-size: 0.85em;">
+                        <div>${esc(toLocalDate(sub.created_at))}</div>
+                        <div style="margin-top:3px;font-weight:700;color:${ageHours(sub) >= 48 ? '#9f1239' : (ageHours(sub) >= 24 ? '#92400e' : '#64748b')}">
+                            ${Math.floor(ageHours(sub))}h age
+                        </div>
+                    </td>
                     <td style="text-align: right;">
                         <button onclick="openReview(${Number(sub.id)})" class="btn" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 6px 12px; margin-left: auto;">
                             <i data-lucide="edit-3" style="width: 14px;"></i> Review
@@ -267,6 +566,9 @@
             `).join('');
             lucide.createIcons();
             updateBulkButtonStyle();
+            const visibleTag = document.getElementById('visibleCount');
+            if (visibleTag) visibleTag.textContent = `${data.length} visible`;
+            updateSlaDashboard(currentSubmissions);
         }
 
         function rebuildAssignmentFilter() {
@@ -279,17 +581,35 @@
             sel.value = hasPrev ? prev : 'all';
         }
 
+        function rebuildTypeFilter() {
+            const sel = document.getElementById('typeFilter');
+            if (!sel) return;
+            const prev = sel.value || 'all';
+            const types = Array.from(new Set(currentSubmissions.map((s) => String(s.type || '').trim().toUpperCase()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+            sel.innerHTML = `<option value="all">All Types</option>${types.map((t) => `<option value="${encodeURIComponent(t)}">${esc(t)}</option>`).join('')}`;
+            const hasPrev = Array.from(sel.options).some((o) => o.value === prev);
+            sel.value = hasPrev ? prev : 'all';
+        }
+
         function filterRows() {
             const q = document.getElementById('searchTerm').value.toLowerCase();
             const mode = document.getElementById('modeFilter')?.value || 'all';
+            const type = document.getElementById('typeFilter')?.value || 'all';
+            const repo = document.getElementById('repoFilter')?.value || 'all';
+            const flag = document.getElementById('flagFilter')?.value || 'all';
+            const workflow = document.getElementById('workflowFilter')?.value || 'all';
             const assignment = document.getElementById('assignmentFilter')?.value || 'all';
             const filtered = currentSubmissions.filter((s) => {
                 const hitSearch = (s.name || '').toLowerCase().includes(q) || (s.type || '').toLowerCase().includes(q);
                 const hitMode = mode === 'all' || (s.submission_mode || '').toLowerCase() === mode;
+                const hitType = type === 'all' || (s.type || '').toUpperCase() === decodeURIComponent(type);
+                const hitRepo = repo === 'all' || (repo === 'repo' ? !!s.repo_eligible : !s.repo_eligible);
+                const hitFlag = flag === 'all' || (flag === 'flagged' ? !!s.suspicious_flag : !s.suspicious_flag);
+                const hitWorkflow = workflow === 'all' || workflowStateOf(s) === workflow;
                 let hitAssignment = true;
                 if (assignment === 'none') hitAssignment = !(s.assignment_title || '').trim();
                 else if (assignment !== 'all') hitAssignment = (s.assignment_title || '') === decodeURIComponent(assignment);
-                return hitSearch && hitMode && hitAssignment;
+                return hitSearch && hitMode && hitType && hitRepo && hitFlag && hitWorkflow && hitAssignment;
             });
             renderTable(filtered);
         }
@@ -321,18 +641,34 @@
                 showToast("Submission not found");
                 return;
             }
+            const workflow = workflowStateOf(sub);
+            const originalPretty = JSON.stringify(sub.data || {}, null, 2);
+            reviewContext = {
+                originalName: String(sub.name || ''),
+                originalJsonText: originalPretty,
+                activeId: Number(sub.id)
+            };
             document.getElementById('prefixLabel').textContent = sub.type.toLowerCase() + "_";
             document.getElementById('editName').value = sub.name;
-            document.getElementById('editJson').value = JSON.stringify(sub.data, null, 4);
+            document.getElementById('editJson').value = originalPretty;
             document.getElementById('submissionMode').value = sub.submission_mode || 'practice';
             document.getElementById('gradeInput').value = (sub.grade ?? '') === '' ? '' : sub.grade;
             document.getElementById('reviewNoteInput').value = sub.review_note || '';
+            document.getElementById('approvalState').value = workflow === 'pushed' ? 'approved' : workflow;
+            document.getElementById('rubricTemplate').value = '';
+            document.getElementById('workflowTimeline').innerHTML = buildTimelineHtml(sub);
+            document.getElementById('workflowStatusBadge').innerHTML = stateBadgeHtml(workflow);
             document.getElementById('reviewModal').style.display = 'flex';
+            renderJsonDiffPreview();
             const pushBtn = document.getElementById('pushConfirmBtn');
-            pushBtn.disabled = !sub.repo_eligible;
-            pushBtn.style.opacity = sub.repo_eligible ? '1' : '0.5';
-            pushBtn.style.pointerEvents = sub.repo_eligible ? 'auto' : 'none';
-            pushBtn.textContent = sub.repo_eligible ? 'Confirm & Commit to GitHub' : 'DB-Only Submission';
+            const pushAllowed = !!sub.repo_eligible && !['rejected', 'pushed'].includes(workflow);
+            pushBtn.disabled = !pushAllowed;
+            pushBtn.style.opacity = pushAllowed ? '1' : '0.5';
+            pushBtn.style.pointerEvents = pushAllowed ? 'auto' : 'none';
+            if (!sub.repo_eligible) pushBtn.textContent = 'DB-Only Submission';
+            else if (workflow === 'pushed') pushBtn.textContent = 'Already Pushed';
+            else if (workflow === 'rejected') pushBtn.textContent = 'Rejected: Push Blocked';
+            else pushBtn.textContent = 'Confirm & Commit to GitHub';
             pushBtn.onclick = () => pushToLibrary(sub.id);
             document.getElementById('saveReviewBtn').onclick = () => saveReview(sub.id);
         }
@@ -341,6 +677,7 @@
             const mode = document.getElementById('submissionMode').value;
             const gradeRaw = document.getElementById('gradeInput').value.trim();
             const note = document.getElementById('reviewNoteInput').value.trim();
+            const approvalState = document.getElementById('approvalState').value || 'review';
             const grade = gradeRaw === '' ? null : Number(gradeRaw);
 
             if (grade !== null && (Number.isNaN(grade) || grade < 0 || grade > 100)) {
@@ -354,16 +691,27 @@
                     'Content-Type': 'application/json',
                     'X-Architect-Key': sessionStorage.getItem('architect_key')
                 },
-                body: JSON.stringify({ id, submissionMode: mode, grade, reviewNote: note })
+                body: JSON.stringify({ id, submissionMode: mode, grade, reviewNote: note, approvalState })
             });
 
             if (res.ok) {
-                showToast("Review saved");
+                showToast(`Review saved (${approvalState})`);
                 fetchSubmissions();
             } else {
                 const msg = await res.text();
                 showToast(`Failed to save review: ${msg}`);
             }
+        }
+
+        function applyRubricTemplate() {
+            const key = document.getElementById('rubricTemplate').value;
+            const t = RUBRIC_TEMPLATES[key];
+            if (!t) return;
+            document.getElementById('gradeInput').value = String(t.grade);
+            document.getElementById('submissionMode').value = t.submissionMode;
+            document.getElementById('approvalState').value = t.approvalState;
+            document.getElementById('reviewNoteInput').value = t.note;
+            showToast('Rubric template applied');
         }
 
         async function pushToLibrary(id) {
@@ -419,7 +767,8 @@
             const header = [
                 'id', 'name', 'type', 'submission_mode', 'assignment_id', 'assignment_title',
                 'author', 'student_year', 'student_section', 'student_branch', 'student_roll',
-                'grade', 'review_note', 'status', 'suspicious_flag', 'suspicious_reason', 'client_fingerprint', 'created_at'
+                'grade', 'review_note', 'status', 'reviewed_at', 'approved_at', 'rejected_at', 'pushed_at',
+                'suspicious_flag', 'suspicious_reason', 'client_fingerprint', 'created_at', 'age_hours'
             ];
             const lines = [header.join(',')];
             rows.forEach((r) => {
@@ -438,10 +787,15 @@
                     csvEscape(r.grade),
                     csvEscape(r.review_note),
                     csvEscape(r.status),
+                    csvEscape(r.reviewed_at),
+                    csvEscape(r.approved_at),
+                    csvEscape(r.rejected_at),
+                    csvEscape(r.pushed_at),
                     csvEscape(r.suspicious_flag),
                     csvEscape(r.suspicious_reason),
                     csvEscape(r.client_fingerprint),
-                    csvEscape(r.created_at)
+                    csvEscape(r.created_at),
+                    csvEscape(r.age_hours)
                 ].join(','));
             });
             const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
@@ -507,7 +861,14 @@
             document.getElementById('activeAssignmentHint').textContent = `${list.length} active assignment(s)`;
         }
 
+        document.getElementById('applyRubricBtn')?.addEventListener('click', applyRubricTemplate);
+        document.getElementById('editJson')?.addEventListener('input', renderJsonDiffPreview);
+        document.getElementById('approvalState')?.addEventListener('change', (e) => {
+            document.getElementById('workflowStatusBadge').innerHTML = stateBadgeHtml(String(e.target.value || 'review'));
+        });
+
         function logout() { sessionStorage.removeItem('architect_key'); location.reload(); }
+        persistPortalPanels();
         if (sessionStorage.getItem('architect_key')) checkAccess();
     </script>
 </body>

@@ -145,12 +145,6 @@
     <details class="help-accordion" id="help-section-tools">
       <summary>App Tool Guide</summary>
       <div class="help-accordion-content" id="tool-guide">
-        <div class="chip-row" style="margin-bottom:10px;">
-          <a href="#tool-guide" class="splash-utility-btn">Tool Guide</a>
-          <a href="#theory-lab" class="splash-utility-btn">Theory Lab</a>
-          <a href="#quiz-lab" class="splash-utility-btn">Quiz Lab</a>
-          <a href="index.html" class="splash-utility-btn">Back to Menu</a>
-        </div>
         <div class="guide-hero">
           <h3 style="margin:0;">Operator Playbook</h3>
           <p style="margin:8px 0 0 0;">Choose a studio and get a focused workflow, core shortcuts, and failure checks before submission.</p>
@@ -203,6 +197,11 @@
               <span class="guide-pill">V/S/T/D Tool Switch</span>
               <span class="guide-pill">Enter Run</span>
               <span class="guide-pill">Esc Clear</span>
+              <span class="guide-pill">Ctrl+Alt+1 FA</span>
+              <span class="guide-pill">Ctrl+Alt+2 MM</span>
+              <span class="guide-pill">Ctrl+Alt+3 PDA</span>
+              <span class="guide-pill">Ctrl+Alt+4 TM</span>
+              <span class="guide-pill">Ctrl+Alt+5 Grammar</span>
             </div>
             <div class="guide-alert">Tip: If import looks wrong, re-import from any studio. Smart router will auto-switch to the right machine page and animate drawing.</div>
           </div>
@@ -328,7 +327,7 @@
 
       <article class="theory-card">
         <h3 style="margin-top:0;">Shortcut Trainer</h3>
-        <p>Try keys: <code>Ctrl+S</code>, <code>Ctrl+E</code>, <code>V</code>, <code>T</code>, <code>D</code>, <code>Enter</code>.</p>
+        <p>Try keys: <code>Ctrl+S</code>, <code>Ctrl+E</code>, <code>V</code>, <code>T</code>, <code>D</code>, <code>Enter</code>, <code>Ctrl+Alt+1..5</code>.</p>
         <div id="shortcutOutput" class="integration-status">Waiting for key input...</div>
       </article>
     </section>
@@ -728,10 +727,11 @@
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
       const parts = [];
       if (e.ctrlKey || e.metaKey) parts.push('Ctrl/Cmd');
+      if (e.altKey) parts.push('Alt');
       if (e.shiftKey) parts.push('Shift');
       parts.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
       const combo = parts.join('+').replace('Esc', 'Escape');
-      const known = ['Ctrl/Cmd+S', 'Ctrl/Cmd+O', 'Ctrl/Cmd+E', 'Ctrl/Cmd+Z', 'Ctrl/Cmd+Y', 'V', 'S', 'T', 'D', 'Enter', 'Escape'];
+      const known = ['Ctrl/Cmd+S', 'Ctrl/Cmd+O', 'Ctrl/Cmd+E', 'Ctrl/Cmd+Z', 'Ctrl/Cmd+Y', 'Ctrl/Cmd+Alt+1', 'Ctrl/Cmd+Alt+2', 'Ctrl/Cmd+Alt+3', 'Ctrl/Cmd+Alt+4', 'Ctrl/Cmd+Alt+5', 'V', 'S', 'T', 'D', 'Enter', 'Escape'];
       shortcutOutput.textContent = known.includes(combo) ? `Recognized shortcut: ${combo}` : `Pressed: ${combo}`;
     });
 

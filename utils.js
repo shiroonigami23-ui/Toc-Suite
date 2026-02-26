@@ -151,6 +151,13 @@ export function initializeShortcuts() {
             clickIfExist(['exportPngBtn', 'pdaExportPngBtn', 'tmExportPngBtn']);
         }
 
+        // --- Machine Switching ---
+        if (ctrl && e.altKey && ['1', '2', '3', '4', '5'].includes(key)) {
+            e.preventDefault();
+            triggerMachineShortcut(key);
+            return;
+        }
+
         // --- Tool Switching (V = Pointer, S = State, T = Transition, D = Delete) ---
         if (!ctrl && key === 'v') clickAction(['tool-move', 'tm-tool-move'], ['.toolbar-icon[data-mode="move"]']);
         if (!ctrl && key === 's') clickAction(['tool-addclick', 'pda-tool-add', 'tm-tool-add'], ['.toolbar-icon[data-mode="addclick"]']);
@@ -187,6 +194,42 @@ function clickAction(ids, selectors = []) {
             return;
         }
     }
+}
+
+function triggerMachineShortcut(key) {
+    const machineByKey = {
+        '1': 'FA',
+        '2': 'MM',
+        '3': 'PDA',
+        '4': 'TM',
+        '5': 'Grammar'
+    };
+    const target = machineByKey[key];
+    if (!target) return;
+
+    const buttonByTarget = {
+        FA: 'switchToFaBtn',
+        MM: 'switchToMmBtn',
+        PDA: 'switchToPdaBtn',
+        TM: 'switchToTmBtn',
+        Grammar: 'switchToGrammarBtn'
+    };
+    if (clickIfExist([buttonByTarget[target]])) return;
+
+    if (typeof window.openStudioByMachineType === 'function') {
+        window.openStudioByMachineType(target);
+        return;
+    }
+
+    const fallbackRoute = {
+        FA: 'index.html#fa',
+        MM: 'index.html#mm',
+        PDA: 'index.html#pda',
+        TM: 'index.html#tm',
+        Grammar: 'grammar_studio.html'
+    };
+    const href = fallbackRoute[target];
+    if (href) window.location.href = href;
 }
 /**
  * Displays a styled alert modal.

@@ -2,7 +2,7 @@
 
 import { MACHINE, setMachine, pushUndo } from './moore_mealy_state.js';
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
-import { setValidationMessage, fetchWithRetry } from './utils.js';
+import { setValidationMessage, addLogMessage, fetchWithRetry } from './utils.js';
 import { animateMachineDrawing } from './animation.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { authenticateAiAccess } from './ai-auth.js';

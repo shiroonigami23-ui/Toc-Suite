@@ -92,16 +92,52 @@ export function exportPng() {
         const svgEl = document.getElementById("dfaSVG");
         const edgesG = document.getElementById("edges");
         const statesG = document.getElementById("states");
+        if (!svgEl) {
+            customAlert("Export Failed", "Canvas not found.");
+            return;
+        }
 
-        // Precise Bounding Box Union
-        const edgesBBox = edgesG.getBBox();
-        const statesBBox = statesG.getBBox();
-        const bbox = {
-            x: Math.min(edgesBBox.x, statesBBox.x),
-            y: Math.min(edgesBBox.y, statesBBox.y),
-            width: Math.max(edgesBBox.x + edgesBBox.width, statesBBox.x + statesBBox.width) - Math.min(edgesBBox.x, statesBBox.x),
-            height: Math.max(edgesBBox.y + edgesBBox.height, statesBBox.y + statesBBox.height) - Math.min(edgesBBox.y, statesBBox.y)
-        };
+        // Prefer full SVG bounds (matches FA/MM/TM), fallback to non-empty groups.
+        let bbox = null;
+        try {
+            const svgBBox = svgEl.getBBox();
+            if (svgBBox.width > 0 && svgBBox.height > 0) {
+                bbox = svgBBox;
+            }
+        } catch (err) {
+            console.warn("SVG bbox lookup failed, trying group bbox fallback.", err);
+        }
+
+        if (!bbox) {
+            const candidateBoxes = [];
+            [edgesG, statesG].forEach((group) => {
+                if (!group || group.childElementCount === 0) return;
+                try {
+                    const b = group.getBBox();
+                    if (b.width > 0 || b.height > 0) candidateBoxes.push(b);
+                } catch (err) {
+                    console.warn("Group bbox lookup failed.", err);
+                }
+            });
+
+            if (candidateBoxes.length === 0) {
+                customAlert("Export Failed", "Could not determine canvas content bounds.");
+                return;
+            }
+
+            bbox = candidateBoxes.reduce((acc, b) => {
+                const minX = Math.min(acc.x, b.x);
+                const minY = Math.min(acc.y, b.y);
+                const maxX = Math.max(acc.x + acc.width, b.x + b.width);
+                const maxY = Math.max(acc.y + acc.height, b.y + b.height);
+                return {
+                    x: minX,
+                    y: minY,
+                    width: maxX - minX,
+                    height: maxY - minY
+                };
+            });
+        }
 
         const padding = 50;
         const width = bbox.width + (padding * 2);
@@ -130,7 +166,12 @@ export function exportPng() {
             .transition-label { font-family: 'Inter', sans-serif; font-weight: 700; fill: #0b1220; font-size: 13px; }
             .transition-label-text { stroke: white; stroke-width: 4px; fill: none; }
         `;
-        svgClone.querySelector('defs').appendChild(styleEl);
+        let defs = svgClone.querySelector('defs');
+        if (!defs) {
+            defs = document.createElementNS(svgEl.namespaceURI, 'defs');
+            svgClone.prepend(defs);
+        }
+        defs.appendChild(styleEl);
 
         const svgData = new XMLSerializer().serializeToString(svgClone);
         const img = new Image();
@@ -148,6 +189,11 @@ export function exportPng() {
             a.href = canvas.toDataURL("image/png", 1.0);
             a.click();
             addLogMessage(`PDA image exported successfully.`, 'check-circle');
+        };
+        img.onerror = (err) => {
+            console.error("PDA export image conversion failed.", err);
+            customAlert("Export Failed", "Image conversion failed. Try again.");
+            URL.revokeObjectURL(url);
         };
         img.src = url;
     };

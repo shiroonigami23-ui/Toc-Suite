@@ -4,7 +4,7 @@ import { runSimulation, showStep } from './simulation.js';
 import { validateAutomaton } from './automata.js';
 import { saveMachine, loadMachine, exportPng, handleSaveWithMetadata, handleImageUpload, handleAiGeneration } from './file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './practice.js';
-import { setValidationMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
+import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from './utils.js';
 import { areEquivalent } from './equivalence.js';
 import { animateEnfaToNfa, animateNfaToDfa, animateDfaToMinDfa, animateNfaToMinDfa } from './conversion-animation.js';
 import { updateFaLogicDisplay, exportFaTableToExcel } from './fa_logic_table.js';
@@ -158,6 +158,7 @@ export function initializeUI() {
             setTransFrom(null);
             document.querySelectorAll('.state-circle.state-selected').forEach(c => c.classList.remove('state-selected'));
             if (svg) svg.className.baseVal = `mode-${tool.dataset.mode}`;
+            addLogMessage(`FA tool changed to <strong>${String(tool.dataset.mode || '').toUpperCase()}</strong>.`, 'mouse-pointer');
             renderAll();
         });
     });
@@ -263,6 +264,7 @@ export function initializeUI() {
             
             pushUndo(updateUndoRedoButtons);
             MACHINE.transitions.push({ from, to, symbol: symbolValue });
+            addLogMessage(`FA transition added: <strong>${from}</strong> --${symbolValue || 'ε'}--> <strong>${to}</strong>.`, 'git-branch');
             renderAll();
             hideTransModal();
         };
@@ -295,6 +297,7 @@ export function initializeUI() {
                 }
                 s.initial = isInitial;
                 s.accepting = isAccepting;
+                addLogMessage(`FA state updated: <strong>${stateId}</strong> (initial=${isInitial}, accepting=${isAccepting}).`, 'settings');
                 enforceInitialStateRule();
                 renderAll();
             }
@@ -329,6 +332,7 @@ export function initializeUI() {
                 if (t.from === oldId) t.from = newId;
                 if (t.to === oldId) t.to = newId;
             });
+            addLogMessage(`FA state renamed: <strong>${oldId}</strong> -> <strong>${newId}</strong>.`, 'edit-3');
             renderAll();
             if (modal) modal.style.display = 'none';
         };
@@ -345,6 +349,7 @@ export function initializeUI() {
         document.getElementById('confirmClearConfirm').onclick = () => {
             pushUndo(updateUndoRedoButtons);
             initializeState(updateUndoRedoButtons);
+            addLogMessage('FA canvas cleared.', 'file-x');
             renderAll();
             if (document.getElementById('confirmClearModal')) {
                 document.getElementById('confirmClearModal').style.display = 'none';
@@ -394,8 +399,14 @@ export function initializeUI() {
     }
 
 
-    if (undoBtn) undoBtn.addEventListener('click', () => doUndo(updateUndoRedoButtons));
-    if (redoBtn) redoBtn.addEventListener('click', () => doRedo(updateUndoRedoButtons));
+    if (undoBtn) undoBtn.addEventListener('click', () => {
+        doUndo(updateUndoRedoButtons);
+        addLogMessage('FA undo applied.', 'undo-2');
+    });
+    if (redoBtn) redoBtn.addEventListener('click', () => {
+        doRedo(updateUndoRedoButtons);
+        addLogMessage('FA redo applied.', 'redo-2');
+    });
     if (saveMachineBtn) saveMachineBtn.addEventListener('click', saveMachine);
     if (loadMachineBtn) loadMachineBtn.addEventListener('click', () => {
         const fileInput = document.getElementById('loadFileInput');
@@ -411,6 +422,7 @@ export function initializeUI() {
         validateBtn.addEventListener('click', () => {
             const result = validateAutomaton();
             setValidationMessage(result.message, result.type);
+            addLogMessage(`FA audit: ${result.message}`, result.type === 'error' ? 'alert-octagon' : (result.type === 'warning' ? 'alert-triangle' : 'shield-check'));
         });
     }
 
@@ -431,15 +443,19 @@ export function initializeUI() {
                     if (newMode === 'ENFA_TO_NFA') {
                         await animateEnfaToNfa(MACHINE, updateUndoRedoButtons);
                         modeSelect.value = 'NFA';
+                        addLogMessage('FA conversion complete: ε-NFA -> NFA.', 'sparkles');
                     } else if (newMode === 'NFA_TO_DFA') {
                         await animateNfaToDfa(MACHINE, updateUndoRedoButtons);
                         modeSelect.value = 'DFA';
+                        addLogMessage('FA conversion complete: NFA -> DFA.', 'sparkles');
                     } else if (newMode === 'DFA_TO_MIN_DFA') {
                         await animateDfaToMinDfa(MACHINE, updateUndoRedoButtons);
                         modeSelect.value = 'DFA';
+                        addLogMessage('FA minimization complete: DFA -> Minimal DFA.', 'sparkles');
                     } else if (newMode === 'NFA_TO_MIN_DFA') {
                         await animateNfaToMinDfa(MACHINE, updateUndoRedoButtons);
                         modeSelect.value = 'DFA';
+                        addLogMessage('FA conversion complete: NFA -> Minimal DFA.', 'sparkles');
                     }
                     MACHINE.type = modeSelect.value;
                 } catch (err) {
@@ -450,17 +466,23 @@ export function initializeUI() {
                 }
             } else {
                 MACHINE.type = newMode;
+                addLogMessage(`FA mode switched to <strong>${newMode}</strong>.`, 'zap');
                 renderAll();
             }
         });
     }
 
-    if(runTestBtn) runTestBtn.addEventListener('click', () => runSimulation(testInput ? testInput.value : ''));
+    if(runTestBtn) runTestBtn.addEventListener('click', () => {
+        const input = testInput ? testInput.value : '';
+        addLogMessage(`FA test run started for input "${input || 'ε'}".`, 'flask-conical');
+        runSimulation(input);
+    });
     if(genRandBtn) genRandBtn.addEventListener('click', () => {
         const alphabet = [...new Set(MACHINE.transitions.map(t => t.symbol).filter(s => s))]
         const effectiveAlphabet = alphabet.length > 0 ? alphabet : ['0', '1'];
         const len = Math.floor(Math.random() * 8) + 3;
         if(testInput) testInput.value = Array.from({ length: len }, () => effectiveAlphabet[Math.floor(Math.random() * effectiveAlphabet.length)]).join('');
+        addLogMessage(`FA random string generated: "${testInput ? (testInput.value || '') : ''}".`, 'dice-5');
     });
     if(stepNextBtn) stepNextBtn.addEventListener('click', () => showStep(++simState.index));
     if(stepPrevBtn) stepPrevBtn.addEventListener('click', () => showStep(--simState.index));
@@ -472,6 +494,7 @@ export function initializeUI() {
         if (stepLog) stepLog.innerHTML = '';
         if (document.getElementById('testOutput')) document.getElementById('testOutput').textContent = 'Ready';
         renderAll();
+        addLogMessage('FA simulation reset.', 'refresh-ccw');
     });
 
     if(genPracticeBtn) genPracticeBtn.addEventListener('click', () => {
@@ -538,6 +561,7 @@ function handleBackToMenu() {
     setTimeout(() => {
         splashScreen.style.opacity = '1';
     }, 50);
+    addLogMessage('Exited FA studio to main menu.', 'home');
 }
     
     const backToMenuBtn = document.getElementById('backToMenuBtn');
@@ -562,6 +586,7 @@ function handleBackToMenu() {
     setZoom(100);
 
     let dragging = false, currentStateG = null, dragOffsetX = 0, dragOffsetY = 0;
+    let dragStartSnapshot = null;
 
     function getPoint(evt) {
         const svg = document.getElementById('dfaSVG');
@@ -585,6 +610,7 @@ function handleBackToMenu() {
         dragging = true; currentStateG = stateG;
         const p = getPoint(e);
         dragOffsetX = p.x - sObj.x; dragOffsetY = p.y - sObj.y;
+        dragStartSnapshot = { id: sObj.id, x: sObj.x, y: sObj.y };
         
         const circle = stateG.querySelector('circle');
         if(circle) circle.classList.add('state-selected');
@@ -602,11 +628,19 @@ function handleBackToMenu() {
 
     function endDrag() {
         if (!dragging) return;
+        const movedState = currentStateG ? MACHINE.states.find(x => x.id === currentStateG.getAttribute('data-id')) : null;
         dragging = false;
         if(currentStateG) {
             const circle = currentStateG.querySelector('circle');
             if(circle) circle.classList.remove('state-selected');
         }
+        if (dragStartSnapshot && movedState) {
+            addLogMessage(
+                `FA state moved: <strong>${dragStartSnapshot.id}</strong> (${Math.round(dragStartSnapshot.x)},${Math.round(dragStartSnapshot.y)}) -> (${Math.round(movedState.x)},${Math.round(movedState.y)}).`,
+                'move'
+            );
+        }
+        dragStartSnapshot = null;
         currentStateG = null;
     }
 
@@ -673,6 +707,7 @@ function addState(x, y) {
     const newId = 'q' + (maxId + 1);
     pushUndo(updateUndoRedoButtons);
     MACHINE.states.push({ id: newId, x, y, initial: MACHINE.states.length === 0, accepting: false });
+    addLogMessage(`FA state added: <strong>${newId}</strong> at (${Math.round(x)}, ${Math.round(y)}).`, 'plus-circle');
     enforceInitialStateRule();
     renderAll();
     const stateG = document.querySelector(`g[data-id="${newId}"] circle`);
@@ -689,6 +724,7 @@ function deleteState(id) {
         states: MACHINE.states.filter(s => s.id !== id),
         transitions: MACHINE.transitions.filter(t => t.from !== id && t.to !== id)
     });
+    addLogMessage(`FA state deleted: <strong>${id}</strong> (with linked transitions).`, 'trash-2');
     enforceInitialStateRule();
     renderAll();
 }
@@ -705,6 +741,7 @@ function deleteTransition(from, to, symbol) {
 
     if (indexToDelete > -1) {
         MACHINE.transitions.splice(indexToDelete, 1);
+        addLogMessage(`FA transition deleted: <strong>${from}</strong> --${symbolToMatch || 'ε'}--> <strong>${to}</strong>.`, 'trash-2');
         renderAll();
     }
 }

@@ -1,6 +1,6 @@
 import { MACHINE, setMachine, pushUndo } from './state.js';
 import { renderAll, layoutStatesCircular } from './renderer.js';
-import { setValidationMessage, fetchWithRetry } from './utils.js';
+import { setValidationMessage, addLogMessage, fetchWithRetry } from './utils.js';
 import { animateMachineDrawing } from './animation.js';
 // NEW: Import the conversion functions we will now use locally
 import { convertNfaToDfa, minimizeDfa } from './automata.js';

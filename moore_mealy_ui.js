@@ -204,6 +204,7 @@ function handleRenameSave() {
         if (t.from === oldId) t.from = newId;
         if (t.to === oldId) t.to = newId;
     });
+    addLogMessage(`MM state renamed: <strong>${oldId}</strong> -> <strong>${newId}</strong>.`, 'edit-3');
     renderAll();
     if (modal) modal.style.display = 'none';
 }
@@ -237,6 +238,7 @@ function handleBackToMenu() {
     setTimeout(() => {
         splashScreen.style.opacity = '1';
     }, 50);
+    addLogMessage('Exited MM studio to main menu.', 'home');
 }
 
 
@@ -266,6 +268,7 @@ function addState(x, y) {
             initial: MACHINE.states.length === 0, 
             // Ensure Mealy does NOT get an output field
         });
+        addLogMessage(`MM state added: <strong>${newId}</strong> at (${Math.round(x)}, ${Math.round(y)}).`, 'plus-circle');
         enforceInitialStateRule();
         renderAll();
         const stateG = document.querySelector(`g[data-id="${newId}"] circle`);
@@ -290,6 +293,7 @@ function deleteState(id) {
     pushUndo(updateUndoRedoButtons);
     MACHINE.states = MACHINE.states.filter(s => s.id !== id);
     MACHINE.transitions = MACHINE.transitions.filter(t => t.from !== id && t.to !== id);
+    addLogMessage(`MM state deleted: <strong>${id}</strong> (with linked transitions).`, 'trash-2');
     
     // Note: enforceInitialStateRule handles re-assigning initial status if necessary
     enforceInitialStateRule(); 
@@ -308,6 +312,7 @@ function deleteTransition(from, to, symbol) {
 
     if (indexToDelete > -1) {
         MACHINE.transitions.splice(indexToDelete, 1);
+        addLogMessage(`MM transition deleted: <strong>${from}</strong> --${symbol || 'ε'}--> <strong>${to}</strong>.`, 'trash-2');
         renderAll();
     } else {
         customAlert('Error', 'Transition not found for deletion.');
@@ -354,6 +359,7 @@ async function handleConversionMode(updateUIFunction) {
 
             MACHINE.type = 'MEALY';
             modeSelect.value = 'MEALY';
+            addLogMessage('MM conversion complete: Moore -> Mealy.', 'sparkles');
         } catch (err) {
             customAlert('Conversion Failed', err.message);
             modeSelect.value = oldMode; 
@@ -374,6 +380,7 @@ async function handleConversionMode(updateUIFunction) {
             
             MACHINE.type = 'MOORE';
             modeSelect.value = 'MOORE';
+            addLogMessage('MM conversion complete: Mealy -> Moore.', 'sparkles');
             renderAll();
         } catch (err) {
             customAlert('Conversion Failed', err.message);
@@ -386,6 +393,7 @@ async function handleConversionMode(updateUIFunction) {
     // 3. STANDARD MODE SWITCH
     else {
         MACHINE.type = newMode;
+        addLogMessage(`MM mode switched to <strong>${newMode}</strong>.`, 'zap');
         renderAll();
     }
 }
@@ -414,6 +422,7 @@ function setupDragAndZoom(svg, updateUndoRedoButtons, renderAll) {
     setZoom(100);
 
     let dragging = false, currentStateG = null, dragOffsetX = 0, dragOffsetY = 0;
+    let dragStartSnapshot = null;
 
     function getPoint(evt) {
         if (!svg) return { x: 0, y: 0 }; 
@@ -437,6 +446,7 @@ function setupDragAndZoom(svg, updateUndoRedoButtons, renderAll) {
             dragging = true; currentStateG = stateG;
             const p = getPoint(e);
             dragOffsetX = p.x - sObj.x; dragOffsetY = p.y - sObj.y;
+            dragStartSnapshot = { id: sObj.id, x: sObj.x, y: sObj.y };
             
             const circle = stateG.querySelector('circle');
             if(circle) circle.classList.add('state-selected');
@@ -455,11 +465,19 @@ function setupDragAndZoom(svg, updateUndoRedoButtons, renderAll) {
 
     function endDrag() {
         if (!dragging) return;
+        const movedState = currentStateG ? MACHINE.states.find(x => x.id === currentStateG.getAttribute('data-id')) : null;
         dragging = false;
         if(currentStateG) {
             const circle = currentStateG.querySelector('circle');
             if(circle) circle.classList.remove('state-selected');
         }
+        if (dragStartSnapshot && movedState) {
+            addLogMessage(
+                `MM state moved: <strong>${dragStartSnapshot.id}</strong> (${Math.round(dragStartSnapshot.x)},${Math.round(dragStartSnapshot.y)}) -> (${Math.round(movedState.x)},${Math.round(movedState.y)}).`,
+                'move'
+            );
+        }
+        dragStartSnapshot = null;
         currentStateG = null;
     }
 
@@ -541,6 +559,7 @@ function addStateInternal(x, y, isInitial, output) {
     };
     
     MACHINE.states.push(newState);
+    addLogMessage(`MM state added: <strong>${newId}</strong> at (${Math.round(x)}, ${Math.round(y)})${MACHINE.type === 'MOORE' ? ` with output "${output}"` : ''}.`, 'plus-circle');
     renderAll();
     const stateG = document.querySelector(`g[data-id="${newId}"] circle`);
     if (stateG) {
@@ -648,6 +667,7 @@ export function initializeUI() {
             setTransFrom(null);
             document.querySelectorAll('.state-circle.state-selected').forEach(c => c.classList.remove('state-selected'));
             if (svg) svg.className.baseVal = `mode-${tool.dataset.mode}`;
+            addLogMessage(`MM tool changed to <strong>${String(tool.dataset.mode || '').toUpperCase()}</strong>.`, 'mouse-pointer');
             renderAll();
         });
     });
@@ -763,11 +783,18 @@ export function initializeUI() {
     }
 
     // 5. Global Action Listeners
-    if (undoBtn) undoBtn.addEventListener('click', () => doUndo(updateUndoRedoButtons));
-    if (redoBtn) redoBtn.addEventListener('click', () => doRedo(updateUndoRedoButtons));
+    if (undoBtn) undoBtn.addEventListener('click', () => {
+        doUndo(updateUndoRedoButtons);
+        addLogMessage('MM undo applied.', 'undo-2');
+    });
+    if (redoBtn) redoBtn.addEventListener('click', () => {
+        doRedo(updateUndoRedoButtons);
+        addLogMessage('MM redo applied.', 'redo-2');
+    });
     if (validateBtn) validateBtn.addEventListener('click', () => {
         const result = validateAutomaton();
         setValidationMessage(result.message, result.type);
+        addLogMessage(`MM audit: ${result.message}`, result.type === 'error' ? 'alert-octagon' : (result.type === 'warning' ? 'alert-triangle' : 'shield-check'));
     });
     
     // File Operations
@@ -780,6 +807,7 @@ export function initializeUI() {
     if (confirmClearConfirm) confirmClearConfirm.addEventListener('click', () => {
         // Use the dedicated clear function
         handleClearCanvas(updateUndoRedoButtons);
+        addLogMessage('MM canvas cleared.', 'file-x');
     });
     if (loadMachineBtn) loadMachineBtn.addEventListener('click', () => {
         const fileInput = document.getElementById('loadFileInput');
@@ -825,7 +853,11 @@ export function initializeUI() {
     // 7. Test Panel Listeners
     const genRandBtn = document.getElementById("genRandBtn");
     
-    if(runTestBtn) runTestBtn.addEventListener('click', () => runSimulation(testInput ? testInput.value : ''));
+    if(runTestBtn) runTestBtn.addEventListener('click', () => {
+        const input = testInput ? testInput.value : '';
+        addLogMessage(`MM test run started for input "${input || 'ε'}".`, 'flask-conical');
+        runSimulation(input);
+    });
     
     // **FIXED: Random String Generator Logic**
     if(genRandBtn) genRandBtn.addEventListener('click', () => {
@@ -838,6 +870,7 @@ export function initializeUI() {
         const len = Math.floor(Math.random() * 8) + 3;
         
         if(testInput) testInput.value = Array.from({ length: len }, () => effectiveAlphabet[Math.floor(Math.random() * effectiveAlphabet.length)]).join('');
+        addLogMessage(`MM random string generated: "${testInput ? (testInput.value || '') : ''}".`, 'dice-5');
     });
     
     if(genPracticeBtn) genPracticeBtn.addEventListener('click', () => {
@@ -877,6 +910,7 @@ export function initializeUI() {
             state.initial = isInitial;
             // CRITICAL: Ensure no 'accepting' field remains
             delete state.accepting; 
+            addLogMessage(`Mealy state updated: <strong>${stateId}</strong> (initial=${isInitial}).`, 'settings');
             renderAll();
         }
         hideModals();
@@ -920,6 +954,7 @@ export function initializeUI() {
             }
             // Add the state, which handles undo/render internally
             addStateInternal(x, y, isInitial, output);
+            addLogMessage(`Moore state created at (${Math.round(x)}, ${Math.round(y)}) with output "${output}".`, 'plus-circle');
         } else {
             // Existing state editing path
             const state = MACHINE.states.find(s => s.id === stateId);
@@ -932,6 +967,7 @@ export function initializeUI() {
                 }
                 state.initial = isInitial;
                 delete state.accepting; // Safety net for Moore machines
+                addLogMessage(`Moore state updated: <strong>${state.id}</strong> (initial=${isInitial}, output="${output}").`, 'settings');
                 renderAll();
             }
         }
@@ -973,6 +1009,7 @@ export function initializeUI() {
             if (index > -1) {
                 pushUndo(updateUndoRedoButtons);
                 MACHINE.transitions[index].output = output;
+                addLogMessage(`Mealy transition updated: <strong>${from}</strong> --${oldSymbol} / ${output}--> <strong>${to}</strong>.`, 'git-branch');
             }
         } else {
             // ADDING NEW TRANSITION (Check determinism)
@@ -984,6 +1021,7 @@ export function initializeUI() {
 
             pushUndo(updateUndoRedoButtons);
             MACHINE.transitions.push({ from, to, symbol, output });
+            addLogMessage(`Mealy transition added: <strong>${from}</strong> --${symbol} / ${output}--> <strong>${to}</strong>.`, 'git-branch');
         }
         renderAll();
         hideModals();
@@ -1014,6 +1052,7 @@ export function initializeUI() {
         pushUndo(updateUndoRedoButtons);
         // Note: Moore transitions do NOT have an output property
         MACHINE.transitions.push({ from, to, symbol }); 
+        addLogMessage(`Moore transition added: <strong>${from}</strong> --${symbol}--> <strong>${to}</strong>.`, 'git-branch');
         renderAll();
         hideModals();
     });

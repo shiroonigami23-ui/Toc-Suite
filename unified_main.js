@@ -11,6 +11,30 @@ import * as MM_LIB from './moore_mealy_library_loader.js';
 import { initializeShortcuts, refreshLucideIcons } from './utils.js';
 import { consumePendingImportedMachine } from './machine_router.js';
 
+function buildMachineSwitchButtons(currentStudio) {
+    const current = String(currentStudio || '').toUpperCase();
+    const mkBtn = (id, label, target) => {
+        const isCurrent = current === target;
+        return `
+            <button id="${id}" class="icon-btn machine-switch-btn" data-machine-switch="${target}" type="button" ${isCurrent ? 'disabled' : ''}>
+                ${label}
+            </button>
+        `;
+    };
+
+    return `
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;">
+            ${mkBtn('switchToFaBtn', 'FA Studio', 'FA')}
+            ${mkBtn('switchToMmBtn', 'Mealy/Moore', 'MM')}
+            ${mkBtn('switchToPdaBtn', 'PDA Studio', 'PDA')}
+            ${mkBtn('switchToTmBtn', 'TM Studio', 'TM')}
+        </div>
+        <button id="switchToGrammarBtn" class="icon-btn machine-switch-btn" data-machine-switch="Grammar" type="button" style="width:100%;margin-bottom:10px;" ${current === 'GRAMMAR' ? 'disabled' : ''}>
+            Grammar Studio
+        </button>
+    `;
+}
+
 
 // --- Context Object for Dynamic Switching ---
 export const StudioContext = {
@@ -208,6 +232,7 @@ export const StudioContext = {
                 <span>Navigation</span>
             </summary>
             <div class="control-section-content">
+              ${buildMachineSwitchButtons('FA')}
               <button id="backToMenuBtn" class="icon-btn" style="width:100%;">
                 <i data-lucide="arrow-left-circle"></i> Back to Main Menu
               </button>
@@ -491,6 +516,7 @@ export const StudioContext = {
                 <span>Navigation</span>
             </summary>
             <div class="control-section-content">
+              ${buildMachineSwitchButtons('MM')}
               <button id="backToMenuBtn" class="icon-btn" style="width:100%;">
                 <i data-lucide="arrow-left-circle"></i> Back to Main Menu
               </button>
@@ -623,6 +649,16 @@ const STORAGE_KEYS = {
     autoResume: 'tocAutoResume',
     lastStudio: 'tocLastStudio'
 };
+const SNAPSHOT_KEYS = {
+    fa: 'tocCanvasSnapshotFaV1',
+    mm: 'tocCanvasSnapshotMmV1',
+    pda: 'tocCanvasSnapshotPdaV1',
+    tm: 'tocCanvasSnapshotTmV1'
+};
+const PROMPT_KEYS = {
+    mm: 'tocPendingMmPromptV1',
+    tm: 'tocPendingTmPromptV1'
+};
 const SESSION_KEYS = {
     activeRoute: 'tocActiveRoute'
 };
@@ -672,6 +708,23 @@ function safeStorageSet(key, value) {
         return true;
     } catch (_e) {
         return false;
+    }
+}
+
+function safeStorageRemove(key) {
+    try {
+        localStorage.removeItem(key);
+    } catch (_e) {}
+}
+
+function consumeStorageValue(key) {
+    try {
+        const value = localStorage.getItem(key);
+        if (value == null) return null;
+        localStorage.removeItem(key);
+        return value;
+    } catch (_e) {
+        return null;
     }
 }
 
@@ -726,6 +779,126 @@ function setActiveRoute(route) {
 function clearActiveRoute() {
     safeSessionRemove(SESSION_KEYS.activeRoute);
     setRouteHash(ROUTE_HASH.splash);
+}
+
+const studioRuntime = {
+    pdaState: null,
+    tmState: null
+};
+
+let machineAutosaveTimer = null;
+
+function cloneMachineSnapshot(machine) {
+    try {
+        return JSON.parse(JSON.stringify(machine || null));
+    } catch (_e) {
+        return null;
+    }
+}
+
+function hasGraph(machine) {
+    return Boolean(machine && Array.isArray(machine.states) && Array.isArray(machine.transitions));
+}
+
+function loadSnapshot(route) {
+    const key = SNAPSHOT_KEYS[String(route || '').toLowerCase()];
+    if (!key) return null;
+    try {
+        const raw = safeStorageGet(key, '');
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return hasGraph(parsed?.machine) ? parsed.machine : null;
+    } catch (_e) {
+        safeStorageRemove(key);
+        return null;
+    }
+}
+
+function saveSnapshot(route, machine) {
+    const key = SNAPSHOT_KEYS[String(route || '').toLowerCase()];
+    if (!key || !hasGraph(machine)) return false;
+    return safeStorageSet(key, JSON.stringify({
+        ts: Date.now(),
+        machine: cloneMachineSnapshot(machine)
+    }));
+}
+
+function currentStudioRoute() {
+    const cur = String(StudioContext.current || '').toUpperCase();
+    if (cur === 'FA') return 'fa';
+    if (cur === 'MM') return 'mm';
+    if (cur === 'PDA') return 'pda';
+    if (cur === 'TURING' || cur === 'TM') return 'tm';
+    return null;
+}
+
+async function getCurrentStudioMachine() {
+    const route = currentStudioRoute();
+    if (route === 'fa') return cloneMachineSnapshot(FA_STATE.MACHINE);
+    if (route === 'mm') return cloneMachineSnapshot(MM_STATE.MACHINE);
+    if (route === 'pda') {
+        if (!studioRuntime.pdaState) {
+            try { studioRuntime.pdaState = await import('./pda_state.js'); } catch (_e) {}
+        }
+        return cloneMachineSnapshot(studioRuntime.pdaState?.MACHINE);
+    }
+    if (route === 'tm') {
+        if (!studioRuntime.tmState) {
+            try { studioRuntime.tmState = await import('./tm_state.js'); } catch (_e) {}
+        }
+        return cloneMachineSnapshot(studioRuntime.tmState?.MACHINE);
+    }
+    return null;
+}
+
+async function persistCurrentStudioSnapshot() {
+    const route = currentStudioRoute();
+    if (!route) return false;
+    const machine = await getCurrentStudioMachine();
+    if (!hasGraph(machine)) return false;
+    return saveSnapshot(route, machine);
+}
+
+function startAutosaveLoop() {
+    if (machineAutosaveTimer) return;
+    machineAutosaveTimer = setInterval(() => {
+        persistCurrentStudioSnapshot().catch(() => {});
+    }, 3000);
+}
+
+function prependStudioHint(message) {
+    const text = String(message || '').trim();
+    if (!text) return;
+    const log = document.getElementById('stepLog');
+    if (!log) return;
+    const note = document.createElement('div');
+    note.style.cssText = 'padding:8px 10px;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;margin-bottom:8px;font-size:0.85rem;';
+    note.textContent = text;
+    if (log.firstChild) {
+        log.insertBefore(note, log.firstChild);
+    } else {
+        log.appendChild(note);
+    }
+}
+
+function hydratePendingPrompt(route) {
+    const safeRoute = String(route || '').toLowerCase();
+    if (safeRoute === 'mm') {
+        const prompt = consumeStorageValue(PROMPT_KEYS.mm);
+        if (prompt) {
+            prependStudioHint(prompt);
+        }
+        return;
+    }
+    if (safeRoute === 'tm') {
+        const prompt = consumeStorageValue(PROMPT_KEYS.tm);
+        if (!prompt) return;
+        const input = document.getElementById('tmTestInput');
+        if (input && !input.value) {
+            input.value = prompt;
+        }
+        prependStudioHint(prompt);
+    }
 }
 
 function hideSplash() {
@@ -844,7 +1017,8 @@ async function renderSplashAssignmentHint() {
     }
 }
 
-function openStudioByMachineType(machineType) {
+async function openStudioByMachineType(machineType) {
+    await persistCurrentStudioSnapshot();
     const machine = String(machineType || 'FA').toUpperCase();
     if (machine === 'GRAMMAR') {
         setActiveRoute('grammar');
@@ -902,7 +1076,7 @@ function setupSplashUtility() {
         },
         {
             title: 'Step 5: Keyboard Shortcuts',
-            content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export PNG, Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, V move, S add state, T transition, D delete, Enter run/validate, Esc clear.'
+            content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export PNG, Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, V move, S add state, T transition, D delete, Enter run/validate, Esc clear, Ctrl+Alt+1..5 switch FA/MM/PDA/TM/Grammar.'
         }
     ];
 
@@ -988,9 +1162,13 @@ try {
 function loadStudio(target) {
     const studioContent = document.getElementById('studioContent');
     const mainApp = document.getElementById('mainApp');
+    const splashScreen = document.getElementById('splashScreen');
     if (!studioContent || !mainApp) {
         console.error("Critical DOM element #studioContent or #mainApp missing.");
         return;
+    }
+    if (splashScreen && splashScreen.style.display !== 'none') {
+        hideSplash();
     }
     mainApp.style.display = 'block';
     
@@ -1029,8 +1207,58 @@ function loadStudio(target) {
             } else if (target === 'FA' && typeof FA_FILE.loadMachineFromObject === 'function') {
                 FA_FILE.loadMachineFromObject(pending, StudioContext.updateUndoRedoButtons, pending.type || 'DFA');
             }
+        } else {
+            const snapshot = loadSnapshot(route);
+            if (snapshot) {
+                if (target === 'MM' && typeof MM_FILE.loadMachineFromObject === 'function') {
+                    MM_FILE.loadMachineFromObject(snapshot, StudioContext.updateUndoRedoButtons, snapshot.type || 'MOORE');
+                } else if (target === 'FA' && typeof FA_FILE.loadMachineFromObject === 'function') {
+                    FA_FILE.loadMachineFromObject(snapshot, StudioContext.updateUndoRedoButtons, snapshot.type || 'DFA');
+                }
+            }
         }
+
+        hydratePendingPrompt(route);
     }, 50); 
+}
+
+const studioWarmCache = {
+    started: false,
+    pdaHtml: null,
+    tmHtml: null,
+    pdaModule: null,
+    tmModule: null,
+    pdaState: null,
+    tmState: null
+};
+
+function fetchHtmlText(path) {
+    return fetch(path).then((response) => {
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${path} (${response.status})`);
+        }
+        return response.text();
+    });
+}
+
+function warmupSpecializedStudios() {
+    if (studioWarmCache.started) return;
+    studioWarmCache.started = true;
+
+    const kickoff = () => {
+        studioWarmCache.pdaHtml ??= fetchHtmlText('pda_studio.html');
+        studioWarmCache.tmHtml ??= fetchHtmlText('tm_studio.html');
+        studioWarmCache.pdaModule ??= import('./pda_main.js');
+        studioWarmCache.tmModule ??= import('./tm_main.js');
+        studioWarmCache.pdaState ??= import('./pda_state.js');
+        studioWarmCache.tmState ??= import('./tm_state.js');
+    };
+
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(kickoff, { timeout: 1200 });
+    } else {
+        setTimeout(kickoff, 100);
+    }
 }
 /**
  * PDA Studio load karne ke liye function.
@@ -1052,19 +1280,28 @@ async function loadPdaStudio() {
     studioContent.innerHTML = '<div class="library-message">Loading PDA Environment...</div>';
 
     try {
-        const response = await fetch('pda_studio.html');
-        const html = await response.text();
-        
-        // Inject into studioContent to preserve the parent structure
-        studioContent.innerHTML = html;
+        const htmlPromise = studioWarmCache.pdaHtml ?? fetchHtmlText('pda_studio.html');
+        const modulePromise = studioWarmCache.pdaModule ?? import('./pda_main.js');
+        const statePromise = studioWarmCache.pdaState ?? import('./pda_state.js');
+        studioWarmCache.pdaHtml = htmlPromise;
+        studioWarmCache.pdaModule = modulePromise;
+        studioWarmCache.pdaState = statePromise;
 
-        const { initializePDA } = await import('./pda_main.js');
-        initializePDA();
+        const [html, pdaModule, pdaStateModule] = await Promise.all([htmlPromise, modulePromise, statePromise]);
+        studioRuntime.pdaState = pdaStateModule;
+        studioContent.innerHTML = html;
+        pdaModule.initializePDA();
+        refreshLucideIcons();
 
         const pending = consumePendingImportedMachine('pda');
         if (pending) {
             const { loadPdaFromObject } = await import('./pda_file.js');
             await loadPdaFromObject(pending);
+        } else {
+            const snapshot = loadSnapshot('pda');
+            if (snapshot && typeof pdaStateModule.setMachine === 'function') {
+                pdaStateModule.setMachine(snapshot);
+            }
         }
         
         window.currentStudio = 'PDA';
@@ -1098,20 +1335,29 @@ async function loadTmStudio() {
     studioContent.innerHTML = '<div class="library-message">Booting Turing Machine Studio...</div>';
 
     try {
-        // 1. Fetch the Studio HTML
-        const response = await fetch('tm_studio.html');
-        const html = await response.text();
-        studioContent.innerHTML = html;
+        const htmlPromise = studioWarmCache.tmHtml ?? fetchHtmlText('tm_studio.html');
+        const modulePromise = studioWarmCache.tmModule ?? import('./tm_main.js');
+        const statePromise = studioWarmCache.tmState ?? import('./tm_state.js');
+        studioWarmCache.tmHtml = htmlPromise;
+        studioWarmCache.tmModule = modulePromise;
+        studioWarmCache.tmState = statePromise;
 
-        // 2. Import and Initialize the TM Engine
-        const { initializeTM } = await import('./tm_main.js');
-        initializeTM();
+        const [html, tmModule, tmStateModule] = await Promise.all([htmlPromise, modulePromise, statePromise]);
+        studioRuntime.tmState = tmStateModule;
+        studioContent.innerHTML = html;
+        tmModule.initializeTM();
 
         const pending = consumePendingImportedMachine('tm');
         if (pending) {
             const { loadTmFromObject } = await import('./tm_file.js');
             await loadTmFromObject(pending);
+        } else {
+            const snapshot = loadSnapshot('tm');
+            if (snapshot && typeof tmStateModule.setMachine === 'function') {
+                tmStateModule.setMachine(snapshot);
+            }
         }
+        hydratePendingPrompt('tm');
         
         // 3. Keep global state in sync
         window.currentStudio = 'Turing';
@@ -1133,6 +1379,11 @@ function startUnifiedApp() {
     initializeShortcuts();
     setupSplashUtility();
     renderSplashAssignmentHint();
+    warmupSpecializedStudios();
+    startAutosaveLoop();
+    window.addEventListener('beforeunload', () => {
+        persistCurrentStudioSnapshot().catch(() => {});
+    });
     
     if (!splashScreen) {
         loadStudio('FA');
@@ -1162,18 +1413,31 @@ function startUnifiedApp() {
     if (persistedRoute === 'grammar') {
          window.location.href = 'grammar_studio.html';
     } else if (persistedRoute === 'mm') {
+         hideSplash();
          loadStudio('MM');
     } else if (persistedRoute === 'pda') {
+         hideSplash();
          loadPdaStudio();
     } else if (persistedRoute === 'tm' || persistedRoute === 'turing') {
+         hideSplash();
          loadTmStudio();
     } else if (persistedRoute === 'fa') {
+         hideSplash();
          loadStudio('FA');
     } else if ((safeStorageGet(STORAGE_KEYS.autoResume, 'false') === 'true')) {
          const lastStudio = safeStorageGet(STORAGE_KEYS.lastStudio, 'FA');
-         if (lastStudio === 'MM' || lastStudio === 'FA') loadStudio(lastStudio);
-         if (lastStudio === 'PDA') loadPdaStudio();
-         if (lastStudio === 'Turing') loadTmStudio();
+         if (lastStudio === 'MM' || lastStudio === 'FA') {
+            hideSplash();
+            loadStudio(lastStudio);
+         }
+         if (lastStudio === 'PDA') {
+            hideSplash();
+            loadPdaStudio();
+         }
+         if (lastStudio === 'Turing') {
+            hideSplash();
+            loadTmStudio();
+         }
     }
 }
 
@@ -1184,9 +1448,17 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('click', (e) => {
+    const machineSwitch = e.target instanceof Element ? e.target.closest('[data-machine-switch]') : null;
+    if (machineSwitch) {
+        const machine = machineSwitch.getAttribute('data-machine-switch');
+        if (machine) openStudioByMachineType(machine);
+        return;
+    }
     const target = e.target instanceof Element ? e.target.closest('#backToMenuBtn, #pdaBackToMenuBtn, #tmBackToMenuBtn') : null;
     if (!target) return;
-    showSplash();
+    persistCurrentStudioSnapshot()
+        .catch(() => {})
+        .finally(() => showSplash());
 });
 
 // PDA Button Logic
@@ -1214,3 +1486,4 @@ if (grammarButton) {
 
 // Export context for use in all imported modules
 window.StudioContext = StudioContext;
+window.openStudioByMachineType = openStudioByMachineType;
