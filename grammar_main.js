@@ -1,5 +1,6 @@
 import { parseRegexAndBuildEnfa } from './regex-converter.js';
 import { consumePendingImportedMachine, setPendingImportedMachine } from './machine_router.js';
+import { bindGlobalDrawerHandlers } from './utils.js';
 
 const EPSILON_SYMBOL = 'ε';
 const EPSILON_TOKENS = new Set(['eps', 'esp', 'epsilon', 'e', 'ε', 'îµ', 'lambda', 'lamda', 'λ']);
@@ -1086,6 +1087,44 @@ function hydratePendingGrammarImport() {
 }
 
 function init() {
+  const toggleBtn = byId('grammarPanelToggleBtn');
+  const controlPanel = byId('controlPanel');
+  const visualizationPanel = document.querySelector('.grammar-visual');
+
+  const ensureDrawerBackdrop = () => {
+    let backdrop = byId('drawerBackdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'drawerBackdrop';
+      backdrop.className = 'drawer-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    return backdrop;
+  };
+
+  const drawerBackdrop = ensureDrawerBackdrop();
+  const closePanel = () => {
+    controlPanel?.classList.remove('open');
+    drawerBackdrop?.classList.remove('open');
+    toggleBtn?.setAttribute('aria-expanded', 'false');
+  };
+  const togglePanel = () => {
+    if (!controlPanel) return;
+    const isOpen = controlPanel.classList.toggle('open');
+    drawerBackdrop?.classList.toggle('open', isOpen);
+    toggleBtn?.setAttribute('aria-expanded', String(isOpen));
+  };
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePanel();
+    });
+  }
+  drawerBackdrop?.addEventListener('click', closePanel);
+  visualizationPanel?.addEventListener('click', closePanel);
+  bindGlobalDrawerHandlers(closePanel);
+
   document.querySelectorAll('.grammar-tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => tabSwitch(btn.getAttribute('data-tab')));
   });

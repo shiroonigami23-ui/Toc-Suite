@@ -15,11 +15,16 @@
         <h1>Grammar Studio</h1>
         <p class="grammar-subtitle">CFG to NPDA, animated conversion, parse trees, and derivation tracing.</p>
       </div>
-      <button id="grammarBackBtn" class="splash-utility-btn grammar-back-btn" type="button">Back to Splash</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="grammarPanelToggleBtn" class="panel-toggle-btn" type="button" aria-label="Toggle grammar controls" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <button id="grammarBackBtn" class="splash-utility-btn grammar-back-btn" type="button">Back to Splash</button>
+      </div>
     </header>
 
     <main class="main-content grammar-main" style="align-items:stretch;">
-      <aside class="control-panel grammar-panel" style="position:relative;top:auto;max-height:none;">
+      <aside id="controlPanel" class="control-panel grammar-panel" style="position:relative;top:auto;max-height:none;">
         <details class="control-section">
           <summary><i data-lucide="book-open"></i><span>CFG Input</span></summary>
           <div class="control-section-content">
