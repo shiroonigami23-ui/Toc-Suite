@@ -451,6 +451,15 @@ export function describeProgram(prog, spec) {
   const parts = [];
   const sym = (j) => SYMS[j] || SYMS[SYMS.length - 1];
   prog.eqs.forEach((e, j) => {
+    if (prog.blocks[0]?.weights) {
+      // counts in any order: one signed counter
+      const w = prog.blocks[0].weights[j] || {};
+      const up = Object.keys(w).filter(a => w[a] > 0), down = Object.keys(w).filter(a => w[a] < 0);
+      const cond = e.cond === '=' ? 'zero' : e.cond === '!=' ? 'non-zero' : e.cond === '>' ? 'positive' : e.cond === '<' ? 'negative' : e.cond === '>=' ? 'zero or positive' : 'zero or negative';
+      const eff = [...up.map(a => `each ${a} adds ${w[a]}`), ...down.map(a => `each ${a} subtracts ${-w[a]}`)].join(', ');
+      parts.push(`one signed counter (X's on the stack while positive, Y's while negative): ${eff}; accept if it ends ${cond}`);
+      return;
+    }
     const terms = e.w.map((x, b) => (x ? `${x > 0 ? '+' : '−'}${Math.abs(x) === 1 ? '' : Math.abs(x) + '·'}#${prog.blocks[b].sym ?? 'symbol'}` : '')).filter(Boolean).join(' ');
     const effects = e.w.map((x, b) => (x ? `each ${prog.blocks[b].sym} ${x > 0 ? 'pushes' : 'pops'} ${Math.abs(x) === 1 ? 'one' : Math.abs(x)} ${sym(j)[0]}` : '')).filter(Boolean).join(', ');
     parts.push(`counter ${terms}${e.init ? ` (starting at ${e.init > 0 ? '+' : ''}${e.init})` : ''} must be ${e.cond === '=' ? 'zero' : `${e.cond === '!=' ? '≠' : e.cond.replace('>=', '≥').replace('<=', '≤')} 0`} at the end of its blocks: ${effects}; going below zero uses ${sym(j)[1]}`);

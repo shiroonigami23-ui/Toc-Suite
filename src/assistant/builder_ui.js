@@ -167,6 +167,8 @@ export async function run(draw = true, textArg) {
       out.innerHTML = resultHtml(r, true);
       refreshLucideIcons();
       try { addLogMessage(`Builder: ${KIND_NAME[r.kind]} for “${text}” — verified.`, 'wand-sparkles'); } catch { /* log panel may be absent */ }
+      // on phones the drawer covers the canvas: get out of the way (the result stays for the next open)
+      if (window.matchMedia?.('(max-width: 720px)').matches) setTimeout(close, 900);
       renderExamples();
       targetLine();
     }
