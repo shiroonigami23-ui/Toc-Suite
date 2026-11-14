@@ -6,8 +6,8 @@
 [build.environment]
   # The AI generator was removed; these old variables are no longer read by any code.
   # Its short password matched the author name in LICENSE/README, which tripped secret scanning.
-  # NODE_ENV is not a secret; its value ("production") is an ordinary word in the docs.
-  SECRETS_SCAN_OMIT_KEYS = "AI_ACCESS_PASSWORD,GEMINI_API_KEY,GEMINI_MODEL,NODE_ENV"
+  # NODE_ENV ("production") and GITHUB_REPO (the public repo name, also the code's fallback) are not secrets.
+  SECRETS_SCAN_OMIT_KEYS = "AI_ACCESS_PASSWORD,GEMINI_API_KEY,GEMINI_MODEL,NODE_ENV,GITHUB_REPO"
   # Prose files only; real secrets (DATABASE_URL, ARCHITECT_KEY, GITHUB_PAT) are still scanned in code.
   SECRETS_SCAN_OMIT_PATHS = "docs/**,LICENSE,README.md,CHANGELOG.md,ROADMAP.md"
 
