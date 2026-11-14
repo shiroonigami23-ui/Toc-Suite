@@ -1,3 +1,21 @@
+## [2.0.0] - 2026-11-15 - Automata Builder, Grammar Studio, apps and study papers
+### Added
+- **Automata Builder** in every studio (press `B`): describe a DFA, NFA, ε-NFA, Moore or Mealy machine, PDA or Turing machine in words or notation; it chooses the machine type (explicit request, otherwise the current studio and mode), switches studio when needed, and draws the machine only after verifying it.
+  - Readers for exponent notation and English (`{aⁿb²ⁿ | n ≥ 1}`, `n a's followed by n b's`, `#a(w) = 2#b(w)`, palindromes, `ww`, `w#w`, brackets, `a^(2^n)`, arithmetic tasks).
+  - A general counter-PDA compiler (linear-set equations → signed stack counters, nested and sequential counters, unions), Turing-machine phases and classic sweeps, Moore/Mealy machines from output conditions, remainders and transducer tasks, Glushkov and Thompson automata with state merging.
+  - Non-regular requests for a finite automaton become PDAs, non-context-free requests become Turing machines, always with the reason; impossible requests are refused instead of drawn wrong.
+- **Grammar Studio rebuilt**: exact parse trees and ambiguity witnesses for any CFG, leftmost/rightmost derivations, simplification and Chomsky normal form step by step, CYK table, FIRST/FOLLOW and the LL(1) table, CFG → PDA, right/left-linear grammar → NFA, regex → ε-NFA/DFA, an exhaustive pumping-lemma checker, Chomsky-type classification, example grammars, and a navigation bar to every studio.
+- **Apps and packages**: GitHub Actions release workflow building a Windows installer and portable `.exe` (Electron), an Android `.apk` (Capacitor), a Linux AppImage, and a Docker image on GitHub Packages.
+- **Study papers**: ten standalone Theory of Computation papers (preliminaries, finite automata, regular languages, transducers, grammars, PDAs, Turing machines, decidability, complexity) and a 40-problem solved workbook, in `docs/papers/`.
+- Concept trailer in the README.
+- Tests: `builder.test.mjs` (phrasings run on the studios' own simulators) and `cfg.test.mjs`.
+### Fixed
+- Mealy/Moore drawings were animated with the FA renderer (labels without outputs, a console error at the end).
+- The PDA simulator pruned configurations whose final stack was taller than the remaining input, rejecting e.g. `aaaa` for `{aⁱbʲ | i > j}`.
+- Netlify deploys: removed AI variables no longer trip secret scanning; the live URL is now `toc-suite.netlify.app`.
+### Removed
+- The old Grammar Studio regex converter and placeholder RL/REL "plans" (replaced by the real conversions above).
+
 ## [2026-11-14] - Restructure, responsive, verified practice everywhere, documentation
 ### Added
 - FA conversion practice: 159 exercises (ε-NFA → NFA, NFA → DFA, DFA → minimal DFA, NFA → minimal DFA); the machine to convert is drawn for you and the checker verifies language *and* shape.
