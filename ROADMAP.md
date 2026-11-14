@@ -81,12 +81,22 @@ How Toc-Suite was built, step by step, from the first prototype to today, and wh
 | 6.8 | Settings (animation speed, sharing switch, erase data) and a privacy / terms / accessibility page |
 | 6.9 | Journey book, study guide, technical guide, screenshots and demo GIFs |
 
-## 🔜 Stage 7 — Next
+## ✅ Stage 7 — Builder, grammars and apps (November 2026)
+
+| Step | What |
+|---|---|
+| 7.1 | Automata Builder in every studio: any machine type from words or notation, studio switching, verification before drawing |
+| 7.2 | General counter-PDA compiler and Turing-machine phase compiler; Moore/Mealy from conditions and tasks |
+| 7.3 | Grammar Studio rebuilt: exact parse trees and ambiguity, CNF, CYK, LL(1), CFG → PDA, pumping-lemma checker, studio navigation |
+| 7.4 | Release workflow: Windows `.exe`, Android `.apk`, Linux AppImage, Docker image on GitHub Packages |
+| 7.5 | Ten Theory of Computation study papers and a solved-problems workbook |
+
+## 🔜 Stage 8 — Next
 
 | Priority | Item |
 |---|---|
 | High | Offline mode: cache studios, practice banks and the model in the service worker |
-| High | Grammar Studio: CNF conversion, CYK parsing, LL(1) tables, all animated |
+| High | Builder: grammar output (describe a language, get a CFG) and step-by-step construction animations |
 | High | Review step for student-contributed library machines (run the audit tests before publishing) |
 | Medium | Guided mode for PDA and TM using bounded checking |
 | Medium | Larger Mealy/Moore practice bank; PDA conversion exercises (CFG ↔ PDA) |
