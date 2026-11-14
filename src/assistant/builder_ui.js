@@ -13,15 +13,15 @@ let busy = false;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const STUDIO_NAME = { fa: 'Finite Automata studio', mm: 'Mealy/Moore studio', pda: 'PDA studio', tm: 'Turing Machine studio' };
-const EXAMPLES = {
+export const STUDIO_NAME = { fa: 'Finite Automata studio', mm: 'Mealy/Moore studio', pda: 'PDA studio', tm: 'Turing Machine studio' };
+export const EXAMPLES = {
   fa: ['strings over {a,b} ending with ab', 'NFA where the third symbol from the end is 1', 'ε-NFA for (a|b)*abb', 'binary numbers divisible by 3', 'a^n b^n (watch it switch to a PDA)'],
   mm: ['Moore machine: output 1 when the input so far ends with 101', 'Mealy machine for 2\'s complement', 'sequence detector for 110, non-overlapping', 'remainder mod 3 of the binary number read so far', 'Mealy machine that outputs the previous input'],
   pda: ['{aⁿb²ⁿ | n ≥ 1}', 'equal number of a\'s and b\'s', 'a^i b^j c^k with i = j or j = k', 'even-length palindromes over {0,1}', 'balanced parentheses and brackets'],
   tm: ['aⁿbⁿcⁿ', '{ww | w ∈ {a,b}*}', 'increment a binary number', 'unary addition 1^m 0 1^n', 'a^(2^n)'],
 };
 
-async function loadModel() {
+export async function loadModel() {
   if (model) return model;
   const res = await fetch(new URL('../core/nl-model.json', import.meta.url));
   if (!res.ok) throw new Error('Could not load the language model.');
@@ -29,7 +29,7 @@ async function loadModel() {
   return model;
 }
 
-function context() {
+export function context() {
   const studio = window.TocStudio?.route?.() || 'fa';
   const mode = window.TocStudio?.mode?.() || '';
   return { studio: { fa: 'FA', mm: 'MM', pda: 'PDA', tm: 'TM' }[studio] || 'FA', mode, route: studio };
@@ -124,7 +124,7 @@ export function close() {
   setTimeout(() => { d.hidden = true; }, 180);
 }
 
-function resultHtml(r, drawn) {
+export function resultHtml(r, drawn) {
   if (!r.ok) {
     return `<div class="assist-error"><b>Nothing was drawn.</b><br>${(r.problems || []).map(esc).join('<br>')}</div>
       <div class="assist-muted">Try notation like <code>{aⁿbⁿ | n ≥ 1}</code>, or name the machine: “Mealy machine…”, “PDA…”, “Turing machine…”.</div>`;
@@ -182,7 +182,7 @@ export async function run(draw = true, textArg) {
 }
 
 /** Adjust a built machine to what each studio expects. */
-function studioMachine(r) {
+export function studioMachine(r) {
   const m = structuredClone(r.machine);
   if (r.kind === 'PDA') m.type = 'NPDA';
   if (r.kind === 'TM') m.type = 'STANDARD';

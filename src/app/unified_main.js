@@ -1207,9 +1207,11 @@ function loadStudio(target) {
         // 3. Initialize UI (hooks up click handlers)
         StudioContext.initializeUI();
 
-        // 3b. Automata Assistant (FA studio only)
+        // 3b. Automata Assistant: the FA studio has its own panel; Mealy/Moore gets the shared studio panel
         if (StudioContext.current === 'FA') {
             import('../assistant/assist_panel.js').then(m => m.initAssistPanel()).catch(err => console.error('Assistant failed to load:', err));
+        } else {
+            import('../assistant/studio_assist.js').then(m => m.mountStudioAssist('mm')).catch(err => console.error('Assistant failed to load:', err));
         }
         
         // --- 4. FIX: Initialize Library (This was missing) ---
@@ -1312,6 +1314,7 @@ async function loadPdaStudio() {
         studioRuntime.pdaState = pdaStateModule;
         studioContent.innerHTML = html;
         pdaModule.initializePDA();
+        import('../assistant/studio_assist.js').then(m => m.mountStudioAssist('pda')).catch(err => console.error('Assistant failed to load:', err));
         refreshLucideIcons();
 
         const pending = consumePendingImportedMachine('pda');
@@ -1367,6 +1370,7 @@ async function loadTmStudio() {
         studioRuntime.tmState = tmStateModule;
         studioContent.innerHTML = html;
         tmModule.initializeTM();
+        import('../assistant/studio_assist.js').then(m => m.mountStudioAssist('tm')).catch(err => console.error('Assistant failed to load:', err));
 
         const pending = consumePendingImportedMachine('tm');
         if (pending) {
