@@ -193,10 +193,16 @@ jobs:
             echo
             awk 'NR>1 && /^## /{exit} NR>1{print}' CHANGELOG.md
           } > notes.md
+      - name: Point the tag at this build (re-releasing the same version replaces it)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git tag -f "v$V"
+          git push -f origin "refs/tags/v$V"
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.V }}
           name: Toc-Suite v${{ env.V }}
           body_path: notes.md
           files: out/*
+          overwrite_files: true
           make_latest: true
