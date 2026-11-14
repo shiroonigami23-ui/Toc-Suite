@@ -316,7 +316,7 @@ Static hosting on Netlify (publish directory `.`). Server features use Netlify F
 | **Study papers** | ten standalone Theory of Computation papers and a solved-problems workbook | [index](docs/papers/README.md) |
 | **Study Guide** | students: theory, worked examples, "try it in the app" boxes | [PDF](docs/study-guide/STUDY-GUIDE.pdf) · [Markdown](docs/study-guide/STUDY-GUIDE.md) |
 | **Technical Guide** | developers: architecture, data formats, engine API, testing, deployment | [PDF](docs/technical-guide/TECHNICAL-GUIDE.pdf) · [Markdown](docs/technical-guide/TECHNICAL-GUIDE.md) |
-| **The Journey** | the full story: why, how, what went wrong, what's next (75 pages) | [PDF](docs/journey/JOURNEY.pdf) · [Markdown](docs/journey/JOURNEY.md) |
+| **The Journey** | the full story: why, how, what went wrong, what's next (90 pages, updated for v2.0.0) | [PDF](docs/journey/JOURNEY.pdf) · [Markdown](docs/journey/JOURNEY.md) |
 | **Roadmap** | step-by-step build path and next stages | [ROADMAP.md](ROADMAP.md) |
 
 ## Privacy

@@ -1,12 +1,12 @@
 ---
 title: "Toc-Suite: The Journey"
-subtitle: "How a study tool for Theory of Computation grew from a semester problem into a verified, assistant-driven automata workbench"
+subtitle: "How a study tool for Theory of Computation grew from a semester problem into a verified, assistant-driven automata workbench — and shipped as version 2.0.0 on the web, Windows and Android"
 author: "Aryan Singh Chandel"
 affiliation: "B.Tech Computer Science and Engineering, Rustamji Institute of Technology, Gwalior"
-date: "November 2026"
+date: "November 2026 · updated for v2.0.0"
 kicker: "Toc-Suite · Project Journey"
 repo: "github.com/shiroonigami23-ui/Toc-Suite · toc-suite.netlify.app"
-cover: "../media/fa-assistant-build.png"
+cover: "../media/builder-tm.png"
 ---
 
 # Preface {.unnumbered}
@@ -15,15 +15,15 @@ This document records how Toc-Suite came to exist, how it was built, what went w
 
 Toc-Suite is a browser-based workbench for Theory of Computation. It lets a student draw and simulate deterministic and non-deterministic finite automata, ε-NFAs, Mealy and Moore machines, pushdown automata and Turing machines; convert between them step by step; work with context-free grammars; practise against several hundred exercises whose answers are checked by the computer rather than by eye; and, since November 2026, describe a language in plain English and either have the automaton built or be guided while drawing it. It runs entirely in the browser, has no build step, and is deployed as a static site with a few serverless functions for classroom features.
 
-The project has had three distinct phases. In January 2026 I built the core studios in an intense week, most of it visible in the repository history as a burst of more than a hundred commits across four days. In February and March I added the features that turned a personal tool into something a class could use: assignments, quizzes, an instructor portal and a Grammar Studio. In November 2026 I returned to the project, audited every part of it, and found that a large fraction of the stored practice answers were wrong, that several conversions had subtle bugs, and that the code had grown into a flat directory of more than ninety files. That third phase produced the verification engine, the Automata Assistant, a reorganised codebase, and the test suite that now guards all of it.
+The project has had four distinct phases. In January 2026 I built the core studios in an intense week, most of it visible in the repository history as a burst of more than a hundred commits across four days. In February and March I added the features that turned a personal tool into something a class could use: assignments, quizzes, an instructor portal and a Grammar Studio. In November 2026 I returned to the project, audited every part of it, and found that a large fraction of the stored practice answers were wrong, that several conversions had subtle bugs, and that the code had grown into a flat directory of more than ninety files. That third phase produced the verification engine, the Automata Assistant, a reorganised codebase, and the test suite that now guards all of it. The fourth phase followed the very next day and became version 2.0.0: an Automata Builder that turns a description into a verified machine of *any* type in the right studio, a Grammar Studio rebuilt on an exact engine, the assistant in every studio, a set of ten study papers, rebuilt help and settings pages, and native apps for Windows and Android with their own animated launch screen.
 
 I have tried to be honest about the struggles as well as the results. Some of the most useful lessons came from mistakes: building features faster than I could check them, trusting answers because they looked right, and letting the structure of the repository drift because every individual change seemed small. The chapters on the audit are, in a sense, the centre of the book, because they explain why the later work looks the way it does.
 
 ## How this document is organised {.unnumbered}
 
-Part I explains the motivation and gives a short map of the theory, so that the rest of the book can refer to it. Part II covers the January build of the five studios and the library pipeline. Part III covers the classroom features added in February and March. Part IV covers the November audit, the verification engine, the Automata Assistant and the restructuring. Part V reflects on the process, summarises the project in numbers, and sets out where it goes next. The appendices contain a dated timeline, a map of the repository and a glossary.
+Part I explains the motivation and gives a short map of the theory, so that the rest of the book can refer to it. Part II covers the January build of the five studios and the library pipeline. Part III covers the classroom features added in February and March. Part IV covers the November audit, the verification engine, the Automata Assistant and the restructuring. Part V covers version 2.0.0: the Automata Builder, the rebuilt Grammar Studio, the assistant in every studio, the study papers, and shipping the apps. Part VI reflects on the process, summarises the project in numbers, and sets out where it goes next. The appendices contain a dated timeline, a map of the repository and a glossary.
 
-Two companion documents accompany this one. The *Toc-Suite Study Guide* explains the theory itself with worked examples that can be reproduced in the app. The *Toc-Suite Technical Guide* documents the architecture, modules and data formats for anyone who wants to modify the code. The repository's `ROADMAP.md` gives a shorter, step-by-step version of the development path described here.
+Two companion documents accompany this one. The *Toc-Suite Study Guide* explains the theory itself with worked examples that can be reproduced in the app. The *Toc-Suite Technical Guide* documents the architecture, modules and data formats for anyone who wants to modify the code. The ten study papers in `docs/papers/` cover the syllabus itself, independently of the app. The repository's `ROADMAP.md` gives a shorter, step-by-step version of the development path described here.
 
 <div class="pagebreak"></div>
 
@@ -277,9 +277,9 @@ The portal was built quickly and it shows. The review page and the portal page e
 
 Context-free grammars are the other half of the context-free story. A pushdown automaton recognises a language; a grammar generates it. The course expects students to move between the two, to build parse trees and derivations, and to use the pumping lemma for context-free languages to show that some languages, such as $a^n b^n c^n$, are not context-free. None of that fits naturally on an automaton canvas, so the Grammar Studio has its own page with tabs.
 
-![The Grammar Studio animating the conversion of S → aSb | ε into an NPDA, step by step.](../media/grammar.png){.screenshot}
+![The Grammar Studio as it is today, after the version 2.0.0 rebuild described in Chapter 21: the grammar on the left, its classification, sets and shortest strings on the right, and a navigation bar to every studio.](../media/grammar.png){.screenshot}
 
-## What it does
+## What it did in February
 
 The **CFG input** tab accepts a grammar in a readable form such as `S -> a S b | eps` and validates it: undefined non-terminals, unreachable productions and malformed rules are reported.
 
@@ -301,11 +301,17 @@ The Grammar Studio is the reason the shell gained *smart routing* in February. A
 
 The help page started as a list of buttons and their meanings. On 21 February I rewrote it as an interactive guide: an accordion of sections that remembers which ones were open, studio-by-studio *playbooks* that walk through a typical task, common pitfalls (an initial state with no outgoing transitions; a PDA that never empties its stack; a Turing machine with no transition on the blank symbol), and a checklist a student can tick through before submitting.
 
+It was useful, but it looked like what it was: a long page of collapsed boxes, with a search field in a coloured banner and a single "Back to Menu" button. For version 2.0.0 I rebuilt the page around what a new user actually needs, in the order they need it. A sticky contents bar jumps to a four-step quick start, a guide to the Automata Builder and the Assistant panel with example phrasings that work, the studio playbooks, a keyboard-shortcut sheet, cards linking to all ten study papers, and the download links for the apps. The February theory labs (Arden's lemma, the closure-property table, the machine recommender, the L-system explorer, the LBA boundary checker, the pumping-lemma coach and the quiz) are still there, under a searchable *Theory labs* section. The header now carries the same navigation bar as the Grammar Studio, so Home, Help, Settings and the studios are always one click away.
+
+![The rebuilt help page: quick start, the Builder and Assistant guide, and a contents bar that stays at the top while scrolling.](../media/help.png){.screenshot}
+
 ## Settings
 
 The settings page gives each student a display name, a college email identity for submissions, a theme, a text size and a motion preference, with presets for "focus" and "calm" and the ability to export and import settings as a file. In November it gained an animation-speed setting that applies to every animation in the application, the sharing switch described above, a button to erase all local data, and links to the new privacy, terms and accessibility page.
 
-![The settings page.](../media/settings.png){.screenshot}
+The page had one persistent annoyance: nothing was saved until the student pressed a floating *Save All Settings* bar, which on smaller screens sat on top of the very controls it was meant to save. In version 2.0.0 every control saves the moment it changes and confirms with a small toast, so the bar is gone. Themes are chosen from four colour cards, text size, motion and drawing speed are segmented toggles beside a live preview, and a *Presenting* preset (largest text, slow drawing) joins *focus* and *calm* for use on a classroom projector. The identity section now says plainly whether the student is signed in and offers sign-out; an *About* card shows the version, whether the app is running on the web, Windows or Android, and links to the downloads and the changelog. Every storage key from the old page was kept, so nobody lost their settings.
+
+![The rebuilt settings page. Every change is saved immediately; the preview strip follows the chosen theme.](../media/settings.png){.screenshot}
 
 ## Phones
 
@@ -442,7 +448,7 @@ The third ability is the one my classmates asked for most, and it is the one I f
 
 ![Guided mode. The target is "an even number of a"; the student has drawn two states, and the assistant explains which state should be accepting and which moves are missing, with the strings that prove it.](../media/fa-guided-mistake.png){.screenshot}
 
-The diagnosis is more than a counterexample. The assistant maps each drawn state to the target state it most plausibly represents, by following the shortest strings that reach it. That makes several kinds of explanation possible: "q1 is marked accepting, but `a`, which ends in q1, should be rejected"; "q2 is doing two jobs: after `ab` it should accept on `b` but after `b` it should not"; "q0 has no move on `b`". Each hint has a *Test* button that runs the string that proves it, and the offending state is ringed in red on the canvas. A progress bar shows how much of the target behaviour is already right. When nothing is wrong, the panel says so.
+The diagnosis is more than a counterexample. The assistant maps each drawn state to the target state it most plausibly represents, by following the shortest strings that reach it. That makes several kinds of explanation possible: "q1 is marked accepting, but `a`, which ends in q1, should be rejected"; "q2 is doing two jobs: after `ab` it should accept on `b` but after `b` it should not"; "q0 has no move on `b`". Each hint has a *Test* button that runs the string that proves it, and the offending state is ringed in red on the canvas. A progress bar shows how much of the target behaviour is already right. When nothing is wrong, the panel says so. In version 2.0.0 the same idea reached the other studios, with bounded checking in place of exact equivalence (Chapter 22).
 
 ## The other half: practice
 
@@ -601,11 +607,115 @@ npm run train-model    # retrain the English reader's model (deterministic)
 
 A GitHub workflow runs the suite on every push and also retrains the model and fails if the committed model differs from the retrained one, which guarantees that the model in the repository is always the one the training code produces.
 
-# Part V — Reflection {.part}
+# Part V — Version two {.part}
+
+15 November 2026: one machine builder for every studio, an exact Grammar Studio, the assistant everywhere, study papers, and the apps.
+
+# 20. The Automata Builder
+
+## From one kind of machine to all of them
+
+The Automata Assistant of Chapter 16 could only make DFAs. That was a deliberate limit, because finite automata are the one family where "is this machine right?" has an exact answer. But the questions on assignment sheets are about pushdown automata and Turing machines at least as often as about DFAs: *construct a PDA for aⁿb²ⁿ*, *design a TM for aⁿbⁿcⁿ*, *Mealy machine for 2's complement*. Given one of those, the assistant either misread it as a regular language or gave up. The day after the audit I set out to answer those questions properly, in every studio, with the same rule as before: never draw a machine that has not been checked.
+
+The result is the **Automata Builder**: a floating *Build* button (or the `B` key) in every studio, opening a drawer where a student describes a DFA, NFA, ε-NFA, Moore or Mealy machine, PDA or Turing machine in words or in set notation. It decides what kind of machine to build, switches to the right studio if necessary, builds the machine, verifies it, and only then animates the drawing.
+
+![The Builder in the PDA studio. The request was typed in the FA studio; since aⁿbⁿcᵐ is not regular, the Builder explains why, moves to the PDA studio, draws the machine and shows how it works, sample strings in and out of the language, and the verification result.](../media/builder-pda.png){.screenshot}
+
+## Choosing the machine
+
+The first decision is the kind of machine, and I found that students expect two things at once. If they name a type ("NFA for…", "PDA that accepts…", "Moore machine…"), that type must win. If they do not, the studio they are in should decide: a request typed in the PDA studio should become a PDA even if the language happens to be regular, because that is what the exercise asks for. Only when the requested type *cannot* recognise the language does the Builder move up the hierarchy, and it always says why: "{aⁿbⁿcᵐ | n, m ≥ 1} is not regular, so this is a pushdown automaton"; "aⁿbⁿcⁿ is not context-free: two of its equalities share a block, and one stack cannot compare three counts at once". A request that no machine in the app can meet, such as a finite automaton for an undecidable property, is refused with the reason instead of being drawn wrong.
+
+## Reading the language
+
+The readers in `src/core/build/lang.js` understand the notations that appear on assignment sheets: exponents with conditions (`a^n b^2n c^m where n ≥ 1, m > n`, Unicode superscripts included), counts such as `#a(w) = 2#b(w)` and "more a's than b's", palindromes, `ww` and `w#w`, balanced brackets, `a^(2^n)`, and arithmetic tasks for transducers and Turing machines (increment, complement, unary addition, remainders). Every reading produces two things that are kept strictly apart: a *specification* that the compilers turn into a machine, and an *oracle*, a short independent membership test written directly from the reading. The oracle never looks at the machine, which is what makes it a fair judge.
+
+![How a description becomes a machine. The oracle and the compilers are built from the same reading but independently; nothing is drawn until the verifier has compared them.](../figures/builder-pipeline.png)
+
+## Four compilers
+
+**Finite automata** come from Glushkov's construction (an NFA with no ε-moves and one state per symbol occurrence) or a compact Thompson construction for ε-NFAs, with equivalent states merged and DFAs minimised, so the drawn machine is small enough to read.
+
+**Pushdown automata** were the hardest and most satisfying part. Most textbook context-free languages are a sequence of blocks (`a`s, then `b`s, then `c`s) whose lengths satisfy a few linear equations. The PDA compiler writes those equations as linear algebra, finds the combinations that a single stack can check (using the left null-space of the equation matrix) and turns each into a *signed counter*: a block pushes one symbol per letter, a later block pops them, and when a counter can go below zero a second stack symbol records the debt. Nested and sequential counters, inequalities and unions of such languages all come out of the same compiler, along with dedicated constructions for palindromes and balanced brackets. Every PDA is drawn with an explanation in plain words: "each a pushes one X, each b pops one X…".
+
+![A PDA produced by the Builder for {aⁿb²ⁿ | n ≥ 1}. Labels read *input, pop / push*.](../figures/builder-pda-anb2n.png){.narrow}
+
+**Turing machines** are compiled from a small library of phases: a left-to-right shape check (is the input of the form a\*b\*c\*?), the classic crossing-off sweep that marks one symbol from each block per round, comparisons of `ww` with a marker, doubling, binary increment and so on. After compilation the machine is minimised, which removes the redundant states that phase-by-phase construction leaves behind.
+
+![The Builder's Turing machine for aⁿbⁿcⁿ: each round marks one a as X, one b as Y and one c as W, then returns left; when the a's run out, only marked symbols may remain.](../figures/builder-tm-anbncn.png){.narrow}
+
+**Mealy and Moore machines** are built either from a condition on the input read so far (which is a DFA in disguise: "output 1 when the input so far ends with 101") or from a translation task (2's complement, remainder modulo k, serial addition), then minimised as transducers.
+
+![The Builder's Turing machine in the TM studio, with the Builder's explanation on the right.](../media/builder-tm.png){.screenshot}
+
+## Verify, then draw
+
+Every machine is checked against its oracle before the student sees it. For finite automata the check is exact equivalence, exactly as in the practice checker. For PDAs, Turing machines and transducers it is bounded but exhaustive: every input up to a length (usually six, about a thousand strings) is run through a simulator and compared with the oracle, and a Turing machine must also halt within a step limit. The test suite then goes one step further and runs the generated machines on the *studios'* own simulators, not the Builder's, so that a machine which is right in theory but drawn with a transition the PDA studio reads differently would still fail. That test caught a real bug on the first day: the PDA studio pruned configurations whose stack was taller than the remaining input, which wrongly rejected strings such as `aaaa` for {aⁱbʲ | i > j}. The fix went into the studio, not the Builder.
+
+# 21. The Grammar Studio, rebuilt
+
+## Why rebuild it
+
+When I reread the February Grammar Studio with an auditor's eye, it had the same weakness as the old practice banks. The parse trees came from a heuristic search that could miss parses, so "ambiguous" was a guess; ε was recognised so loosely that a grammar with a non-terminal named `E` lost it; the regular and recursively enumerable tabs were placeholders that produced a "plan" rather than a machine; and the pumping-lemma tab helped write a proof without ever checking one. I replaced the engine and most of the interface.
+
+## An exact engine
+
+The new engine, `src/core/cfg.js`, reads a grammar, classifies it in the Chomsky hierarchy, and computes the nullable, generating and reachable symbols. Parsing uses a chart that *counts* parse trees (saturating at a large number), so the studio can say with certainty whether a string is in the language and whether it has more than one tree, and then show two different trees as a witness of ambiguity together with their leftmost and rightmost derivations.
+
+On top of that sit the procedures the course asks students to carry out by hand, each shown step by step: removal of ε-rules, unit rules and useless symbols; conversion to Chomsky normal form; the CYK table, with every cell explained; FIRST and FOLLOW sets and the LL(1) table, with conflicts highlighted; the standard CFG → PDA construction, which opens in the PDA studio; and right- or left-linear grammar → NFA, which opens in the FA studio.
+
+![Parsing `a+a*a` with the ambiguous expression grammar. The studio proves the ambiguity by showing two distinct parse trees.](../media/grammar-parse.png){.screenshot}
+
+![The CYK table for the same grammar after conversion to Chomsky normal form.](../media/grammar-cyk.png){.screenshot}
+
+## A pumping lemma that checks
+
+The pumping-lemma tab is now a real checker. The student gives a language, a pumping length *p* and a witness such as `a^p b^p c^p`; the studio enumerates *every* legal decomposition (for the context-free lemma, every *uvxyz* with |vxy| ≤ p and |vy| ≥ 1) and pumps each one. If some decomposition stays in the language, the witness is a poor choice and the studio shows that split. If every split fails, it lists how the first few fail, which is exactly the case analysis a written proof needs.
+
+![The pumping-lemma checker on aⁿbⁿcⁿ with p = 3: all 121 decompositions of a³b³c³ leave the language for some i.](../media/grammar-pumping.png){.screenshot}
+
+## Navigation
+
+The old page was a dead end: the only way out was the browser's back button. The rebuilt studio has a header bar linking to Home and to every other studio, and its machines travel through the same hand-over mechanism as the rest of the app. One last bug survived the rebuild for a few hours: *Home* from the Grammar Studio led straight back to the Grammar Studio, because the shell remembered "grammar" as the last route and restored it. Home now carries an explicit `#home` that clears that memory.
+
+# 22. The assistant in every studio
+
+The Builder answers "make this machine for me". The other half of the Assistant, guided practice, had been limited to finite automata, because only there can a drawing be compared with a target exactly. In version 2.0.0 every studio gained an *Automata Assistant* section in its side panel with two tabs. **Describe** builds and draws, like the Builder, or with *Guide me* sets the description as a hidden target without drawing anything. **Check** then compares the student's own machine with that target.
+
+For Mealy/Moore machines, PDAs and Turing machines the comparison is bounded: both machines are run on every input up to a length, outputs are compared for transducers and acceptance (and halting) for the others, and the first disagreement is reported in the same style as the finite-automaton hints: "Your PDA accepts `a`, but it should reject it." It is not a proof of equivalence, which is undecidable for PDAs and Turing machines, but on short strings it is exactly the check a careful student would want, and it finds the usual mistakes immediately.
+
+![Checking a student's PDA in the PDA studio. The target is aⁿbⁿ; the drawn machine (for palindromes) is caught on the very first string where the two differ.](../media/assistant-check-pda.png){.screenshot}
+
+# 23. Study papers
+
+The journey book, the study guide and the technical guide are all about Toc-Suite. What was missing was the subject itself: notes that a student can read away from the screen or print before an examination, without the app. So version 2.0.0 adds ten standalone papers in `docs/papers/`, about eighty pages in all: mathematical preliminaries; finite automata; regular expressions and regular languages; Mealy and Moore transducers; context-free grammars; pushdown automata; Turing machines; decidability; complexity; and a workbook of forty solved examination-style problems.
+
+Each paper follows the same pattern: definitions, theorems with proofs, worked examples, common mistakes, and exercises with answers. The automaton figures are Graphviz sources in the repository, and the papers are built by the same pandoc-and-Chromium pipeline as this book. They went through the same habit as everything else since the audit. Before publishing I checked every worked answer that could be checked mechanically, and that found real errors in my drafts: a Myhill–Nerode example whose answer had the wrong number of equivalence classes (there are four), transducer exercise answers that did not match the machines, and a Post-correspondence example whose stated match did not actually match. The help page now links every paper.
+
+# 24. Shipping
+
+## A new address
+
+Moving the site to a new Netlify account was meant to be a ten-minute job. The old site's URL still carried the version-one name, and I could no longer remember which account owned it, so the site was redeployed under a fresh name, `toc-suite.netlify.app`. The first deploys then failed Netlify's secret scanning, which had found "secrets" in the licence and README. The real cause was environment variables left over from the AI generator I had removed months earlier, plus two values that are not secrets at all (`NODE_ENV` and the public repository name). The fix was to remove the dead variables and tell the scanner explicitly which keys and which prose files to ignore. The lesson: removing a feature from the code is not the same as removing it from the deployment.
+
+## Apps from one workflow
+
+An installable app was the natural next step: it works offline in an examination hall, and an icon on a phone's home screen is easier to find than a bookmark. Because Toc-Suite has no build step, the same files can be wrapped in three ways, and one GitHub Actions workflow now does all of it whenever a release is made: an Electron app for Windows (an installer and a portable `.exe`) and Linux (an AppImage), a Capacitor app for Android (a signed `.apk`), and a small nginx container published to GitHub Packages. The workflow runs the full test suite first, writes the release notes from the changelog, and attaches every file to the GitHub release.
+
+![The release workflow. One script stages the web app; each platform wraps the same files.](../figures/release-pipeline.png)
+
+Two details mattered. The desktop app serves the files over its own `app://` protocol rather than from disk, because ES modules and the service worker behave differently on `file://` URLs. The Android app calls the live site's functions for assignment submission, which needed CORS headers on those functions. And one bug was nearly invisible: the staging script computed the repository's path in a way that works on Linux but produced `/D:/a/…` on the Windows runner, so it silently copied *nothing*, and the first Windows build most likely packaged an empty app. The build "succeeded" all the same. It was found only when a later change made the script read a file it expected to have copied. The script now fails loudly if anything is missing, and the version was re-released with the tag moved to the fixed build.
+
+## A launch screen
+
+A native app opens differently from a web page: there is a moment between tapping the icon and seeing the app, and an empty white window in that moment feels broken. The apps therefore open on a dark launch screen and play a short intro: a warp-speed starfield, glowing cyan and purple rings tilted in 3D like an automaton's states on an orbit, the app icon rising out of them, and the title. It lasts about three seconds, any tap or key skips it, and with reduced motion it becomes a half-second fade. On the home screen the studio buttons tilt slightly under the pointer. All of this is injected only into the app builds by the staging script; the website, which students open in a hurry between classes, stays plain.
+
+![The launch intro of the Windows and Android apps.](../media/app-intro.png){.screenshot}
+
+# Part VI — Reflection {.part}
 
 What the project taught me, what it amounts to, and where it goes next.
 
-# 20. Struggles and lessons
+# 25. Struggles and lessons
 
 ## Building faster than I could check
 
@@ -631,7 +741,7 @@ The Automata Assistant taught me a lesson about where to use learning and where 
 
 Finally, the project taught me what it means to have users. Classmates found bugs I would never have found, asked for features I would never have thought of (guided mode came directly from a friend's request to "let me draw it myself but tell me when I go wrong"), and used the tool in ways I had not imagined, mostly on phones and often in a hurry before a test. Every design decision since February has been tested against the question "would this confuse someone using it for the first time, on a phone, the night before an exam?"
 
-# 21. Principles I now follow
+# 26. Principles I now follow
 
 The lessons of the previous chapter are easier to apply as a short list of working rules. These are the rules I now follow on Toc-Suite and on my other projects.
 
@@ -655,21 +765,24 @@ The lessons of the previous chapter are easier to apply as a short list of worki
 
 **10. Write it down.** This book exists because I could no longer remember why some things were built the way they were. Writing the reasons down while they are fresh is cheaper than reconstructing them from a commit history.
 
-# 22. The project in numbers
+# 27. The project in numbers
 
-| Measure | January 2026 | November 2026 |
-|---|---|---|
-| Studios | FA, Mealy/Moore, PDA, TM | + Grammar Studio, Automata Assistant |
-| Application JavaScript (excluding practice data and tests) | about 10,600 lines | about 16,200 lines in 64 modules |
-| Verification engine (`src/core`) | none | about 1,560 lines |
-| Test suite | none | 45 test groups, about 880 lines |
-| FA practice | 120 construction questions, 20 wrong | 120 verified + 159 conversion exercises |
-| Mealy/Moore practice | 14, 4 wrong | 21 verified, plus Moore ↔ Mealy conversion practice |
-| PDA practice | 33, 28 wrong | 33 verified |
-| TM practice | 20, 8 wrong | 20 verified (final tape checked) |
-| How answers are checked | sample strings | exact equivalence (FA), exhaustive short strings (MM, PDA, TM) |
-| First-load download (uncompressed) | about 1.4 MB | about 0.64 MB |
-| Files in the repository root | more than 90 | 15 |
+| Measure | January 2026 | 14 November 2026 | v2.0.0 (15 November) |
+|---|---|---|---|
+| Studios | FA, Mealy/Moore, PDA, TM | + Grammar Studio, Automata Assistant | Automata Builder and Assistant in every studio; Grammar Studio rebuilt |
+| Machines built from a description | none | DFA | DFA, NFA, ε-NFA, Moore, Mealy, PDA, TM |
+| Application JavaScript (excluding practice data and tests) | about 10,600 lines | about 16,200 lines in 64 modules | about 18,300 lines in 77 modules |
+| Verification and construction engine (`src/core`) | none | about 1,560 lines | about 4,700 lines |
+| Test suite | none | 45 test groups, about 880 lines | 55 test groups, about 1,100 lines |
+| FA practice | 120 construction questions, 20 wrong | 120 verified + 159 conversion exercises | unchanged |
+| Mealy/Moore practice | 14, 4 wrong | 21 verified, plus Moore ↔ Mealy conversion | unchanged |
+| PDA practice | 33, 28 wrong | 33 verified | unchanged |
+| TM practice | 20, 8 wrong | 20 verified (final tape checked) | unchanged |
+| How answers are checked | sample strings | exact equivalence (FA), exhaustive short strings (MM, PDA, TM) | the same, for practice, the Builder and the Assistant's *Check* |
+| Study material | none | journey, study guide, technical guide | + ten study papers (about 80 pages) |
+| Platforms | web | web (installable PWA) | web, Windows (.exe), Android (.apk), Linux (AppImage), Docker |
+| First-load download (uncompressed) | about 1.4 MB | about 0.64 MB | about 0.64 MB |
+| Files in the repository root | more than 90 | 15 | 23 (including the app and container folders) |
 
 ![Practice exercises available after November 2026.](../figures/chart-practice.png)
 
@@ -679,20 +792,21 @@ The lessons of the previous chapter are easier to apply as a short list of worki
 | 21–26 February 2026 | about 20 | Grammar Studio, routing, assignments, portal, help, settings |
 | 20 March 2026 | 1 | Grammar Studio mobile accessibility |
 | 14 November 2026 | 9 | Assistant, audit, engine, reorganisation, responsive layout, performance, policies, documentation |
+| 14–15 November 2026 | about 20 | Netlify move, Automata Builder, Grammar Studio rebuild, apps and release workflow, study papers, assistant in every studio, help and settings, v2.0.0 |
 
-# 23. Where next
+# 28. Where next
 
-The roadmap file in the repository lists the next steps in detail. The most important are these.
+When I first wrote this chapter, on 14 November, it listed CYK parsing, Chomsky normal form and LL(1) tables for the Grammar Studio, an assistant for pushdown automata and Turing machines, and offline use as the next steps. All three arrived the next day in version 2.0.0, which is a reminder that a written roadmap is most useful when it is short enough to finish. The roadmap file in the repository now lists the following.
 
-**More of the syllabus.** The Grammar Studio should gain CYK parsing, conversion to Chomsky normal form, and LL(1) parsing tables, all of which are mechanical procedures that benefit from the same step-by-step animation as the subset construction. The TM studio should gain a library of reductions for the undecidability unit.
+**Reductions and undecidability.** The TM studio should gain a small library of reductions for the undecidability unit, animated the way the subset construction is, so that "reduce A_TM to HALT_TM" becomes something a student can step through rather than only read.
 
-**The assistant beyond finite automata.** Guided mode currently works for finite automata, where equivalence is decidable. For pushdown automata and Turing machines, the same idea can work with bounded checking: the assistant can compare a drawing with a reference on every short string and explain the first difference. Describing a context-free language in English and receiving a PDA is harder, but the same split between a classifier for the *kind* of language and exact constructions for the machine should carry over to the common textbook families.
+**More of the Builder.** The PDA compiler handles languages made of counted blocks, palindromes and brackets; the next families are languages defined by a grammar (build the PDA *from* the grammar the student writes) and multi-tape Turing machines, which the TM studio already supports but the Builder does not yet produce.
 
-**Larger and better practice banks.** The Mealy/Moore bank is still small. Every bank would benefit from questions contributed by students, which the library pipeline already makes possible; what is missing is a review step that runs the same verification tests on contributed answers before they are published.
+**Larger and better practice banks.** The Mealy/Moore bank is still small. Every bank would benefit from questions contributed by students, which the library pipeline already makes possible; what is missing is a review step that runs the same verification tests on contributed answers before they are published. The Builder's oracles make that review step much cheaper to write.
 
-**Offline use.** The application is a progressive web app in name, but it currently caches only the shell. Caching the studios and practice banks would make it usable without a connection, which matters in examination halls and on unreliable college Wi-Fi.
+**Languages.** Many students would find the help pages and the assistant's explanations easier in Hindi. The readers are English-only; the split between reading the *kind* of language and constructing it exactly should carry over to a second language.
 
-**Languages.** Many students would find the help pages and the assistant's explanations easier in Hindi. The assistant's reader is also English-only; a second trained classifier for Hindi descriptions is a natural extension of the same design.
+**The apps.** The Android app should be published to a store with a stable signing key, and the desktop app should update itself from the GitHub releases.
 
 **A second audit.** Finally, I intend to repeat the November exercise periodically. The most valuable thing the project gained this year was not a feature but a habit: no answer is trusted until something independent has checked it.
 
@@ -706,7 +820,8 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 | 21 February 2026 | Grammar Studio; smart cross-studio routing; assignments and verified submissions; help guide; settings |
 | 26 February 2026 | Grammar–machine bridge polish; dedicated review page for the instructor portal; PDA export |
 | 20 March 2026 | Grammar Studio mobile sidebar accessibility fix |
-| 14 November 2026 | Automata Assistant; verification engine and audit; practice banks rebuilt; conversion practice; repository reorganisation; responsive layout; keyboard shortcuts; animation and file-handling fixes; performance; settings and policies; documentation |
+| 14 November 2026 | Automata Assistant; verification engine and audit; practice banks rebuilt; conversion practice; repository reorganisation; responsive layout; keyboard shortcuts; animation and file-handling fixes; performance; settings and policies; documentation; site moved to `toc-suite.netlify.app` |
+| 15 November 2026 | Version 2.0.0: Automata Builder for every machine type; Grammar Studio rebuilt; Automata Assistant in every studio; ten study papers; rebuilt help and settings pages; Windows, Android and Linux apps with an animated launch intro; release workflow and container image |
 
 # Appendix B — Repository map {.unnumbered}
 
@@ -715,9 +830,10 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 | `index.html` | Splash screen and studio shell |
 | `src/app/` | Shell: routing, studio loading, autosave snapshots |
 | `src/fa/`, `src/mm/`, `src/pda/`, `src/tm/` | One folder per studio: state, renderer, UI, simulation, files, practice, library |
-| `src/grammar/` | Grammar Studio logic and the regular-expression converter |
-| `src/core/` | Verification engine, regular expressions, RPNI, layout, diagnosis, English reader and its model |
-| `src/assistant/` | The Automata Assistant panel |
+| `src/grammar/` | Grammar Studio interface |
+| `src/core/` | Verification engine, regular expressions, RPNI, layout, diagnosis, English reader and its model; `cfg.js`, the grammar engine |
+| `src/core/build/` | The Automata Builder: readers and oracles, finite/transducer/PDA/TM compilers, simulators |
+| `src/assistant/` | The Automata Assistant panels and the Builder drawer |
 | `src/shared/` | Utilities, animation timing, keyboard shortcuts, paths, assignment client |
 | `data/practice/` | Practice banks for every studio |
 | `data/libraries/` | Library files built by CI |
@@ -725,11 +841,14 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 | `pages/` | Grammar Studio, help, settings, policies, instructor portal |
 | `assets/` | Style sheet, icons, vendored icon subset |
 | `netlify/functions/` | Server-side functions |
+| `desktop/`, `mobile/`, `docker/` | Electron, Capacitor and container wrappers; the app intro is `src/app/app_intro.js` |
 | `tests/` | Unit, differential and data-audit tests |
 | `tools/` | Model training, practice-bank builders, icon builder, documentation builders |
-| `docs/` | This book, the study guide, the technical guide, figures and screenshots |
+| `docs/` | This book, the study guide, the technical guide, the study papers, figures and screenshots |
 
 # Appendix C — Glossary {.unnumbered}
+
+**Automata Builder.** The drawer that turns a description into a verified machine of any type and draws it in the right studio.
 
 **Accepting state.** A state in which a finite automaton or PDA accepts if the input has been consumed.
 
@@ -746,6 +865,8 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 **Minimal DFA.** The DFA with the fewest states for a given regular language; it is unique up to renaming of states.
 
 **Product construction.** Running two automata in parallel on the same input, used for intersection, union and comparison.
+
+**Oracle.** An independent membership test for a language, written from its description, against which a constructed machine is checked.
 
 **RPNI.** Regular Positive and Negative Inference, a state-merging algorithm for learning a DFA from labelled examples.
 

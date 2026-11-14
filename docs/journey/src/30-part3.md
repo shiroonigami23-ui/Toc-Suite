@@ -32,9 +32,9 @@ The portal was built quickly and it shows. The review page and the portal page e
 
 Context-free grammars are the other half of the context-free story. A pushdown automaton recognises a language; a grammar generates it. The course expects students to move between the two, to build parse trees and derivations, and to use the pumping lemma for context-free languages to show that some languages, such as $a^n b^n c^n$, are not context-free. None of that fits naturally on an automaton canvas, so the Grammar Studio has its own page with tabs.
 
-![The Grammar Studio animating the conversion of S → aSb | ε into an NPDA, step by step.](../media/grammar.png){.screenshot}
+![The Grammar Studio as it is today, after the version 2.0.0 rebuild described in Chapter 21: the grammar on the left, its classification, sets and shortest strings on the right, and a navigation bar to every studio.](../media/grammar.png){.screenshot}
 
-## What it does
+## What it did in February
 
 The **CFG input** tab accepts a grammar in a readable form such as `S -> a S b | eps` and validates it: undefined non-terminals, unreachable productions and malformed rules are reported.
 
@@ -56,11 +56,17 @@ The Grammar Studio is the reason the shell gained *smart routing* in February. A
 
 The help page started as a list of buttons and their meanings. On 21 February I rewrote it as an interactive guide: an accordion of sections that remembers which ones were open, studio-by-studio *playbooks* that walk through a typical task, common pitfalls (an initial state with no outgoing transitions; a PDA that never empties its stack; a Turing machine with no transition on the blank symbol), and a checklist a student can tick through before submitting.
 
+It was useful, but it looked like what it was: a long page of collapsed boxes, with a search field in a coloured banner and a single "Back to Menu" button. For version 2.0.0 I rebuilt the page around what a new user actually needs, in the order they need it. A sticky contents bar jumps to a four-step quick start, a guide to the Automata Builder and the Assistant panel with example phrasings that work, the studio playbooks, a keyboard-shortcut sheet, cards linking to all ten study papers, and the download links for the apps. The February theory labs (Arden's lemma, the closure-property table, the machine recommender, the L-system explorer, the LBA boundary checker, the pumping-lemma coach and the quiz) are still there, under a searchable *Theory labs* section. The header now carries the same navigation bar as the Grammar Studio, so Home, Help, Settings and the studios are always one click away.
+
+![The rebuilt help page: quick start, the Builder and Assistant guide, and a contents bar that stays at the top while scrolling.](../media/help.png){.screenshot}
+
 ## Settings
 
 The settings page gives each student a display name, a college email identity for submissions, a theme, a text size and a motion preference, with presets for "focus" and "calm" and the ability to export and import settings as a file. In November it gained an animation-speed setting that applies to every animation in the application, the sharing switch described above, a button to erase all local data, and links to the new privacy, terms and accessibility page.
 
-![The settings page.](../media/settings.png){.screenshot}
+The page had one persistent annoyance: nothing was saved until the student pressed a floating *Save All Settings* bar, which on smaller screens sat on top of the very controls it was meant to save. In version 2.0.0 every control saves the moment it changes and confirms with a small toast, so the bar is gone. Themes are chosen from four colour cards, text size, motion and drawing speed are segmented toggles beside a live preview, and a *Presenting* preset (largest text, slow drawing) joins *focus* and *calm* for use on a classroom projector. The identity section now says plainly whether the student is signed in and offers sign-out; an *About* card shows the version, whether the app is running on the web, Windows or Android, and links to the downloads and the changelog. Every storage key from the old page was kept, so nobody lost their settings.
+
+![The rebuilt settings page. Every change is saved immediately; the preview strip follows the chosen theme.](../media/settings.png){.screenshot}
 
 ## Phones
 

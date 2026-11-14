@@ -1,0 +1,10 @@
+digraph R { rankdir=LR; nodesep=0.3; ranksep=0.45; bgcolor="white"; node [shape=box style="rounded,filled" fontname="Inter" fontsize=11.5 color="#cbd5e1" fillcolor="#f8fafc" penwidth=1.2]; edge [color="#64748b" arrowsize=0.7];
+  src [label="main branch\nweb app (no build step)"]; test [label="tests\n55 groups" fillcolor="#ecfdf5" color="#34d399"];
+  stage [label="stage-web.mjs\ncopy the app\n(--app adds the intro)"];
+  win [label="Windows\nElectron · NSIS + portable .exe" fillcolor="#eef2ff" color="#818cf8"];
+  lin [label="Linux\nAppImage" fillcolor="#eef2ff" color="#818cf8"];
+  and [label="Android\nCapacitor · signed .apk" fillcolor="#eef2ff" color="#818cf8"];
+  dock [label="container\nnginx image → GHCR" fillcolor="#eef2ff" color="#818cf8"];
+  rel [label="GitHub release\ntag · notes from CHANGELOG\nassets replaced on re-release" fillcolor="#fff7ed" color="#fb923c"];
+  net [label="Netlify\ntoc-suite.netlify.app"];
+  src -> test -> stage; stage -> win; stage -> lin; stage -> and; stage -> dock; win -> rel; lin -> rel; and -> rel; src -> net [style=dashed]; }

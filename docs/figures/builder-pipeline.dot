@@ -1,0 +1,14 @@
+digraph P { rankdir=TB; nodesep=0.35; ranksep=0.3; bgcolor="white"; node [shape=box style="rounded,filled" fontname="Inter" fontsize=12 color="#cbd5e1" fillcolor="#f8fafc" penwidth=1.2]; edge [fontname="Inter" fontsize=10 color="#64748b" fontcolor="#475569" arrowsize=0.7];
+  text [label="description\n\"a^n b^n c^m where n, m ≥ 1\"  ·  \"Mealy machine for 2's complement\""];
+  kind [label="which machine?\nexplicit word (\"PDA for…\") wins,\notherwise the current studio and mode" fillcolor="#eef2ff" color="#818cf8"];
+  read [label="readers\nexponent notation · English · counts #a(w)\npalindromes · ww · brackets · arithmetic tasks"];
+  oracle [label="oracle\nan independent membership test\nfor the language" fillcolor="#ecfdf5" color="#34d399"];
+  subgraph cluster_c { label="compilers"; fontname="Inter"; fontsize=11; color="#e2e8f0"; style=rounded;
+    fin [label="finite\nGlushkov · Thompson\nminimise" fillcolor="#fff7ed" color="#fb923c"];
+    mm [label="Mealy / Moore\nfrom DFA conditions\nand tasks" fillcolor="#fff7ed" color="#fb923c"];
+    pda [label="PDA\nlinear-set equations\n→ signed stack counters" fillcolor="#fff7ed" color="#fb923c"];
+    tm [label="Turing machine\nshape check · crossing-off\nsweeps · minimise" fillcolor="#fff7ed" color="#fb923c"]; }
+  ver [label="verify\nFA: exact equivalence\nPDA / TM / transducer: every input up to a length" fillcolor="#ecfdf5" color="#34d399"];
+  draw [label="switch studio · draw · explain\n(or refuse, with the reason)"];
+  text -> kind -> read; read -> oracle; read -> fin; read -> mm; read -> pda; read -> tm;
+  fin -> ver; mm -> ver; pda -> ver; tm -> ver; oracle -> ver [style=dashed label=" compare"]; ver -> draw; }
