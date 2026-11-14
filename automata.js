@@ -163,12 +163,8 @@ export async function convertNfaToDfa(nfa, stepCallback = async () => {}) {
         }
     }
 
-    if (!dfaStateKeys.has('{}')) {
-        newMachine.states.push({ id: '{}', initial: false, accepting: false });
-        for(const symbol of alphabet) {
-            newMachine.transitions.push({ from: '{}', to: '{}', symbol: symbol });
-        }
-    }
+    // (The empty set state {} is created above only when some move actually leads to it;
+    //  adding it unconditionally produced an unreachable junk state.)
 
     return newMachine;
 }

@@ -1,7 +1,9 @@
 import { MACHINE, CURRENT_PRACTICE, pushUndo, setCurrentPractice } from './state.js';
 import { animateMachineDrawing } from './animation.js';
 import { setValidationMessage, addLogMessage } from './utils.js';
-import { areEquivalent } from './equivalence.js';
+import { compareMachines } from './equivalence.js';
+import * as FA from './core/fa.js';
+import { diagnose } from './core/diagnose.js';
 
 let practiceBankPromise = null;
 
@@ -110,13 +112,23 @@ export async function checkAnswer() {
 
     // --- FIX: Ensure both machines are checked against the same, official alphabet ---
     // The equivalence check will now use the alphabet from the solution as the ground truth.
-    const isCorrect = await areEquivalent(userMachine, solutionMachine);
+    const result = await compareMachines(userMachine, solutionMachine);
 
-    if (isCorrect) {
+    if (result.equivalent) {
         setValidationMessage('Correct Solution! Your automaton is logically equivalent to the solution.', 'success');
         addLogMessage('Result: Correct! good job buddy nice work', 'check-circle');
     } else {
-        setValidationMessage('Incorrect! Your automaton does not match the solution.', 'error');
-        addLogMessage('Result: Incorrect! come on bro u can do it.', 'x-circle');
+        const w = result.counterexample;
+        const why = w === null ? '' : (result.acceptedBy === 'a'
+            ? ` Your machine accepts "${w}", but it should be rejected.`
+            : ` Your machine rejects "${w}", but it should be accepted.`);
+        setValidationMessage('Incorrect!' + why, 'error');
+        addLogMessage('Result: Incorrect! come on bro u can do it.' + why, 'x-circle');
+        // State-level hints (which state is wrong and why) from the Assistant's diagnoser.
+        try {
+            const sigma = [...new Set([...FA.machineAlphabet(userMachine), ...FA.machineAlphabet(solutionMachine)])].sort();
+            const d = diagnose({ ...userMachine, type: 'DFA' }, FA.toMinimalDfa(solutionMachine, sigma));
+            d.hints.filter(h => h.level === 'error').slice(0, 3).forEach(h => addLogMessage('Hint: ' + h.message, 'lightbulb'));
+        } catch (_e) { /* hints are best-effort */ }
     }
 }

@@ -54,6 +54,7 @@ export function setTransFrom(stateId) {
 
 export function setCurrentPractice(practice) {
     CURRENT_PRACTICE = practice;
+    if (typeof window !== 'undefined') window.__CURRENT_FA_PRACTICE = practice; // read by the Automata Assistant
 }
 
 export function pushUndo(updateUIFunction) {

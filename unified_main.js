@@ -111,6 +111,10 @@ export const StudioContext = {
     </button>
   </div>
 </details>
+          <details class="control-section" id="assistSection" open>
+            <summary><i data-lucide="sparkles" style="color: #8b5cf6;"></i> <span>Automata Assistant</span></summary>
+            <div class="control-section-content" id="assistPanelRoot"></div>
+          </details>
           <details class="control-section">
             <summary>
                 <i data-lucide="puzzle"></i>
@@ -1190,6 +1194,11 @@ function loadStudio(target) {
         
         // 3. Initialize UI (hooks up click handlers)
         StudioContext.initializeUI();
+
+        // 3b. Automata Assistant (FA studio only)
+        if (StudioContext.current === 'FA') {
+            import('./assist_panel.js').then(m => m.initAssistPanel()).catch(err => console.error('Assistant failed to load:', err));
+        }
         
         // --- 4. FIX: Initialize Library (This was missing) ---
         if (typeof StudioContext.initializeLibrary === 'function') {
