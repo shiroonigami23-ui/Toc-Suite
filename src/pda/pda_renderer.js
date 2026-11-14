@@ -4,10 +4,19 @@
  */
 
 import { MACHINE } from './pda_state.js';
+import { updatePdaLogicDisplay } from './pda_logic_table.js';
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+let legendFrame = 0;
+/** Keep the "State roles" counts in the sidebar in step with the canvas (after loads, edits, undo). */
+function scheduleLegendUpdate() {
+    if (legendFrame || typeof requestAnimationFrame !== 'function') return;
+    legendFrame = requestAnimationFrame(() => { legendFrame = 0; try { updatePdaLogicDisplay(); } catch (_e) { } });
+}
+
 export function renderAll() {
+    scheduleLegendUpdate();
     const statesG = document.getElementById('states');
     const edgesG = document.getElementById('edges');
     if (!statesG || !edgesG) return;

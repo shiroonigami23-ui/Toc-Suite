@@ -149,7 +149,7 @@ function createLibraryEntryEl(entry) {
         // Start the animated drawing
         await animatePdaDrawing(machineData);
         
-        customAlert("Library Load Complete", `${entry.title} is now active.`);
+        addLogMessage(`${entry.title} loaded from the library.`, "check-circle");
     };
 
     if (window.lucide) lucide.createIcons({ nodes: [container] });

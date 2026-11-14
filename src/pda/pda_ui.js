@@ -10,7 +10,7 @@ import { runPdaSimulation } from './pda_simulation.js';
 import { animatePdaPath,stepSimulation,setSimulationPath,updateStackUI,currentPath,currentIndex} from './pda_simulation_visualizer.js';
 import { generatePractice, checkAnswer, showSolution } from './pda_practice.js'; 
 import { savePdaMachine, exportPng, loadPdaMachine } from './pda_file.js';
-import { setValidationMessage, customAlert, addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons } from '../shared/utils.js';
+import { setValidationMessage, customAlert, addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons, revealLiveView } from '../shared/utils.js';
 import { animatePdaDrawing } from './pda_animation.js';
 import { updatePdaLogicDisplay, exportPdaTableToExcel } from './pda_logic_table.js';
 import { initializePdaLibrary } from './pda_library_loader.js';
@@ -466,6 +466,7 @@ function addNewState(x, y) {
 function setupTestingUI() {
     const runBtn = document.getElementById('pdaRunTestBtn');
     const stepBtn = document.getElementById('pdaStepBtn');
+    [runBtn, stepBtn].forEach(b => b?.addEventListener('click', () => revealLiveView('pdaStackDisplay')));
     const resetSimBtn = document.getElementById('pdaResetSimBtn');
     const randomBtn = document.getElementById('pdaRandomTestBtn');
     const bulkRunBtn = document.getElementById('pdaBulkRunBtn');

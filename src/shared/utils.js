@@ -362,3 +362,11 @@ export function constructionDelay(steps = 1) {
     const budget = { slow: 6000, normal: 2500, fast: 1000 }[speed] ?? 2500;
     return Math.max(25, Math.min(speed === 'slow' ? 900 : 350, Math.round(budget / Math.max(1, steps))));
 }
+
+
+/** Opens the collapsed sidebar section that contains a live view (tape, stack), so a run is visible. */
+export function revealLiveView(id) {
+    const el = document.getElementById(id);
+    const section = el?.closest('details');
+    if (section && !section.open) section.open = true;
+}

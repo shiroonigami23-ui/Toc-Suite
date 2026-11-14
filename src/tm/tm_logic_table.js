@@ -3,7 +3,7 @@
  * Universal Logic Explorer & Machine Intelligence Controller.
  * Handles dynamic legends, transition tables, and real-time highlighting.
  */
-import { MACHINE } from '../tm/tm_state.js';
+import { MACHINE } from './tm_state.js';
 import { addLogMessage } from '../shared/utils.js';
 
 /**

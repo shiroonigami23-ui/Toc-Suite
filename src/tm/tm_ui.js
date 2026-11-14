@@ -8,12 +8,12 @@ import { MACHINE,pushUndo,resetMachine,undo,redo,updateUndoRedoButtons,tapes,hea
 import { renderAll } from './tm_renderer.js';
 import { activeSim,initInteractiveSim,stepTmSimulation,stepMultiTape,runTmSimulation} from './tm_simulation.js';
 import { updateTapeUI } from './tm_visualizer.js';
-import { addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons } from '../shared/utils.js';
+import { addLogMessage, initializeShortcuts, bindGlobalDrawerHandlers, refreshLucideIcons, revealLiveView, sleep, stepDelay, animationSpeed } from '../shared/utils.js';
 import { saveTmMachine, exportTmPng, loadTmMachine } from './tm_file.js';
 import { generateTmPractice, showTmSolution, checkTmAnswer } from './tm_practice.js';
 import { convertToStandard, handleModeChange } from './tm_modes.js';
 import { validateTm } from './tm_validator.js';
-import { updateLogicDisplay } from '../fa/logic_table.js';
+import { updateLogicDisplay } from './tm_logic_table.js';
 import { initializeTmLibrary } from './tm_library_loader.js'; //
 
 let currentMode = 'move';
@@ -195,13 +195,30 @@ function setupTestingUI() {
     const bulkResults = document.getElementById('tmBulkResults');
 
     // 1. Full Run (Play Button)
-    document.getElementById('tmRunTestBtn')?.addEventListener('click', () => {
-        const result = runTmSimulation(testInput.value.trim(), MACHINE);
-        addLogMessage(result.message, result.success ? 'check-circle' : 'x-circle');
+    // The verdict is computed at once; the tape and the active state are then animated step by
+    // step (deterministic machines), so pressing Play shows the machine actually working.
+    document.getElementById('tmRunTestBtn')?.addEventListener('click', async () => {
+        revealLiveView('tmTapeDisplay');
+        const input = testInput.value.trim();
+        const result = runTmSimulation(input, MACHINE);
+        const runId = (window.__tmRunId = (window.__tmRunId || 0) + 1);
+        const animate = MACHINE.type !== 'NTM' && animationSpeed() !== 'instant';
+        if (animate) {
+            initInteractiveSim(input, MACHINE);
+            for (let i = 0; i < 300 && activeSim.isRunning && window.__tmRunId === runId; i++) {
+                if (MACHINE.type === 'MULTI_TAPE') await stepMultiTape(MACHINE); else await stepTmSimulation(MACHINE);
+                await sleep(Math.max(80, Math.round(stepDelay() / 2)));
+            }
+        }
+        if (window.__tmRunId === runId) {
+            if (!animate && result.finalTape) updateTapeUI([result.finalTape.split('')], [0]);
+            addLogMessage(`${result.message}${result.finalTape ? ` — final tape: ${result.finalTape.replace(/^B+|B+$/g, '') || '(blank)'}` : ''}`, result.success ? 'check-circle' : 'x-circle');
+        }
     });
 
     // 2. Manual Step
     document.getElementById('tmStepBtn')?.addEventListener('click', () => {
+        revealLiveView('tmTapeDisplay');
         if (!activeSim.isRunning || activeSim.steps === 0) {
             initInteractiveSim(testInput.value.trim(), MACHINE);
         }
@@ -613,7 +630,7 @@ function setupLogicToggle() {
 
     // --- NEW: Export Listener ---
     exportBtn?.addEventListener('click', async () => {
-        const { exportTmTableToExcel } = await import('../fa/logic_table.js');
+        const { exportTmTableToExcel } = await import('./tm_logic_table.js');
         exportTmTableToExcel();
     });
 }

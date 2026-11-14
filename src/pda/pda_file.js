@@ -216,7 +216,7 @@ export async function loadPdaMachine(event) {
                 const rerouted = routeMachineImport(machineData, 'pda');
                 if (!rerouted.handled) {
                     await loadPdaFromObject(machineData);
-                    customAlert("Load Complete", "The machine has been constructed from the file.");
+                    addLogMessage("Machine loaded from file.", "check-circle");
                 }
             } else {
                 customAlert("Invalid File", "This file does not appear to be a valid PDA machine.");

@@ -151,7 +151,7 @@ export async function loadTmMachine(event) {
                 const rerouted = routeMachineImport(machineData, 'tm');
                 if (!rerouted.handled) {
                     await loadTmFromObject(machineData);
-                    customAlert("Load Complete", "The machine has been constructed on the tape.");
+                    addLogMessage("Machine loaded from file.", "check-circle");
                 }
             } else {
                 customAlert("Invalid File", "This is not a valid Turing Machine configuration.");

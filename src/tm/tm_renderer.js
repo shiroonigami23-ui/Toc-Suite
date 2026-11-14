@@ -3,8 +3,17 @@
  * Optimized renderer for Turing Machine states and consolidated transitions.
  */
 import { MACHINE } from './tm_state.js';
+import { updateLogicDisplay } from './tm_logic_table.js';
+
+let legendFrame = 0;
+/** Keep the "State roles" counts in the sidebar in step with the canvas (after loads, edits, undo). */
+function scheduleLegendUpdate() {
+    if (legendFrame || typeof requestAnimationFrame !== 'function') return;
+    legendFrame = requestAnimationFrame(() => { legendFrame = 0; try { updateLogicDisplay(); } catch (_e) { } });
+}
 
 export function renderAll() {
+    scheduleLegendUpdate();
     const edgeG = document.getElementById('edges');
     const stateG = document.getElementById('states');
     const hintEl = document.getElementById('canvasHint');
