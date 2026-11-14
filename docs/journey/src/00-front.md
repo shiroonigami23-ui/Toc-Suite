@@ -5,7 +5,7 @@ author: "Aryan Singh Chandel"
 affiliation: "B.Tech Computer Science and Engineering, Rustamji Institute of Technology, Gwalior"
 date: "November 2026"
 kicker: "Toc-Suite · Project Journey"
-repo: "github.com/shiroonigami23-ui/Toc-Suite · toc-suite-v3.netlify.app"
+repo: "github.com/shiroonigami23-ui/Toc-Suite · toc-suite.netlify.app"
 cover: "../media/fa-assistant-build.png"
 ---
 

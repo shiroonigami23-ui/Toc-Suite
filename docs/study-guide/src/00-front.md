@@ -5,7 +5,7 @@ author: "Aryan Singh Chandel"
 affiliation: "B.Tech Computer Science and Engineering, Rustamji Institute of Technology, Gwalior"
 date: "November 2026"
 kicker: "Toc-Suite · Study Guide"
-repo: "Open any example at toc-suite-v3.netlify.app"
+repo: "Open any example at toc-suite.netlify.app"
 cover: "../figures/subset-ends-abb.png"
 ---
 

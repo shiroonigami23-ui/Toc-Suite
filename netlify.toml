@@ -3,6 +3,11 @@
   command = "echo \"Static site - no build step required\""
   ignore = "bash scripts/ignore-build.sh"
 
+[build.environment]
+  # The AI generator was removed; these old variables are no longer read by any code.
+  # Its short password matched the author name in LICENSE/README, which tripped secret scanning.
+  SECRETS_SCAN_OMIT_KEYS = "AI_ACCESS_PASSWORD,GEMINI_API_KEY,GEMINI_MODEL"
+
 # --- Old URLs (before the 2026-11 folder restructure) keep working ---
 [[redirects]]
   from = "/grammar_studio.html"

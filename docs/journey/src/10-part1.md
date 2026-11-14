@@ -70,7 +70,7 @@ The early versions of Toc-Suite checked answers by running a list of sample stri
 
 # 3. Before version three
 
-The live site is called `toc-suite-v3`, and the name is honest: there were two earlier attempts before the version that is in this repository.
+The live site is called `toc-suite`, and the name is honest: there were two earlier attempts before the version that is in this repository.
 
 ## The first prototype
 

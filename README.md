@@ -9,13 +9,13 @@ Draw, simulate and convert DFAs, NFAs, ε-NFAs, Mealy and Moore machines, PDAs a
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/tests.yml?label=tests&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/tests.yml)
 [![Library build](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/build-library.yml?label=library&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/build-library.yml)
-[![Live app](https://img.shields.io/badge/live-toc--suite--v3.netlify.app-00c7b7?style=flat-square&logo=netlify&logoColor=white)](https://toc-suite-v3.netlify.app/)
+[![Live app](https://img.shields.io/badge/live-toc--suite.netlify.app-00c7b7?style=flat-square&logo=netlify&logoColor=white)](https://toc-suite.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-10b981?style=flat-square)](LICENSE)
 ![No build step](https://img.shields.io/badge/build%20step-none-6366f1?style=flat-square)
 ![Vanilla JS](https://img.shields.io/badge/vanilla-ES%20modules-f7df1e?style=flat-square&logo=javascript&logoColor=black)
 ![Runs in the browser](https://img.shields.io/badge/runs-in%20the%20browser-0ea5e9?style=flat-square)
 
-[**Open the app**](https://toc-suite-v3.netlify.app/) ·
+[**Open the app**](https://toc-suite.netlify.app/) ·
 [Study guide (PDF)](docs/study-guide/STUDY-GUIDE.pdf) ·
 [Technical guide (PDF)](docs/technical-guide/TECHNICAL-GUIDE.pdf) ·
 [The journey (PDF)](docs/journey/JOURNEY.pdf) ·
