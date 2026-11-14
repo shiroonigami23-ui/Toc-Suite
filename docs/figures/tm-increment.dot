@@ -1,0 +1,14 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.2; nodesep=0.45; ranksep=0.55;
+  node [shape=circle fontname="Inter" fontsize=13 color="#4338ca" penwidth=1.6 fontcolor="#1e1b4b" style=filled fillcolor="#eef2ff" width=0.55 fixedsize=false];
+  edge [fontname="Inter" fontsize=11 color="#64748b" fontcolor="#334155" arrowsize=0.7];
+  __start [shape=point width=0.06 color="#4338ca"];
+  "q_right" [shape=circle label="q_right"];
+  "q_carry" [shape=circle label="q_carry"];
+  "q_accept" [shape=doublecircle label="q_accept" fillcolor="#fef3c7" color="#b45309"];
+  __start -> "q_right";
+  "q_right" -> "q_right" [label="0→0,R, 1→1,R"];
+  "q_right" -> "q_carry" [label="B→B,L"];
+  "q_carry" -> "q_carry" [label="1→0,L"];
+  "q_carry" -> "q_accept" [label="0→1,R, B→1,R"];
+}

@@ -1,293 +1,251 @@
-<p align="center">
-  <img src="icon-512.png" alt="Toc-Suite Logo" width="110">
-</p>
+<div align="center">
+
+<img src="assets/icons/icon-512.png" alt="Toc-Suite logo" width="104">
 
 # Toc-Suite
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg?style=flat-square)](LICENSE)
-[![Library Build](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/build-library.yml?label=Library%20Build&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/build-library.yml)
-[![Tests](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/tests.yml?label=Tests&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/tests.yml)
-[![Netlify Status](https://img.shields.io/badge/Deploy-Netlify-00c7b7?style=flat-square)](https://toc-suite-v3.netlify.app/)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Toc--Suite-111827?style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite)
+**The Theory of Computation workbench that checks your answers for real.**
+Draw, simulate and convert DFAs, NFAs, ε-NFAs, Mealy and Moore machines, PDAs and Turing machines, practise on 350+ verified exercises, and describe a language in plain English to get, or be guided towards, the exact automaton.
 
-Links:
-- Live App: https://toc-suite-v3.netlify.app/
-- GitHub Repository: https://github.com/shiroonigami23-ui/Toc-Suite
-- Issues and Tracking: https://github.com/shiroonigami23-ui/Toc-Suite/issues
+[![Tests](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/tests.yml?label=tests&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/tests.yml)
+[![Library build](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/build-library.yml?label=library&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/build-library.yml)
+[![Live app](https://img.shields.io/badge/live-toc--suite--v3.netlify.app-00c7b7?style=flat-square&logo=netlify&logoColor=white)](https://toc-suite-v3.netlify.app/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-10b981?style=flat-square)](LICENSE)
+![No build step](https://img.shields.io/badge/build%20step-none-6366f1?style=flat-square)
+![Vanilla JS](https://img.shields.io/badge/vanilla-ES%20modules-f7df1e?style=flat-square&logo=javascript&logoColor=black)
+![Runs in the browser](https://img.shields.io/badge/runs-in%20the%20browser-0ea5e9?style=flat-square)
 
-Unified Theory of Computation workspace for:
-- Finite Automata (FA: DFA/NFA/e-NFA + conversions)
-- Mealy/Moore Machines
-- Pushdown Automata (PDA)
-- Turing Machines (TM, multi-tape, NTM, LBA, block templates)
-- Grammar Studio (CFG validation, parse tree, derivation timeline, CFG -> NPDA bridge)
+[**Open the app**](https://toc-suite-v3.netlify.app/) ·
+[Study guide (PDF)](docs/study-guide/STUDY-GUIDE.pdf) ·
+[Technical guide (PDF)](docs/technical-guide/TECHNICAL-GUIDE.pdf) ·
+[The journey (PDF)](docs/journey/JOURNEY.pdf) ·
+[Roadmap](ROADMAP.md) ·
+[Changelog](CHANGELOG.md)
 
-This project combines:
-- interactive student-facing studios
-- a help/theory lab
-- a settings/profile system
-- assignment/quiz submission flow backed by Netlify Functions + Postgres (Neon)
-- architect/admin review and selective GitHub push pipeline
+<img src="docs/media/demo-assistant.gif" alt="Typing a description and getting the minimal DFA" width="860">
 
-## 0) Automata Assistant (new)
+<sub>Type <i>“binary strings where the second symbol from the end is 1”</i> → the exact minimal DFA, laid out and explained.</sub>
 
-A panel in the FA studio (**Automata Assistant**, under Machine Intelligence) that helps you *build* automata, not just draw them. Everything runs in the browser, no server, no API key.
-
-| Feature | What it does |
-|---|---|
-| **Describe → DFA** | Type the language in plain English (or a regex, or set-builder) and get the minimal DFA drawn for you. Handles starts/ends/contains, counts, mod, length, nth-from-end, divisibility, "followed later by", finite word lists, and `and` / `or` / `not` combinations. The panel always shows *how it read your sentence* so you can catch a misread. |
-| **Guide me** | Same input, but it does **not** draw the answer. You draw, and it watches: a progress bar, a "Next:" tip, and a red ring on any state that is wrong, with the exact string that proves it. |
-| **Examples → DFA** | Give accepted (`+ ab`) and rejected (`- ba`) strings; it learns the smallest consistent DFA (RPNI state merging). |
-| **Check / live hints** | Compares your drawing with the target and explains mistakes in words: a state doing two jobs (with the suffix that separates them), wrong accepting flags, missing moves, or a counterexample with its trace. |
-| **Tidy layout** | Layered auto-layout with crossing reduction; trap state parked in the corner. |
-
-**The built-in model.** Each clause of a description is classified by a small multinomial logistic-regression model (`core/nl-model.json`, ~155 KB) trained on generated phrasings (`tools/nl-dataset.mjs`, `tools/train-nl-model.mjs`, fixed seed, so it retrains byte-for-byte). The model only picks the *kind* of condition; the automaton itself is then built exactly (KMP pattern automata, counters, product constructions, Thompson + subset construction for regexes), so a recognised sentence never gives an approximate machine. Accuracy on held-out phrasings it was never trained on is reported by the trainer; on the 120 practice-bank questions it understands 110 and agrees with every reference solution.
-
-**Exact checking.** Practice answers in the FA studio are compared by DFA equivalence (product construction) instead of sample strings, and a wrong answer gets the shortest string where you differ. Mealy/Moore answers use an exact lock-step search too.
-
-### Audit (what the tests found and fixed)
-`npm test` runs the whole suite (unit, differential and data audits):
-- **FA practice bank:** 20 stored solutions accepted the wrong language (e.g. "start with 0 OR end with 1" rejected `1`; "(0|1)*01*" rejected `0`). Each is now rebuilt from an independent brute-force definition (`tests/practice-truth.mjs`, `tools/fix-practice-bank.mjs`), and the English reader cross-checks every other question.
-- **PDA practice bank:** 28 of 33 solutions accepted the wrong language (mostly accepting states that ignored the stack). All rebuilt and verified on every input up to length 7. The PDA simulator now dedupes configurations and prunes runaway ε-pushes, so non-deterministic machines no longer hit the step limit.
-- **TM:** 8 practice solutions were broken (copy, reverse, palindrome, wcw, parentheses, mark-ends, even zeros, copy-arbitrary) and the TM library used `direction` instead of `move`, so its machines never moved. The TM checker now tests every input up to length 5 over the problem's own alphabet and compares the final tape, not just accept/reject.
-- **Mealy/Moore:** Mealy→Moore conversion could produce a machine with no start state and mis-wired states whose names shared a prefix (`q1` vs `q11`); four practice machines were wrong; multi-character input symbols (the serial adder's `00/01/10/11`) were read one character at a time.
-- **Core FA code:** NFA→DFA no longer adds a stray unreachable `{}` state; equivalence handles differing alphabets; regex `+` is accepted as union.
-
-## 0.1) Recent Enhancements
-
-- Grammar Studio now includes dedicated RL and REL conversion tabs (separate, not merged).
-- RL and REL panels now render dynamic transition tables with animated step cards.
-- `Open RL in FA` now performs real conversion and opens FA with imported machine data.
-- `Open REL in TM` now opens TM with generated TM transition/state data (not only prompt text).
-- FA/MM/TM route boot now auto-opens studio directly (splash bypass on routed launch, same feel as PDA).
-- Action logs were expanded across FA, MM, and PDA to match TM-level descriptive tracing.
-- Architect portal UI upgraded with collapsible sections and advanced dropdown filters for review queue.
-
-## 1) Current App Surfaces
-
-- `index.html`: splash + FA/MM/PDA/TM studio entry and routing
-- `splash_help.html`: dynamic help/theory lab (accordion sections, progress state)
-- `splash_settings.html`: compact settings center (accordion panels, presets, profile/auth)
-- `grammar_studio.html`: dedicated grammar workspace
-- `architect-portal-2026.html`: architect moderation/review interface
-
-## 2) Local Development
-
-Do not run this app via `file://` URL. Use a local HTTP server.
-
-### Recommended
-```bash
-npx serve . -l 5173
-```
-
-Then open:
-```text
-http://localhost:5173
-```
-
-### Tests
-```bash
-npm test               # node --test tests/*.test.mjs (Node 20+)
-npm run train-model    # retrain core/nl-model.json (deterministic)
-```
-
-## 3) Core Features
-
-### 3.1 Multi-studio workflow
-- Splash routes to FA/MM/PDA/TM/Grammar.
-- Route persistence via hash + session.
-- Back to menu behavior across studios.
-
-### 3.2 Smart cross-studio JSON import
-Imports are auto-detected and rerouted to the correct studio:
-- FA JSON -> FA studio
-- MM JSON -> Mealy/Moore studio
-- PDA JSON -> PDA studio
-- TM JSON -> TM studio
-- Grammar JSON -> Grammar studio
-
-After reroute, pending import is consumed and animated draw is executed in destination studio.
-
-Primary router file:
-- `machine_router.js`
-
-### 3.3 Grammar Studio
-- CFG parser/validator
-- Conversion steps animation
-- NPDA JSON generation and bridge to PDA studio
-- Parse tree render
-- Leftmost derivation + derivation timeline
-- Grammar/NPDA logic-table view
-- RL conversion designer tab (dynamic transition table + animated conversion steps)
-- REL conversion designer tab (dynamic TM-style table + animated conversion steps)
-- Regex bridge to FA studio with parser support for union, concat, star, parentheses, and epsilon tokens
-- Cross-open flows:
-  - RL -> FA (machine import)
-  - RL -> Mealy/Moore (prompt handoff)
-  - REL -> TM (machine import + prompt handoff)
-- Context-free pumping lemma helper
-
-Main files:
-- `grammar_studio.html`
-- `grammar_main.js`
-- `regex-converter.js`
-
-### 3.4 TM advanced modes
-- `STANDARD`
-- `MULTI_TAPE`
-- `STAY_OPTION`
-- `NON_DET`
-- `LBA`
-- Block templates:
-  - `COPY_BLOCK`
-  - `INCREMENT_BLOCK`
-  - `PAL_CHECK_BLOCK`
-
-Template loading is animated and mode-aware.
-
-Main files:
-- `tm_studio.html`
-- `tm_modes.js`
-- `tm_simulation.js`
-- `tm_ui.js`
-- `tm_validator.js`
-
-### 3.5 Help and settings
-- Help is accordion-based and stateful (only opened sections show content)
-- Tool guide upgraded with interactive studio playbooks
-- Settings compacted with accordion panels, quick status, presets, sticky save bar
-
-Main files:
-- `splash_help.html`
-- `splash_settings.html`
-
-### 3.6 Architect Portal (admin moderation)
-- Collapsible operational panels for cleaner top-level navigation.
-- Rich review queue filters:
-  - mode
-  - assignment
-  - machine type
-  - repo policy (repo-eligible vs DB-only)
-  - integrity flag (flagged vs clean)
-- Persistent panel open/closed state via local storage.
-- CSV export for filtered rows.
-- Assignment creation and active-assignment hints remain function-backed.
-
-Main file:
-- `architect-portal-2026.html`
-
-## 4) Assignment / Quiz / Submission Pipeline
-
-### 4.1 Student-side submission behavior
-- Student can use studios without login.
-- Assignment/quiz submission prompts for valid `@rjit.ac.in` email.
-- Roll identity derived from email local-part format.
-- Fingerprint + identity checks are applied server-side for protected flows.
-
-Main client bridge:
-- `assignment-client.js`
-
-### 4.2 Netlify Functions
-Under `netlify/functions`:
-- `save-to-db.js`: stores submissions + enforces policy
-- `list-active-assignments.js`: fetches active assignments by machine type
-- `create-assignment.js`: architect creates assignments
-- `get-submissions.js`: architect fetches pending/reviewable items
-- `save-review.js`: save grading/feedback/review state
-- `push-to-github.js`: push repo-eligible approved item to `Data/`
-- `push-to-github-bulk.js`: bulk push flow
-- `verify-ai-password.js`: AI access password check
-
-### 4.3 Repo push gating
-Only repo-eligible submissions (hard/special category flows) should be pushed to GitHub.
-Regular student submissions remain DB-side and are not direct repo writes.
-
-## 5) Deploy-loop Protection (Netlify Free-tier safety)
-
-`netlify.toml` uses an `ignore` script to skip deploys when only data/library sync files changed, including:
-- `Data/`
-- `automata/`
-- `submissions/`
-- `archives/`
-- `library.json`
-- `pda_library.json`
-- `moore_mealy_library.json`
-- `tm_library.json`
-- `CHANGELOG.md`
-- `PREVIEW.md`
-- `README.md`
-
-This prevents unnecessary redeploy cycles from data-only updates.
-
-## 6) GitHub Workflows
-
-Located in `.github/workflows`:
-- `build-library.yml`
-- `auto_repair.yml`
-- `generate_preview.yml`
-- `update_changelog.yml`
-
-These handle aggregation, consistency, preview/changelog updates, and repair tasks.
-
-## 7) Environment Variables
-
-Configured in Netlify project environment variables (never hardcode secrets in source).
-
-Used by current function code:
-- `DATABASE_URL`
-- `ARCHITECT_KEY`
-- `GITHUB_PAT`
-- `GITHUB_REPO`
-- `AI_ACCESS_PASSWORD`
-
-## 8) Security and Secret Handling
-
-- Do not commit real secrets to git.
-- Keep PATs/DB URLs/architect keys only in Netlify environment variables.
-- Rotate any exposed secrets immediately.
-- Keep `.env` files outside tracked repo paths.
-
-## 9) Project Structure (high-level)
-
-- `automata/`: machine JSON source trees
-- `Data/`: ingestion/drop zone for repo-eligible pushes
-- `netlify/functions/`: backend API handlers
-- studio modules:
-  - FA: `ui.js`, `state.js`, `renderer.js`, `file.js`, ...
-  - MM: `moore_mealy_*.js`
-  - PDA: `pda_*.js`
-  - TM: `tm_*.js`
-  - Grammar: `grammar_main.js`, `grammar_studio.html`
-
-## 10) Performance Notes
-
-- Serve app over HTTP for module loading and service worker behavior.
-- Large logic tables and animated renders are intentionally incremental.
-- Drawer/collapsible panels are used for mobile and compact screens.
-- Route persistence avoids forcing users back to splash after refresh.
-
-## 11) Known Limitations
-
-- Regex parser handles core operators (union/concat/star/parentheses/epsilon), but this is still not a full industrial regex engine.
-- Conversion output quality for REL -> TM is heuristic and intended for editable starting machines.
-- Additional policy dashboards (audit analytics, reviewer SLA widgets, role-bound approval workflows) can still be expanded in architect portal.
-
-## 12) Quick Start Checklist
-
-1. Start local server:
-```bash
-npx serve . -l 5173
-```
-2. Open `http://localhost:5173`
-3. Verify studio routing from splash
-4. Import JSON from one studio and confirm smart auto-reroute
-5. Verify settings + help persistence
-6. Verify assignment/quiz flow with function-backed endpoints
-
-## 13) License
-
-MIT - see `LICENSE`.
+</div>
 
 ---
 
-Maintained by project architect and contributors for TOC learning and structured machine design workflows.
+## Contents
+
+- [Highlights](#highlights)
+- [The Automata Assistant](#the-automata-assistant)
+- [Studios](#studios)
+- [Practice that is actually checked](#practice-that-is-actually-checked)
+- [Every device, every keyboard](#every-device-every-keyboard)
+- [Quick start](#quick-start)
+- [Project structure](#project-structure)
+- [How it works](#how-it-works)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Documentation](#documentation)
+- [Privacy](#privacy)
+- [Contributing](#contributing) · [License](#license)
+
+## Highlights
+
+| | |
+|---|---|
+| 🧠 **Automata Assistant** | English → DFA, examples → DFA, and a **guided mode** that lets you draw while it points out mistakes with the exact string that proves them. Runs fully in the browser, no API key. |
+| ✅ **Exact checking** | FA answers are compared by language equivalence, not sample strings; a wrong answer gets the *shortest* counterexample. PDA and TM answers are checked on every short input (and TM tapes are compared). |
+| 🔁 **Animated conversions** | ε-NFA → NFA, NFA → DFA, DFA minimisation, Moore ↔ Mealy, CFG → NPDA, regex → automaton, step by step at your chosen speed. |
+| 🏋️ **353 verified exercises** | 120 FA constructions + 159 FA conversion exercises + 21 Mealy/Moore + 33 PDA + 20 TM. Every reference answer is audited by the test suite on every push. |
+| 📚 **Self-maintaining library** | Machines dropped into `data/inbox/` are validated, sorted, de-duplicated and published by CI. |
+| 🎓 **Classroom ready** | Assignments and quizzes with college-email identity, an instructor portal and review queue (Netlify Functions + Postgres). |
+| 📱 **Phone to desktop** | Responsive layouts tested at phone, tablet, laptop and desktop sizes; shared keyboard shortcuts (press `?`). |
+| ⚡ **Light** | No build step, no framework; ~0.64 MB first load uncompressed; icons are a 20 KB local subset. |
+
+## The Automata Assistant
+
+The assistant lives in the FA studio's side panel. Its English reader uses a small trained classifier **only** to decide what *kind* of condition each clause describes; the automaton is then built **exactly** (pattern automata, counters, product constructions, minimisation), so a sentence it understands never produces an approximate machine. It always shows how it read your sentence, with sample accepted and rejected strings.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Guide me**: you draw, it watches
+
+<img src="docs/media/demo-guided.gif" alt="Guided mode catching mistakes while drawing" width="100%">
+
+Each hint names the state, the reason and a *Test* button that runs the string proving it. Wrong states get a red ring.
+
+</td>
+<td width="50%" valign="top">
+
+**Convert, animated**
+
+<img src="docs/media/demo-conversion.gif" alt="Animated NFA to DFA conversion" width="100%">
+
+Load an NFA, choose **NFA → DFA**, and watch the subset construction build the DFA state by state.
+
+</td>
+</tr>
+</table>
+
+| You can type | It builds |
+|---|---|
+| `strings over {a,b} that end with abb` | 4-state minimal DFA |
+| `binary numbers divisible by 3` | remainder automaton |
+| `even number of a and ending in b` | product of two conditions |
+| `contains aa or bb but not aba` | union, then difference |
+| `L = (a+b)*abb` | regular expression, compiled |
+| `only the strings ab, ba and aab` | finite language |
+| `+ ab` / `- ba` (Examples tab) | smallest consistent DFA (RPNI) |
+
+Accuracy is measured by brute force: every test description's DFA is compared with a hand-written predicate on all short strings (63/63 tuned, 25/25 unseen, and 110 of the 120 practice questions read correctly with zero disagreements).
+
+## Studios
+
+<table>
+<tr>
+<td width="50%"><img src="docs/media/fa-assistant-build.png" alt="FA studio"><br><b>Finite automata</b>: DFA, NFA, ε-NFA; simulation with active-set highlighting; bulk tests; conversions; logic table CSV.</td>
+<td width="50%"><img src="docs/media/mealy-moore.png" alt="Mealy/Moore studio"><br><b>Mealy &amp; Moore</b>: outputs on states or transitions, live I/O trace, multi-character input symbols, both conversions.</td>
+</tr>
+<tr>
+<td><img src="docs/media/demo-pda.gif" alt="PDA studio"><br><b>Pushdown automata</b>: live stack, NPDA breadth-first search with ε-loop pruning, final-state / empty-stack / both acceptance.</td>
+<td><img src="docs/media/demo-tm.gif" alt="TM studio"><br><b>Turing machines</b>: animated tape, single-tape, multi-tape, non-deterministic and linear-bounded modes.</td>
+</tr>
+<tr>
+<td><img src="docs/media/grammar.png" alt="Grammar Studio"><br><b>Grammar Studio</b>: CFG validation, animated CFG → NPDA, parse trees, derivations, regular and RE language bridges, pumping-lemma planner.</td>
+<td><img src="docs/media/fa-guided-mistake.png" alt="Guided mode"><br><b>Guided mode</b>: the target stays hidden; the assistant explains which state is wrong and why.</td>
+</tr>
+</table>
+
+## Practice that is actually checked
+
+<img src="docs/media/fa-conversion-practice.png" alt="Conversion practice" width="100%">
+
+| Studio | Exercises | How your answer is checked |
+|---|---|---|
+| FA: build | 120 (easy → hard, DFA / NFA / ε-NFA) | exact equivalence + shortest counterexample + diagnosis |
+| FA: convert | 159 (ε-NFA→NFA, NFA→DFA, DFA→min, NFA→min) | equivalence **and** shape: no ε, deterministic, minimal state count |
+| Mealy / Moore | 21 + Moore↔Mealy conversion on any of them | exact output equivalence (lock-step search) |
+| PDA | 33 | every string up to length 6 over the problem's alphabet |
+| TM | 20 | every string up to length 5, acceptance **and** final tape |
+
+> **Why this matters.** A November 2026 audit found that 20/120 FA, 28/33 PDA, 8/20 TM and 4/14 Mealy/Moore reference answers were wrong (for example the PDA for aⁿbⁿ accepted `aab`). All were rebuilt from independent definitions, and the test suite now re-checks every answer on every push. The full list is in Appendix D of [the journey](docs/journey/JOURNEY.pdf).
+
+## Every device, every keyboard
+
+<table>
+<tr>
+<td width="62%"><img src="docs/media/shortcuts.png" alt="Keyboard shortcuts sheet"></td>
+<td width="19%"><img src="docs/media/phone-fa.png" alt="FA studio on a phone"></td>
+<td width="19%"><img src="docs/media/phone-pda.png" alt="PDA studio on a phone"></td>
+</tr>
+</table>
+
+| Keys | Action | Keys | Action |
+|---|---|---|---|
+| `S` `V` `T` `R` `P` `D` | add state · move · transition · rename · properties · delete | `Ctrl/⌘ + Z / Y` | undo / redo |
+| `Enter` | run the test input | `Ctrl/⌘ + S / O / E` | save JSON · open · export PNG |
+| `+` `−` `0` | zoom in / out / reset | `Shift + Delete` | clear canvas (asks first) |
+| `Esc` | close dialog / panel | `Ctrl/⌘ + Alt + 1…5` | switch studio |
+| `?` | show all shortcuts | | |
+
+Settings: theme, text size, reduced motion, **animation speed** (slow → instant), auto-resume, sharing switch, settings export/import, erase all local data.
+
+## Quick start
+
+```bash
+git clone https://github.com/shiroonigami23-ui/Toc-Suite.git
+cd Toc-Suite
+python3 -m http.server 5173        # or any static server
+# open http://localhost:5173
+```
+
+No install, no build. Node 20+ is only needed for the tests and tools.
+
+## Project structure
+
+```
+Toc-Suite/
+├── index.html              splash + studio shell (FA, Mealy/Moore, PDA, TM)
+├── 404.html                sends pre-2026-11 URLs to their new homes
+├── src/
+│   ├── app/                routing, studio loader, autosave snapshots
+│   ├── fa/  mm/  pda/  tm/ one folder per studio (state, renderer, ui, simulation, file, practice)
+│   ├── grammar/            Grammar Studio + regex converter
+│   ├── core/               verification engine, regex, RPNI, layout, diagnosis, English reader + model
+│   ├── assistant/          Automata Assistant panel
+│   └── shared/             utils, shortcuts, animation timing, paths, assignment + AI clients
+├── data/
+│   ├── practice/           practice banks (all verified by tests)
+│   ├── libraries/          built library files (CI output)
+│   ├── automata/  inbox/   library sources and incoming machines
+│   └── templates/
+├── pages/                  grammar studio, help, settings, policies, instructor portal
+├── assets/                 css, icons, vendored icon subset
+├── netlify/functions/      submissions, assignments, review, library push, AI proxy
+├── tests/                  node --test suite (45 groups)
+├── tools/                  model trainer, bank builders, icon + docs builders
+└── docs/                   journey, study guide, technical guide, figures, screenshots
+```
+
+Old URLs such as `/grammar_studio.html` keep working through redirects in `netlify.toml` and `404.html`.
+
+## How it works
+
+<img src="docs/figures/architecture.png" alt="Architecture" width="100%">
+
+- **Shell + studios.** One page loads a studio per machine type; every studio has the same internal shape, so tools, undo/redo, saving, shortcuts and practice behave the same everywhere.
+- **Pure core.** `src/core` has no DOM code: determinisation, minimisation, products, exact comparison with shortest counterexample, Thompson construction, ε-removal, RPNI, layout, diagnosis and the English reader. The same code runs in the browser and in the tests.
+- **English reader.** normalise → split clauses → classify (multinomial logistic regression over uni/bigrams, 155 KB, deterministic training) → extract slots → exact primitive DFAs → product constructions → minimise → lay out. Details in the [technical guide](docs/technical-guide/TECHNICAL-GUIDE.pdf).
+
+## Testing
+
+```bash
+npm test                 # unit, differential and data-audit tests (a few seconds)
+npm run train-model      # retrain the English reader (byte-for-byte reproducible)
+npm run fix-practice-bank
+npm run build-docs       # rebuild the PDFs (needs pandoc + Playwright)
+```
+
+| Suite | What it proves |
+|---|---|
+| `fa`, `assist`, `nl`, `nl-unseen` | engine, learning, layout, diagnosis, English reader (brute-force predicates) |
+| `audit-fa` | legacy simulator/conversions = engine on random machines; every FA practice + library answer; conversion practice |
+| `audit-pda` | every PDA answer on every input up to length 7 |
+| `audit-tm` | every TM answer on every input up to length 6, tape included |
+| `audit-mm` | every Mealy/Moore answer; both conversions on random machines; exact equivalence vs brute force |
+
+CI ([`tests.yml`](.github/workflows/tests.yml)) runs the suite on every push and fails if the committed model is stale.
+
+## Deployment
+
+Static hosting on Netlify (publish directory `.`). Server features use Netlify Functions; set these environment variables in Netlify (never in source):
+
+| Variable | Used by |
+|---|---|
+| `DATABASE_URL` | submissions, assignments, review |
+| `ARCHITECT_KEY` | instructor portal actions |
+| `GITHUB_PAT`, `GITHUB_REPO` | pushing approved machines to `data/inbox/` |
+| `AI_ACCESS_PASSWORD` | unlocking the AI generator |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` (optional) | server-side AI proxy (`ai-generate`) |
+
+`scripts/ignore-build.sh` skips deploys for data/docs-only commits. Workflows: `tests.yml`, `build-library.yml`, `generate_preview.yml`, `update_changelog.yml`, `auto_repair.yml`.
+
+## Documentation
+
+| Document | For | |
+|---|---|---|
+| **Study Guide** | students: theory, worked examples, "try it in the app" boxes | [PDF](docs/study-guide/STUDY-GUIDE.pdf) · [Markdown](docs/study-guide/STUDY-GUIDE.md) |
+| **Technical Guide** | developers: architecture, data formats, engine API, testing, deployment | [PDF](docs/technical-guide/TECHNICAL-GUIDE.pdf) · [Markdown](docs/technical-guide/TECHNICAL-GUIDE.md) |
+| **The Journey** | the full story: why, how, what went wrong, what's next (75 pages) | [PDF](docs/journey/JOURNEY.pdf) · [Markdown](docs/journey/JOURNEY.md) |
+| **Roadmap** | step-by-step build path and next stages | [ROADMAP.md](ROADMAP.md) |
+
+## Privacy
+
+No ads, analytics or cookies. Settings and your canvas stay in your browser. Assignment submissions (and, unless you switch it off, ordinary saves to the class review queue) are sent to the course server; the AI generator, when unlocked, sends your prompt or image through a server proxy to Google Gemini. Details: [privacy, terms and accessibility](pages/policies.html).
+
+## Contributing
+
+Issues and pull requests are welcome. Please run `npm test` before opening a PR; new practice questions need a ground-truth entry or specification in `tests/` (see the [technical guide](docs/technical-guide/TECHNICAL-GUIDE.pdf), chapter 7).
+
+## License
+
+[MIT](LICENSE) © 2026 Shiro (Aryan Singh Chandel)

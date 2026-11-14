@@ -1,0 +1,13 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.2; nodesep=0.45; ranksep=0.55;
+  node [shape=circle fontname="Inter" fontsize=13 color="#4338ca" penwidth=1.6 fontcolor="#1e1b4b" style=filled fillcolor="#eef2ff" width=0.55 fixedsize=false];
+  edge [fontname="Inter" fontsize=11 color="#64748b" fontcolor="#334155" arrowsize=0.7];
+  __start [shape=point width=0.06 color="#4338ca"];
+  "even" [shape=circle label="even\nout 0"];
+  "odd" [shape=circle label="odd\nout 1"];
+  __start -> "even";
+  "even" -> "odd" [label="1"];
+  "odd" -> "even" [label="1"];
+  "even" -> "even" [label="0"];
+  "odd" -> "odd" [label="0"];
+}

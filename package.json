@@ -10,7 +10,10 @@
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "train-model": "node tools/train-nl-model.mjs",
-    "fix-practice-bank": "node tools/fix-practice-bank.mjs"
+    "fix-practice-bank": "node tools/fix-practice-bank.mjs",
+    "build-docs": "node tools/docs/figures.mjs && python3 tools/docs/charts.py && python3 tools/docs/build_docs.py",
+    "build-icons": "node tools/build-icons.mjs",
+    "build-conversion-practice": "node tools/build-conversion-practice.mjs"
   },
   "engines": {
     "node": ">=20"

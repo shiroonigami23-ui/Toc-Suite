@@ -1,0 +1,5 @@
+digraph P { rankdir=TB; nodesep=0.3; ranksep=0.32; bgcolor="white"; node [shape=box style="rounded,filled" fontname="Inter" fontsize=12 color="#cbd5e1" fillcolor="#f8fafc" penwidth=1.2]; edge [fontname="Inter" fontsize=10 color="#64748b" fontcolor="#475569" arrowsize=0.7];
+  text [label="English sentence\n\"binary strings ending in 01\nwith an even number of 1s\""]; norm [label="normalise\nquotes · Σ · ordinals"]; split [label="split into clauses\nand / or / but not"];
+  clf [label="intent classifier\nlogistic regression\n(uni+bigram features)" fillcolor="#ecfdf5" color="#34d399"]; slots [label="slot extraction\nsymbols · numbers"];
+  prim [label="exact primitive DFAs\nKMP · counters · mod · nth-from-end" fillcolor="#fff7ed" color="#fb923c"]; comb [label="product constructions\n∩ ∪ complement"]; min [label="minimise + lay out"]; out [label="DFA on the canvas\n+ how it was read"];
+  text -> norm -> split -> clf -> slots -> prim -> comb -> min -> out; }

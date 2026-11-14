@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="book-title" content="$title$">
+<title>$title$</title>
+<style>/*CSS*/</style>
+</head>
+<body>
+<section class="cover">
+  <div>
+    <div class="top">$if(kicker)$$kicker$$else$Toc-Suite$endif$</div>
+  </div>
+  <div>
+    <h1 class="title" style="page-break-before:auto;break-before:auto;padding:0;">$title$</h1>
+    $if(subtitle)$<div class="subtitle">$subtitle$</div>$endif$
+    $if(cover)$<div class="art"><img src="$cover$" alt=""></div>$endif$
+  </div>
+  <div>
+    <div class="author">$author$</div>
+    <div class="meta">$if(affiliation)$$affiliation$ · $endif$$date$</div>
+    $if(repo)$<div class="meta">$repo$</div>$endif$
+  </div>
+</section>
+$if(toc)$<nav id="TOC" role="doc-toc">$table-of-contents$</nav>$endif$
+$body$
+</body>
+</html>

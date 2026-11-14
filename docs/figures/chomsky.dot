@@ -1,0 +1,7 @@
+digraph C { rankdir=TB; bgcolor="white"; node [shape=box style="rounded,filled" fontname="Inter" fontsize=12 penwidth=1.2]; edge [color="#94a3b8" arrowhead=none];
+  re [label="Recursively enumerable — Turing machines (TM studio)" fillcolor="#fee2e2" color="#f87171"];
+  cs [label="Context-sensitive — linear-bounded automata (TM studio, LBA mode)" fillcolor="#ffedd5" color="#fb923c"];
+  cf [label="Context-free — pushdown automata, CFGs (PDA + Grammar studios)" fillcolor="#fef9c3" color="#facc15"];
+  rg [label="Regular — DFA, NFA, ε-NFA, regular expressions (FA studio)" fillcolor="#dcfce7" color="#4ade80"];
+  tr [label="Finite-state transducers — Mealy and Moore machines (MM studio)" fillcolor="#e0f2fe" color="#38bdf8"];
+  re -> cs -> cf -> rg; rg -> tr [style=dashed label=" same memory, with output" fontname="Inter" fontsize=10]; }

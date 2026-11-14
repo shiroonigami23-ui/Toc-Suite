@@ -1,0 +1,16 @@
+digraph A { rankdir=TB; bgcolor="white"; compound=true; newrank=true; node [shape=box style="rounded,filled" fontname="Inter" fontsize=12 color="#cbd5e1" fillcolor="#f8fafc" penwidth=1.2]; edge [fontname="Inter" fontsize=10 color="#64748b" fontcolor="#475569" arrowsize=0.7];
+  subgraph cluster_ui { label="Pages (static HTML)"; fontname="Inter"; fontsize=12; color="#e2e8f0"; style="rounded";
+    index [label="index.html\nsplash + studio shell"]; grammar [label="pages/grammar_studio.html"]; settings [label="pages/splash_settings.html\nhelp · policies"]; }
+  subgraph cluster_app { label="src/ — ES modules, no build step"; fontname="Inter"; fontsize=12; color="#c7d2fe"; style="rounded";
+    main [label="app/unified_main.js\nrouter · studio loader · snapshots" fillcolor="#eef2ff" color="#818cf8"];
+    fa [label="fa/  DFA · NFA · ε-NFA"]; mm [label="mm/  Mealy · Moore"]; pda [label="pda/  PDA · NPDA"]; tm [label="tm/  TM · multi-tape · NTM · LBA"]; gram [label="grammar/  CFG → NPDA · regex"];
+    assist [label="assistant/  Automata Assistant" fillcolor="#ecfdf5" color="#34d399"];
+    core [label="core/  pure engine\ndeterminize · minimize · product · equivalence\nregex · RPNI · layout · diagnosis · NL model" fillcolor="#fff7ed" color="#fb923c"];
+    shared [label="shared/  utils · animation timing · shortcuts\nicons · paths · assignment client"]; }
+  subgraph cluster_data { label="data/"; fontname="Inter"; fontsize=12; color="#fde68a"; style="rounded";
+    practice [label="practice/  FA · MM · PDA · TM banks"]; libs [label="libraries/  *.json (built by CI)"]; automata [label="automata/  source machines"]; inbox [label="inbox/  submissions to sort"]; }
+  functions [label="netlify/functions\nsave-to-db · assignments · ai-generate · push-to-github" fillcolor="#f0f9ff" color="#38bdf8"];
+  db [label="Postgres (Neon)" shape=cylinder fillcolor="#f0f9ff" color="#38bdf8"]; gemini [label="Gemini API" fillcolor="#f0f9ff" color="#38bdf8"];
+  index -> main; grammar -> gram; main -> fa; main -> mm; main -> pda; main -> tm; fa -> assist; assist -> core; fa -> core [label="checks"]; mm -> core [style=dashed];
+  fa -> shared [style=dotted arrowhead=none]; practice -> fa [style=dashed]; libs -> main [style=dashed]; automata -> libs [label="GitHub Actions"]; inbox -> automata [label="sort + validate"];
+  main -> functions [label="submit / AI"]; functions -> db; functions -> gemini; functions -> inbox [label="push"]; }

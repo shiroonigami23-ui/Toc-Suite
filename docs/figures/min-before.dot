@@ -1,0 +1,22 @@
+digraph G {
+  rankdir=LR; bgcolor="white"; pad=0.2; nodesep=0.45; ranksep=0.55;
+  node [shape=circle fontname="Inter" fontsize=13 color="#4338ca" penwidth=1.6 fontcolor="#1e1b4b" style=filled fillcolor="#eef2ff" width=0.55 fixedsize=false];
+  edge [fontname="Inter" fontsize=11 color="#64748b" fontcolor="#334155" arrowsize=0.7];
+  __start [shape=point width=0.06 color="#4338ca"];
+  "A" [shape=circle label="A"];
+  "B" [shape=circle label="B"];
+  "C" [shape=circle label="C"];
+  "D" [shape=doublecircle label="D" fillcolor="#fef3c7" color="#b45309"];
+  "E" [shape=doublecircle label="E" fillcolor="#fef3c7" color="#b45309"];
+  __start -> "A";
+  "A" -> "B" [label="a"];
+  "A" -> "C" [label="b"];
+  "B" -> "B" [label="a"];
+  "B" -> "D" [label="b"];
+  "C" -> "B" [label="a"];
+  "C" -> "C" [label="b"];
+  "D" -> "B" [label="a"];
+  "D" -> "E" [label="b"];
+  "E" -> "B" [label="a"];
+  "E" -> "E" [label="b"];
+}

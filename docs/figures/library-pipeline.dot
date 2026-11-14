@@ -1,0 +1,4 @@
+digraph L { rankdir=LR; bgcolor="white"; node [shape=box style="rounded,filled" fontname="Inter" fontsize=12 color="#cbd5e1" fillcolor="#f8fafc" penwidth=1.2]; edge [fontname="Inter" fontsize=10 color="#64748b" fontcolor="#475569" arrowsize=0.7];
+  student [label="Student saves\nor submits"]; fn [label="Netlify function\npush-to-github"]; inbox [label="data/inbox/*.json"]; action [label="GitHub Action\nbuild-library.yml" fillcolor="#eef2ff" color="#818cf8"];
+  sorted [label="data/automata/{fa,mm,pda,tm}/"]; libs [label="data/libraries/*.json"]; app [label="Library panel\nin every studio"];
+  student -> fn -> inbox -> action; action -> sorted [label="validate · dedupe · sort"]; sorted -> action [style=dashed]; action -> libs [label="rebuild"]; libs -> app; }
