@@ -149,6 +149,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: false
         with:
           context: docker
           file: docker/Dockerfile
@@ -165,7 +167,12 @@ jobs:
       - uses: actions/checkout@v4
       - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
       - uses: actions/download-artifact@v4
-        with: { path: out, merge-multiple: true }
+        with: { name: windows, path: out }
+      - uses: actions/download-artifact@v4
+        with: { name: linux, path: out }
+      - uses: actions/download-artifact@v4
+        with: { name: android, path: out }
+      - run: ls -la out
       - name: Release notes
         run: |
           {
