@@ -185,5 +185,6 @@ export function renderAll() {
         statesGroup.appendChild(g);
     });
 
-    document.getElementById('modeLabel').textContent = getModeLabel();
+    const modeLabel = document.getElementById('modeLabel');
+    if (modeLabel) modeLabel.textContent = getModeLabel();
 }

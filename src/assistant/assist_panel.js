@@ -12,6 +12,8 @@ import { updateUndoRedoButtons } from '../fa/ui.js';
 import { addLogMessage, setValidationMessage } from '../shared/utils.js';
 import * as FA from '../core/fa.js';
 import { parseDescription } from '../core/nl.js';
+import { detectKind, stripKindWords } from '../core/build/index.js';
+import { readSpec } from '../core/build/lang.js';
 import { learnDfa, parseExamples } from '../core/learn.js';
 import { autoLayout } from '../core/layout.js';
 import { diagnose } from '../core/diagnose.js';
@@ -110,6 +112,16 @@ async function onDescribe(guided) {
   const text = $('assistDesc').value.trim();
   const out = $('assistDescOut');
   if (!text) { out.innerHTML = '<div class="assist-warn">Type a description first, e.g. “strings over {a,b} ending with ab”.</div>'; return; }
+  // Anything that is not a plain DFA request (an NFA, a PDA, a Mealy machine, aⁿbⁿ, …) goes to the
+  // Automata Builder, which picks the machine type and switches studio when needed.
+  const kind = detectKind(text).kind;
+  const special = readSpec(stripKindWords(text));
+  if (!guided && ((kind && kind !== 'DFA') || special) && window.TocBuilder) {
+    out.innerHTML = '<div class="assist-muted">This needs more than a DFA — opening the Automata Builder…</div>';
+    window.TocBuilder.open(text);
+    window.TocBuilder.run(true, text);
+    return;
+  }
   out.innerHTML = '<div class="assist-muted">Thinking…</div>';
   let r;
   try { r = parseDescription(text, await loadModel()); } catch (e) { out.innerHTML = `<div class="assist-error">${esc(e.message)}</div>`; return; }

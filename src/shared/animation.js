@@ -2,8 +2,10 @@
 // We must assume the correct setMachine is available globally or injected by the main loader.
 // Given the file structure, we'll import FA state and rely on MM files to override/re-import logic.
 
-import { setMachine } from '../fa/state.js'; // Assuming this is for FA context by default
-import { renderAll } from '../fa/renderer.js';
+import { setMachine } from '../fa/state.js';
+import { renderAll as renderFa } from '../fa/renderer.js';
+import { setMachine as setMmMachine } from '../mm/moore_mealy_state.js';
+import { renderAll as renderMm } from '../mm/moore_mealy_renderer.js';
 import { sleep, addLogMessage, constructionDelay } from './utils.js';
 
  
@@ -29,9 +31,11 @@ export function animateMachineDrawing(machineToDraw) {
 async function drawMachine(machineToDraw) {
     // Determine which setMachine function to use based on the context/type
     // We will use the globally available setter if possible, otherwise default to FA state.
-    const machineSetter = (machineToDraw.type === 'MEALY' || machineToDraw.type === 'MOORE') 
-        ? (window.setMmMachine || setMachine) // Assuming MM studio will expose setMmMachine globally
-        : setMachine; 
+    // Mealy/Moore machines live in their own state module and need their own renderer
+    // (outputs on states / transitions); everything else is a finite automaton.
+    const isMm = machineToDraw.type === 'MEALY' || machineToDraw.type === 'MOORE';
+    const machineSetter = isMm ? setMmMachine : setMachine;
+    const renderAll = isMm ? renderMm : renderFa;
 
     const originalType = machineToDraw.type || 'DFA';
     const log = document.getElementById('stepLog');

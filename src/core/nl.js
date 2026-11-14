@@ -449,6 +449,7 @@ function parseLowercase(text, model, { minConfidence = 0.35 } = {}) {
   let total = null;
   let last = null;
   const parts = [];
+  const alternatives = [];
   for (const conj of disjuncts) {
     let acc = null;
     const descs = [];
@@ -524,6 +525,7 @@ function parseLowercase(text, model, { minConfidence = 0.35 } = {}) {
     }
     if (descs.length) {
       parts.push(descs.map(d => d.text || describe(d.intent, d.slots, d.neg)).join(' AND '));
+      alternatives.push(acc);
       total = total ? FA.union(total, acc) : acc;
     }
   }
@@ -537,7 +539,7 @@ function parseLowercase(text, model, { minConfidence = 0.35 } = {}) {
   }
   const dfa = FA.minimize(FA.withAlphabet(total, alphabet));
   return {
-    ok: true, dfa, alphabet,
+    ok: true, dfa, alphabet, alternatives: alternatives.map(x => FA.minimize(FA.withAlphabet(x, alphabet))),
     explanation: `Σ = {${alphabet.join(', ')}}; accept a string iff it ${parts.map(p => (parts.length > 1 ? `(${p})` : p)).join(' OR ')}.`,
     clauses: clausesOut, problems,
   };

@@ -126,7 +126,7 @@ export const SHORTCUTS = [
     ['S', 'Add-state tool'], ['V', 'Move tool'], ['T', 'Transition tool'], ['R', 'Rename tool'], ['P', 'State properties tool'], ['D', 'Delete tool'],
     ['Enter', 'Run the test input'], ['+  /  −  /  0', 'Zoom in / out / reset'],
     ['Shift + Delete', 'Clear the canvas (asks first)'], ['Esc', 'Close dialogs and the side panel'],
-    ['Ctrl/⌘ + Alt + 1…5', 'Switch studio: FA, Mealy/Moore, PDA, TM, Grammar'], ['?', 'Show this list'],
+    ['Ctrl/⌘ + Alt + 1…5', 'Switch studio: FA, Mealy/Moore, PDA, TM, Grammar'], ['B', 'Automata Builder: describe any machine in words'], ['?', 'Show this list'],
 ];
 
 function isVisible(el) {
@@ -190,6 +190,7 @@ export function initializeShortcuts() {
         if (ctrl || e.altKey) return;
 
         if (e.key === '?') { e.preventDefault(); showShortcutSheet(); return; }
+        if (key === 'b' && window.TocBuilder) { e.preventDefault(); window.TocBuilder.open(); return; }
         if (e.shiftKey && (key === 'delete' || key === 'backspace')) {
             e.preventDefault();
             clickAction(['clearCanvasBtn', 'pda-tool-clear', 'tm-tool-clear'], ['.toolbar-icon[data-mode="clear"]']);

@@ -18,10 +18,11 @@ export function runPdaSimulation(inputString, machine, { maxConfigs = 60000, sil
         if (!byFrom.has(t.from)) byFrom.set(t.from, []);
         byFrom.get(t.from).push(t);
     }
-    // A PDA can grow its stack forever on ε-moves; no accepting run needs a stack much
-    // taller than the remaining input, so taller configurations are pruned.
+    // A PDA can grow its stack forever on ε-moves, so configurations taller than any sensible
+    // run are pruned. Final-state acceptance may end with a tall stack (e.g. aⁱbʲ with i > j),
+    // so the bound depends on the whole input, not on what is left of it.
     const maxPush = Math.max(1, ...transitions.map((t) => (isEpsilon(t.push) ? 0 : String(t.push).length)));
-    const stackCap = (remaining) => remaining * maxPush + 2 * states.length + 4;
+    const stackCap = () => (inputString.length + 1) * maxPush * 2 + 2 * states.length + 4;
 
     // Breadth-first search over configurations (state, input position, stack), each visited once.
     const queue = [{ state: initialState.id, pos: 0, stack: [initialStackSymbol || 'Z'], parent: null, transition: null }];

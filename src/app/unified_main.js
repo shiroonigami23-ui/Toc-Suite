@@ -9,7 +9,8 @@ import * as MM_FILE from '../mm/moore_mealy_file.js';
 import * as FA_LIB from '../fa/library-loader.js';
 import * as MM_LIB from '../mm/moore_mealy_library_loader.js';
 import { initializeShortcuts, refreshLucideIcons } from '../shared/utils.js';
-import { consumePendingImportedMachine } from './machine_router.js';
+import { consumePendingImportedMachine, setPendingImportedMachine } from './machine_router.js';
+import { initBuilder } from '../assistant/builder_ui.js';
 import { appUrl } from '../shared/paths.js';
 
 function buildMachineSwitchButtons(currentStudio) {
@@ -1506,3 +1507,43 @@ if (grammarButton) {
 // Export context for use in all imported modules
 window.StudioContext = StudioContext;
 window.openStudioByMachineType = openStudioByMachineType;
+
+// ---- Studio API for the Automata Builder: where are we, and draw a machine (switching studio if needed)
+const ROUTE_OF_STUDIO = { FA: 'fa', MM: 'mm', PDA: 'pda', Turing: 'tm' };
+function mainAppVisible() {
+    const app = document.getElementById('mainApp');
+    return !!app && getComputedStyle(app).display !== 'none';
+}
+window.TocStudio = {
+    route: () => (mainAppVisible() ? ROUTE_OF_STUDIO[StudioContext.current] || null : null),
+    mode() {
+        const r = this.route();
+        const id = r === 'pda' ? 'pdaModeSelect' : r === 'tm' ? 'tmModeSelect' : 'modeSelect';
+        return document.getElementById(id)?.value || '';
+    },
+    async load(machine, route) {
+        if (this.route() === route) {
+            if (route === 'fa') FA_FILE.loadMachineFromObject(machine, StudioContext.updateUndoRedoButtons, machine.type);
+            else if (route === 'mm') MM_FILE.loadMachineFromObject(machine, StudioContext.updateUndoRedoButtons, machine.type);
+            else if (route === 'pda') await (await import('../pda/pda_file.js')).loadPdaFromObject(machine);
+            else await (await import('../tm/tm_file.js')).loadTmFromObject(machine);
+        } else {
+            setPendingImportedMachine(route, machine);
+            await persistCurrentStudioSnapshot();
+            if (route === 'pda') await loadPdaStudio();
+            else if (route === 'tm') await loadTmStudio();
+            else {
+                hideSplash();
+                await new Promise(r => setTimeout(r, 250));
+                loadStudio(route === 'mm' ? 'MM' : 'FA');
+            }
+        }
+        // keep the studio's mode controls in step with the machine that was drawn
+        setTimeout(() => {
+            const set = (id, v) => { const el = document.getElementById(id); if (el && v && [...el.options].some(o => o.value === v)) el.value = v; };
+            if (route === 'pda') { set('pdaModeSelect', 'NPDA'); set('pdaAcceptanceSelect', machine.acceptanceMode); }
+            if (route === 'tm') set('tmModeSelect', 'STANDARD');
+        }, 400);
+    },
+};
+initBuilder();
