@@ -1,86 +1,5 @@
 [
   {
-    "title": "Binary Incrementer",
-    "description": "Adds 1 to a binary number: walks to the right end, then carries leftwards (1→0) until a 0 or blank becomes 1.",
-    "type": "TM",
-    "machine": {
-      "type": "TM",
-      "states": [
-        {
-          "id": "q_right",
-          "initial": true,
-          "accepting": false,
-          "x": 140,
-          "y": 200
-        },
-        {
-          "id": "q_carry",
-          "initial": false,
-          "accepting": false,
-          "x": 400,
-          "y": 200
-        },
-        {
-          "id": "q_accept",
-          "initial": false,
-          "accepting": true,
-          "x": 660,
-          "y": 200
-        }
-      ],
-      "transitions": [
-        {
-          "from": "q_right",
-          "to": "q_right",
-          "read": "0",
-          "write": "0",
-          "move": "R"
-        },
-        {
-          "from": "q_right",
-          "to": "q_right",
-          "read": "1",
-          "write": "1",
-          "move": "R"
-        },
-        {
-          "from": "q_right",
-          "to": "q_carry",
-          "read": "B",
-          "write": "B",
-          "move": "L"
-        },
-        {
-          "from": "q_carry",
-          "to": "q_carry",
-          "read": "1",
-          "write": "0",
-          "move": "L"
-        },
-        {
-          "from": "q_carry",
-          "to": "q_accept",
-          "read": "0",
-          "write": "1",
-          "move": "R"
-        },
-        {
-          "from": "q_carry",
-          "to": "q_accept",
-          "read": "B",
-          "write": "1",
-          "move": "R"
-        }
-      ],
-      "alphabet": [
-        "0",
-        "1",
-        "B"
-      ],
-      "blankSymbol": "B"
-    }
-  },
-  {
     "title": "Palindrome Checker",
     "description": "Accepts binary strings that read the same forwards and backwards.",
     "type": "TM",
@@ -248,6 +167,87 @@
           "to": "q_start",
           "read": "B",
           "write": "B",
+          "move": "R"
+        }
+      ],
+      "alphabet": [
+        "0",
+        "1",
+        "B"
+      ],
+      "blankSymbol": "B"
+    }
+  },
+  {
+    "title": "Binary Incrementer",
+    "description": "Adds 1 to a binary number: walks to the right end, then carries leftwards (1\u21920) until a 0 or blank becomes 1.",
+    "type": "TM",
+    "machine": {
+      "type": "TM",
+      "states": [
+        {
+          "id": "q_right",
+          "initial": true,
+          "accepting": false,
+          "x": 140,
+          "y": 200
+        },
+        {
+          "id": "q_carry",
+          "initial": false,
+          "accepting": false,
+          "x": 400,
+          "y": 200
+        },
+        {
+          "id": "q_accept",
+          "initial": false,
+          "accepting": true,
+          "x": 660,
+          "y": 200
+        }
+      ],
+      "transitions": [
+        {
+          "from": "q_right",
+          "to": "q_right",
+          "read": "0",
+          "write": "0",
+          "move": "R"
+        },
+        {
+          "from": "q_right",
+          "to": "q_right",
+          "read": "1",
+          "write": "1",
+          "move": "R"
+        },
+        {
+          "from": "q_right",
+          "to": "q_carry",
+          "read": "B",
+          "write": "B",
+          "move": "L"
+        },
+        {
+          "from": "q_carry",
+          "to": "q_carry",
+          "read": "1",
+          "write": "0",
+          "move": "L"
+        },
+        {
+          "from": "q_carry",
+          "to": "q_accept",
+          "read": "0",
+          "write": "1",
+          "move": "R"
+        },
+        {
+          "from": "q_carry",
+          "to": "q_accept",
+          "read": "B",
+          "write": "1",
           "move": "R"
         }
       ],
