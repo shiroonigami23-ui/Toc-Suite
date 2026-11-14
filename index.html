@@ -112,17 +112,6 @@
       </div>
   </div>
   
-    <div id="aiAuthModal" class="modal-overlay" style="display:none; z-index: 900;">
-      <div class="modal-box" style="text-align: center;">
-          <h3><i data-lucide="lock" style="vertical-align: middle;"></i> AI Generator Access</h3>
-          <p class="modal-description">Please enter the one-time password to unlock AI generation features for this session.</p>
-          <input id="aiPasswordInput" class="modal-input" type="password" placeholder="One-Time Password" />
-          <div class="modal-actions">
-              <button id="aiAuthCancel">Cancel</button>
-              <button id="aiAuthConfirm">Unlock</button>
-          </div>
-      </div>
-  </div>
 
   <div id="mealyTransitionModal" class="modal-overlay" style="display:none">
       <div class="modal-box">
@@ -364,11 +353,6 @@
       manifestLink.href = 'manifest.json';
       document.head.appendChild(manifestLink);
 
-      const aiScript = document.createElement('script');
-      aiScript.type = 'module';
-      aiScript.src = 'src/shared/ai-auth.js';
-      aiScript.onerror = () => console.error('Failed to load ai-auth.js');
-      document.body.appendChild(aiScript);
 
       const appScript = document.createElement('script');
       appScript.type = 'module';

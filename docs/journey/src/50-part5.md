@@ -115,7 +115,7 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 | `src/grammar/` | Grammar Studio logic and the regular-expression converter |
 | `src/core/` | Verification engine, regular expressions, RPNI, layout, diagnosis, English reader and its model |
 | `src/assistant/` | The Automata Assistant panel |
-| `src/shared/` | Utilities, animation timing, keyboard shortcuts, paths, assignment client, AI client |
+| `src/shared/` | Utilities, animation timing, keyboard shortcuts, paths, assignment client |
 | `data/practice/` | Practice banks for every studio |
 | `data/libraries/` | Library files built by CI |
 | `data/automata/`, `data/inbox/` | Library sources and incoming submissions |

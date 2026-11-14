@@ -5,8 +5,9 @@
 - Keyboard shortcut sheet (`?`), shared shortcuts in every studio (R rename, P properties, +/−/0 zoom, Shift+Delete clear).
 - Animated TM run with live tape; live stack/tape panels open automatically on run.
 - Settings: animation speed, share-saves switch, erase all local data; new privacy / terms / accessibility page.
-- Server-side AI proxy (`ai-generate`); the Gemini key never reaches the browser.
 - Documentation: 75-page journey book, study guide, technical guide, ROADMAP.md, generated figures, app screenshots and demo GIFs.
+### Removed
+- The unused AI generator (password modal, image/text import, `ai-auth.js`, `verify-ai-password` and `ai-generate` functions). No UI reached it any more.
 ### Changed
 - Repository reorganised into `src/`, `data/`, `pages/`, `assets/`, `docs/`, `tests/`, `tools/`; old URLs redirect (netlify.toml + 404.html).
 - Icons served from a 20 KB local subset instead of the 487 KB CDN bundle; PDA/TM banks and the NL model load lazily (first load 1.4 MB → 0.64 MB).

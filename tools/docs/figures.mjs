@@ -102,11 +102,11 @@ render('architecture', `digraph A { rankdir=TB; bgcolor="white"; compound=true; 
     shared [label="shared/  utils · animation timing · shortcuts\\nicons · paths · assignment client"]; }
   subgraph cluster_data { label="data/"; fontname="Inter"; fontsize=12; color="#fde68a"; style="rounded";
     practice [label="practice/  FA · MM · PDA · TM banks"]; libs [label="libraries/  *.json (built by CI)"]; automata [label="automata/  source machines"]; inbox [label="inbox/  submissions to sort"]; }
-  functions [label="netlify/functions\\nsave-to-db · assignments · ai-generate · push-to-github" fillcolor="#f0f9ff" color="#38bdf8"];
-  db [label="Postgres (Neon)" shape=cylinder fillcolor="#f0f9ff" color="#38bdf8"]; gemini [label="Gemini API" fillcolor="#f0f9ff" color="#38bdf8"];
+  functions [label="netlify/functions\\nsave-to-db · assignments · review · push-to-github" fillcolor="#f0f9ff" color="#38bdf8"];
+  db [label="Postgres (Neon)" shape=cylinder fillcolor="#f0f9ff" color="#38bdf8"];
   index -> main; grammar -> gram; main -> fa; main -> mm; main -> pda; main -> tm; fa -> assist; assist -> core; fa -> core [label="checks"]; mm -> core [style=dashed];
   fa -> shared [style=dotted arrowhead=none]; practice -> fa [style=dashed]; libs -> main [style=dashed]; automata -> libs [label="GitHub Actions"]; inbox -> automata [label="sort + validate"];
-  main -> functions [label="submit / AI"]; functions -> db; functions -> gemini; functions -> inbox [label="push"]; }`);
+  main -> functions [label="submit"]; functions -> db; functions -> inbox [label="push"]; }`);
 render('assistant-pipeline', `digraph P { rankdir=TB; nodesep=0.3; ranksep=0.32; bgcolor="white"; ${box}
   text [label="English sentence\\n\\"binary strings ending in 01\\nwith an even number of 1s\\""]; norm [label="normalise\\nquotes · Σ · ordinals"]; split [label="split into clauses\\nand / or / but not"];
   clf [label="intent classifier\\nlogistic regression\\n(uni+bigram features)" fillcolor="#ecfdf5" color="#34d399"]; slots [label="slot extraction\\nsymbols · numbers"];

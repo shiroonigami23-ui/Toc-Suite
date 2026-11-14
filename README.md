@@ -172,7 +172,7 @@ Toc-Suite/
 │   ├── grammar/            Grammar Studio + regex converter
 │   ├── core/               verification engine, regex, RPNI, layout, diagnosis, English reader + model
 │   ├── assistant/          Automata Assistant panel
-│   └── shared/             utils, shortcuts, animation timing, paths, assignment + AI clients
+│   └── shared/             utils, shortcuts, animation timing, paths, assignment client
 ├── data/
 │   ├── practice/           practice banks (all verified by tests)
 │   ├── libraries/          built library files (CI output)
@@ -180,7 +180,7 @@ Toc-Suite/
 │   └── templates/
 ├── pages/                  grammar studio, help, settings, policies, instructor portal
 ├── assets/                 css, icons, vendored icon subset
-├── netlify/functions/      submissions, assignments, review, library push, AI proxy
+├── netlify/functions/      submissions, assignments, review, library push
 ├── tests/                  node --test suite (45 groups)
 ├── tools/                  model trainer, bank builders, icon + docs builders
 └── docs/                   journey, study guide, technical guide, figures, screenshots
@@ -224,8 +224,6 @@ Static hosting on Netlify (publish directory `.`). Server features use Netlify F
 | `DATABASE_URL` | submissions, assignments, review |
 | `ARCHITECT_KEY` | instructor portal actions |
 | `GITHUB_PAT`, `GITHUB_REPO` | pushing approved machines to `data/inbox/` |
-| `AI_ACCESS_PASSWORD` | unlocking the AI generator |
-| `GEMINI_API_KEY`, `GEMINI_MODEL` (optional) | server-side AI proxy (`ai-generate`) |
 
 `scripts/ignore-build.sh` skips deploys for data/docs-only commits. Workflows: `tests.yml`, `build-library.yml`, `generate_preview.yml`, `update_changelog.yml`, `auto_repair.yml`.
 
@@ -240,7 +238,7 @@ Static hosting on Netlify (publish directory `.`). Server features use Netlify F
 
 ## Privacy
 
-No ads, analytics or cookies. Settings and your canvas stay in your browser. Assignment submissions (and, unless you switch it off, ordinary saves to the class review queue) are sent to the course server; the AI generator, when unlocked, sends your prompt or image through a server proxy to Google Gemini. Details: [privacy, terms and accessibility](pages/policies.html).
+No ads, analytics or cookies. Settings and your canvas stay in your browser. Assignment submissions (and, unless you switch it off, ordinary saves to the class review queue) are sent to the course server. Details: [privacy, terms and accessibility](pages/policies.html).
 
 ## Contributing
 

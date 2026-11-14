@@ -212,7 +212,6 @@ export const StudioContext = {
                 <button id="exportPngBtn" title="Export canvas as PNG" type="button"><i data-lucide="image"></i> Export PNG</button>
               </div>
               <input type="file" id="loadFileInput" accept=".json" style="display:none" />
-              <input type="file" id="importImageInput" accept="image/*" style="display:none" />
             </div>
           </details>
           
@@ -500,7 +499,6 @@ export const StudioContext = {
                 <button id="exportPngBtn" title="Export canvas as PNG" type="button"><i data-lucide="image"></i> Export PNG</button>
               </div>
               <input type="file" id="loadFileInput" accept=".json" style="display:none" />
-              <input type="file" id="importImageInput" accept="image/*" style="display:none" />
             </div>
           </details>
           

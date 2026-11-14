@@ -149,7 +149,7 @@ During a simulation, the renderer does not redraw anything; it adds CSS classes 
 
 ## Hosting and functions
 
-The site is hosted on Netlify as static files. A handful of Netlify Functions (small server-side JavaScript functions) provide the features that need a server: storing submissions in a Postgres database, listing active assignments, saving instructor reviews, verifying the password for the AI generator, and pushing machines into the GitHub repository. Everything else runs in the browser. If the functions are unavailable, the studios still work; only submission and sharing are affected.
+The site is hosted on Netlify as static files. A handful of Netlify Functions (small server-side JavaScript functions) provide the features that need a server: storing submissions in a Postgres database, listing active assignments, saving instructor reviews, and pushing machines into the GitHub repository. Everything else runs in the browser. If the functions are unavailable, the studios still work; only submission and sharing are affected.
 
 # 5. The finite automata studio
 
@@ -487,7 +487,7 @@ The icon library was the largest single file the application downloaded: 487 KB 
 
 ## Settings and policies
 
-The last part of the clean-up was about trust. A new page sets out, in plain language, what the application stores on the device, what it sends to a server and when, how long submissions are kept, what students may and may not do with the tool in graded work, and what accessibility features exist. The settings page links to it and gained the controls it describes. The AI image generator, which had stopped working because an automated secret-scanner had replaced its key with a server-only variable in browser code, now calls a server-side function that holds the key, so the key never reaches the browser.
+The last part of the clean-up was about trust. A new page sets out, in plain language, what the application stores on the device, what it sends to a server and when, how long submissions are kept, what students may and may not do with the tool in graded work, and what accessibility features exist. The settings page links to it and gained the controls it describes. The last traces of an early AI image generator, which no button reached any more, were removed along with the server functions behind it.
 
 # 18. Inside the reader: one sentence, step by step
 
@@ -718,7 +718,7 @@ The roadmap file in the repository lists the next steps in detail. The most impo
 | `src/grammar/` | Grammar Studio logic and the regular-expression converter |
 | `src/core/` | Verification engine, regular expressions, RPNI, layout, diagnosis, English reader and its model |
 | `src/assistant/` | The Automata Assistant panel |
-| `src/shared/` | Utilities, animation timing, keyboard shortcuts, paths, assignment client, AI client |
+| `src/shared/` | Utilities, animation timing, keyboard shortcuts, paths, assignment client |
 | `data/practice/` | Practice banks for every studio |
 | `data/libraries/` | Library files built by CI |
 | `data/automata/`, `data/inbox/` | Library sources and incoming submissions |

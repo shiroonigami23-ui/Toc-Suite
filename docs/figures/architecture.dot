@@ -9,8 +9,8 @@ digraph A { rankdir=TB; bgcolor="white"; compound=true; newrank=true; node [shap
     shared [label="shared/  utils · animation timing · shortcuts\nicons · paths · assignment client"]; }
   subgraph cluster_data { label="data/"; fontname="Inter"; fontsize=12; color="#fde68a"; style="rounded";
     practice [label="practice/  FA · MM · PDA · TM banks"]; libs [label="libraries/  *.json (built by CI)"]; automata [label="automata/  source machines"]; inbox [label="inbox/  submissions to sort"]; }
-  functions [label="netlify/functions\nsave-to-db · assignments · ai-generate · push-to-github" fillcolor="#f0f9ff" color="#38bdf8"];
-  db [label="Postgres (Neon)" shape=cylinder fillcolor="#f0f9ff" color="#38bdf8"]; gemini [label="Gemini API" fillcolor="#f0f9ff" color="#38bdf8"];
+  functions [label="netlify/functions\nsave-to-db · assignments · review · push-to-github" fillcolor="#f0f9ff" color="#38bdf8"];
+  db [label="Postgres (Neon)" shape=cylinder fillcolor="#f0f9ff" color="#38bdf8"];
   index -> main; grammar -> gram; main -> fa; main -> mm; main -> pda; main -> tm; fa -> assist; assist -> core; fa -> core [label="checks"]; mm -> core [style=dashed];
   fa -> shared [style=dotted arrowhead=none]; practice -> fa [style=dashed]; libs -> main [style=dashed]; automata -> libs [label="GitHub Actions"]; inbox -> automata [label="sort + validate"];
-  main -> functions [label="submit / AI"]; functions -> db; functions -> gemini; functions -> inbox [label="push"]; }
+  main -> functions [label="submit"]; functions -> db; functions -> inbox [label="push"]; }

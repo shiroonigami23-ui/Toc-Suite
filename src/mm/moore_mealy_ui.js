@@ -6,7 +6,7 @@ import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshL
 import { areEquivalent } from './moore_mealy_equivalence.js';
 import { animateMachineDrawing } from '../shared/animation.js'; 
 import { initializeLibrary } from './moore_mealy_library_loader.js';
-import { handleSaveMachine, loadMachine, handleAiGeneration, handleSaveWithMetadata, exportPng, handleImageUpload } from './moore_mealy_file.js';
+import { handleSaveMachine, loadMachine, handleSaveWithMetadata, exportPng } from './moore_mealy_file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './moore_mealy_practice.js';
 import { updateMmLogicDisplay, exportMmTableToExcel } from './mm_logic_table.js';
 
@@ -595,12 +595,7 @@ export function initializeUI() {
     const panelToggleBtn = document.getElementById('panelToggleBtn');
     const controlPanel = document.getElementById('controlPanel');
     const visualizationPanel = document.getElementById('visualization-panel');
-    const aiGenerateFromDescBtn = document.getElementById('aiGenerateFromDescBtn');
-    const aiDescInput = document.getElementById('aiDescInput');
     
-    // Image Import elements
-    const importImageBtn = document.getElementById('importImageBtn');
-    const importImageInput = document.getElementById('importImageInput');
     const exportPngBtn = document.getElementById('exportPngBtn');
 
     // Modal buttons
@@ -838,23 +833,6 @@ export function initializeUI() {
     document.getElementById('pngExportCancel')?.addEventListener('click', () => {
         document.getElementById('exportPngModal').style.display = 'none';
     });
-    if (importImageBtn) importImageBtn.addEventListener('click', () => {
-        if (importImageInput) importImageInput.click();
-    });
-    if (importImageInput) importImageInput.addEventListener('change', (e) => {
-        handleImageUpload(e, updateUndoRedoButtons, showLoading, hideLoading);
-    });
-
-    // AI Generation
-    if (aiGenerateFromDescBtn) aiGenerateFromDescBtn.addEventListener('click', () => {
-        const prompt = aiDescInput.value.trim();
-        if (prompt) {
-            handleAiGeneration(prompt, updateUndoRedoButtons, showLoading, hideLoading);
-        } else {
-            customAlert('Input Required', 'Please enter a description for the AI to generate a machine.');
-        }
-    });
-
     // 6. Mode Select Listener (Conversion)
     if (modeSelect) {
         modeSelect.addEventListener('change', () => handleConversionMode(updateUndoRedoButtons));

@@ -2,7 +2,7 @@ import { MACHINE, CURRENT_MODE, TRANS_FROM, UNDO_STACK, REDO_STACK, pushUndo, do
 import { renderAll, layoutStatesCircular } from './renderer.js';
 import { runSimulation, showStep } from './simulation.js';
 import { validateAutomaton } from './automata.js';
-import { saveMachine, loadMachine, exportPng, handleSaveWithMetadata, handleImageUpload, handleAiGeneration } from './file.js';
+import { saveMachine, loadMachine, exportPng, handleSaveWithMetadata } from './file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './practice.js';
 import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons, resetSharedDialogButtons } from '../shared/utils.js';
 import { areEquivalent } from './equivalence.js';
@@ -72,15 +72,7 @@ export function initializeUI() {
     const pngNameInput = document.getElementById('pngNameInput');
     const pngExportCancel = document.getElementById('pngExportCancel');
     const pngExportConfirm = document.getElementById('pngExportConfirm');
-    const importImageBtn = document.getElementById('importImageBtn');
-    const importImageInput = document.getElementById('importImageInput');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    
-    // NEW: AI Generator UI Elements
-    const aiDescInput = document.getElementById('aiDescInput');
-    const aiGenerateFromDescBtn = document.getElementById('aiGenerateFromDescBtn');
-    const aiRegexInput = document.getElementById('aiRegexInput');
-    const aiGenerateFromRegexBtn = document.getElementById('aiGenerateFromRegexBtn');
 
 
     if (libSaveCancel && saveLibraryModal) {
@@ -386,18 +378,6 @@ export function initializeUI() {
         });
     }
 
-    if (importImageBtn) {
-        importImageBtn.addEventListener('click', () => {
-            const input = document.getElementById('importImageInput');
-            if (input) input.click();
-        });
-    }
-
-    if (document.getElementById('importImageInput')) {
-        document.getElementById('importImageInput').addEventListener('change', (e) => {
-            handleImageUpload(e, updateUndoRedoButtons, showLoading, hideLoading);
-        });
-    }
 
 
     if (undoBtn) undoBtn.addEventListener('click', () => {
@@ -510,30 +490,6 @@ export function initializeUI() {
     });
     if(checkAnswerBtn) checkAnswerBtn.addEventListener('click', checkAnswer);
     
-    // --- NEW: AI GENERATOR EVENT LISTENERS ---
-    
-    if (aiGenerateFromDescBtn) {
-        aiGenerateFromDescBtn.addEventListener('click', () => {
-            const promptText = aiDescInput ? aiDescInput.value.trim() : ''; 
-            if (promptText) {
-                handleAiGeneration(promptText, updateUndoRedoButtons, showLoading, hideLoading, false);
-            } else {
-      customAlert('Input Required', 'Please enter a description for the automaton.');
-            }
-        });
-    }
-
-    if (aiGenerateFromRegexBtn) {
-        aiGenerateFromRegexBtn.addEventListener('click', () => {
-            const promptText = aiRegexInput ? aiRegexInput.value.trim() : '';
-            if (promptText) {
-                handleAiGeneration(promptText, updateUndoRedoButtons, showLoading, hideLoading, true);
-            } else {
-                customAlert('Input Required', 'Please enter a regular expression.');
-            }
-        });
-    }
-
     // --- Navigation Logic ---
 
 /**

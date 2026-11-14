@@ -78,7 +78,7 @@ How Toc-Suite was built, step by step, from the first prototype to today, and wh
 | 6.5 | Animation timing in one place; drawings serialised; animated TM run with live tape |
 | 6.6 | Save, load, PNG and CSV export verified in every studio; shared-dialog handler leak fixed |
 | 6.7 | Load time: icon subset (487 KB → 20 KB), lazy practice banks and model |
-| 6.8 | Settings (animation speed, sharing switch, erase data) and a privacy / terms / accessibility page; AI generator moved behind a server-side proxy |
+| 6.8 | Settings (animation speed, sharing switch, erase data) and a privacy / terms / accessibility page |
 | 6.9 | Journey book, study guide, technical guide, screenshots and demo GIFs |
 
 ## 🔜 Stage 7 — Next

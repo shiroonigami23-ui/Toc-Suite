@@ -11,7 +11,7 @@ cover: "../figures/architecture.png"
 
 # 1. Overview
 
-Toc-Suite is a static web application written in plain JavaScript ES modules. It has no build step: the files in the repository are the files the browser runs. A few Netlify Functions provide server-side features (submissions, instructor review, library pushes and the AI generator). This guide is for anyone who wants to run, modify or extend the code.
+Toc-Suite is a static web application written in plain JavaScript ES modules. It has no build step: the files in the repository are the files the browser runs. A few Netlify Functions provide server-side features (submissions, instructor review and library pushes). This guide is for anyone who wants to run, modify or extend the code.
 
 ## Running locally
 
@@ -45,7 +45,7 @@ ES modules must be served over HTTP; opening `index.html` from the file system w
 | `netlify.toml` | Build command, security headers, redirects for moved pages |
 | `src/app/unified_main.js` | Routing, studio loading, autosave snapshots, splash, settings application |
 | `src/app/machine_router.js` | Cross-studio routing of machines and pages |
-| `src/shared/` | `utils.js` (logging, dialogs, shortcuts, animation timing, file names), `animation.js` (drawing a machine), `paths.js` (`appUrl`), `assignment-client.js`, `ai-auth.js` |
+| `src/shared/` | `utils.js` (logging, dialogs, shortcuts, animation timing, file names), `animation.js` (drawing a machine), `paths.js` (`appUrl`), `assignment-client.js` |
 | `src/fa/` | FA studio: `state`, `renderer`, `ui`, `simulation`, `automata` (conversions), `conversion-animation`, `equivalence`, `file`, `practice`, `library-loader`, `fa_logic_table` |
 | `src/mm/` | Mealy/Moore studio, same shape, plus `moore_mealy_automata` (conversions) and `moore_mealy_equivalence` |
 | `src/pda/` | PDA studio, plus the HTML fragment `pda_studio.html` |
@@ -87,7 +87,7 @@ Every few seconds, and when leaving a studio, the shell serialises the current m
 | `*_renderer.js` | Draws `MACHINE` into the SVG groups `#states` and `#edges`; never mutates the machine |
 | `*_ui.js` | Wires tools, buttons, dialogs and keyboard handlers; calls `pushUndo` before every change |
 | `*_simulation.js` | Runs inputs, highlights the active state and transition |
-| `*_file.js` | Save (JSON), load (JSON, with routing to the right studio), export PNG, image import via AI |
+| `*_file.js` | Save (JSON), load (JSON, with routing to the right studio), export PNG |
 | `*_practice.js` | Generate, show solution, check answer |
 | `*_library_loader.js` | Fetches and lists the studio's library |
 
@@ -271,8 +271,6 @@ Browser checks (layout at four screen sizes, keyboard shortcuts, save, export, l
 | `list-active-assignments`, `create-assignment` | Assignments | `DATABASE_URL`, `ARCHITECT_KEY` (create) |
 | `get-submissions`, `save-review` | Instructor portal | `DATABASE_URL`, `ARCHITECT_KEY` |
 | `push-to-github`, `push-to-github-bulk` | Put machines in `data/inbox/` (instructor action) | `GITHUB_PAT`, `GITHUB_REPO`, `ARCHITECT_KEY`, `DATABASE_URL` |
-| `verify-ai-password` | Unlock the AI generator | `AI_ACCESS_PASSWORD` |
-| `ai-generate` | Server-side Gemini proxy | `AI_ACCESS_PASSWORD`, `GEMINI_API_KEY`, optional `GEMINI_MODEL` (default `gemini-flash-latest`) |
 
 No key is ever sent to the browser. Set these in the Netlify site's environment settings.
 

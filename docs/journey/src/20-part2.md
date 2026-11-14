@@ -30,7 +30,7 @@ During a simulation, the renderer does not redraw anything; it adds CSS classes 
 
 ## Hosting and functions
 
-The site is hosted on Netlify as static files. A handful of Netlify Functions (small server-side JavaScript functions) provide the features that need a server: storing submissions in a Postgres database, listing active assignments, saving instructor reviews, verifying the password for the AI generator, and pushing machines into the GitHub repository. Everything else runs in the browser. If the functions are unavailable, the studios still work; only submission and sharing are affected.
+The site is hosted on Netlify as static files. A handful of Netlify Functions (small server-side JavaScript functions) provide the features that need a server: storing submissions in a Postgres database, listing active assignments, saving instructor reviews, and pushing machines into the GitHub repository. Everything else runs in the browser. If the functions are unavailable, the studios still work; only submission and sharing are affected.
 
 # 5. The finite automata studio
 
