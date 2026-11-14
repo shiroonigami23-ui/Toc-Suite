@@ -3,7 +3,7 @@ import { animateMachineDrawing } from '../shared/animation.js';
 import { setValidationMessage, addLogMessage } from '../shared/utils.js';
 import { areEquivalent } from './moore_mealy_equivalence.js';
 // FIX: Import the conversion function directly
-import { convertMooreToMealy } from './moore_mealy_automata.js';
+import { convertMooreToMealy, convertMealyToMoore } from './moore_mealy_automata.js';
 
 let mmPracticeBankPromise = null;
 
@@ -15,13 +15,15 @@ async function ensureMmPracticeBankLoaded() {
     await mmPracticeBankPromise;
 }
 
+const KIND_LABEL = { MOORE_TO_MEALY: 'Moore → Mealy', MEALY_TO_MOORE: 'Mealy → Moore' };
+
 export async function generatePractice() {
     const practiceBox = document.getElementById('practiceBox');
     const modeSelect = document.getElementById('modeSelect');
     const checkAnswerBtn = document.getElementById('checkAnswerBtn');
-    
-    const mode = modeSelect ? modeSelect.value : 'MOORE';
+    const kind = document.getElementById('practiceKind')?.value || 'BUILD';
     const level = document.getElementById('practiceMode').value;
+    const mode = modeSelect && ['MOORE', 'MEALY'].includes(modeSelect.value) ? modeSelect.value : (MACHINE.type || 'MOORE');
 
     await ensureMmPracticeBankLoaded();
     if (typeof window.MM_PRACTICE_BANK === 'undefined') {
@@ -29,27 +31,33 @@ export async function generatePractice() {
         return;
     }
 
-    const bank = window.MM_PRACTICE_BANK[mode]?.[level] || window.MM_PRACTICE_BANK[mode];
-    
+    // Conversion practice reuses the verified construction answers as the machine to convert.
+    const sourceType = kind === 'MOORE_TO_MEALY' ? 'MOORE' : kind === 'MEALY_TO_MOORE' ? 'MEALY' : mode;
+    const bank = window.MM_PRACTICE_BANK[sourceType]?.[level];
     if (!bank || bank.length === 0) {
-        practiceBox.textContent = `No ${level} questions for ${mode} mode.`;
-        if (checkAnswerBtn) checkAnswerBtn.hidden = true; 
+        practiceBox.textContent = `No ${level} questions for ${kind === 'BUILD' ? mode : KIND_LABEL[kind]}.`;
+        if (checkAnswerBtn) checkAnswerBtn.hidden = true;
         return;
     }
-    
-    const newPractice = bank[Math.floor(Math.random() * bank.length)];
-    setCurrentPractice(newPractice);
 
-    let displayMode = mode;
-    if (mode === 'MOORE_TO_MEALY') {
-        displayMode = 'Moore → Mealy';
-    }
+    const pick = bank[Math.floor(Math.random() * bank.length)];
+    const target = kind === 'MOORE_TO_MEALY' ? 'MEALY' : kind === 'MEALY_TO_MOORE' ? 'MOORE' : mode;
+    setCurrentPractice({ ...pick, kind, target });
 
-    // Apply Content and the MM orange glow class
-    practiceBox.innerHTML = `<strong>${displayMode} | ${level.toUpperCase()}</strong><div style="margin-top:8px">${newPractice.q}</div>`;
+    const heading = kind === 'BUILD' ? `${mode} | ${level.toUpperCase()}` : `${KIND_LABEL[kind]} | ${level.toUpperCase()}`;
+    const text = kind === 'BUILD' ? pick.q
+        : `The ${sourceType === 'MOORE' ? 'Moore' : 'Mealy'} machine on the canvas is: <em>${pick.q}</em> Convert it into an equivalent ${target === 'MOORE' ? 'Moore' : 'Mealy'} machine (same output for every input${target === 'MOORE' ? ', after the start output' : ''}).`;
+    practiceBox.innerHTML = `<strong>${heading}</strong><div style="margin-top:8px">${text}</div>`;
     practiceBox.className = 'practice-mm-active';
-    
     if (checkAnswerBtn) checkAnswerBtn.hidden = false;
+
+    if (kind !== 'BUILD') {
+        const source = { ...JSON.parse(JSON.stringify(pick.machine)), type: sourceType };
+        if (modeSelect) modeSelect.value = sourceType;
+        await animateMachineDrawing(source);
+        MACHINE.type = sourceType;
+        addLogMessage(`Convert this ${sourceType === 'MOORE' ? 'Moore' : 'Mealy'} machine, switch the mode to ${target === 'MOORE' ? 'Moore' : 'Mealy'}, then press Check Answer.`, 'repeat');
+    }
 }
 
 export async function showSolution(updateUIFunction) {
@@ -60,35 +68,25 @@ export async function showSolution(updateUIFunction) {
     pushUndo(updateUIFunction);
 
     const modeSelect = document.getElementById('modeSelect');
-    const targetMode = modeSelect ? modeSelect.value : 'MOORE';
-
-    // 1. Start with a clean deep clone of the machine data
     let machineData = JSON.parse(JSON.stringify(CURRENT_PRACTICE.machine));
-    
-    // 2. Handle Conversions (if needed)
-    if (targetMode === 'MOORE_TO_MEALY') {
-        addLogMessage("Converting Moore solution to Mealy for display...", 'zap');
-        try {
-            machineData = await convertMooreToMealy(machineData);
-            machineData.type = 'MEALY'; 
-        } catch (err) {
-             setValidationMessage(`Conversion failed: ${err.message}`, 'error');
-             return;
+    const kind = CURRENT_PRACTICE.kind || 'BUILD';
+    try {
+        if (kind === 'MOORE_TO_MEALY') {
+            addLogMessage("Converting the Moore machine to Mealy...", 'zap');
+            machineData = await convertMooreToMealy({ ...machineData, type: 'MOORE' });
+        } else if (kind === 'MEALY_TO_MOORE') {
+            addLogMessage("Converting the Mealy machine to Moore...", 'zap');
+            machineData = await convertMealyToMoore({ ...machineData, type: 'MEALY' });
         }
+    } catch (err) {
+        setValidationMessage(`Conversion failed: ${err.message}`, 'error');
+        return;
     }
-    
-    // Ensure the machine type is set for the renderer (MOORE, MEALY)
-    machineData.type = machineData.type || targetMode.split('_TO_')[0];
+    machineData.type = CURRENT_PRACTICE.target || machineData.type || 'MOORE';
 
-    // CRITICAL FIX: Set the machine to the global state immediately before animation starts 
-    // This ensures that all tools (like save) see a valid machine instantly.
-    setMachine(machineData); 
-    
-    // Animate the fully processed machine (this calls setMachine internally at the end of animation)
+    setMachine(machineData);
     animateMachineDrawing(machineData);
-
-    // Ensure the mode select is correctly set after animation
-    if(modeSelect) modeSelect.value = machineData.type;
+    if (modeSelect) modeSelect.value = machineData.type;
 }
 
 export function resetPractice() {
@@ -120,13 +118,12 @@ export async function checkAnswer() {
     
     const userMachine = MACHINE;
     let solutionMachine = JSON.parse(JSON.stringify(CURRENT_PRACTICE.machine)); // Deep clone the base solution
-    let requiredType = MACHINE.type;
-    
-    if (document.getElementById('modeSelect').value === 'MOORE_TO_MEALY') {
-        requiredType = 'MEALY';
-        addLogMessage('Converting required Moore solution to Mealy for check...', 'git-branch');
-        solutionMachine = await convertMooreToMealy(solutionMachine);
-    }
+    const kind = CURRENT_PRACTICE.kind || 'BUILD';
+    let requiredType = CURRENT_PRACTICE.target || MACHINE.type;
+    // For conversions the stored machine is the *source*; compare against it directly (the
+    // equivalence check works across Moore and Mealy).
+    if (kind === 'MOORE_TO_MEALY') solutionMachine.type = 'MOORE';
+    if (kind === 'MEALY_TO_MOORE') solutionMachine.type = 'MEALY';
     
     // Ensure both machines are the same type for equivalence comparison
     if (userMachine.type !== requiredType) {
@@ -136,7 +133,7 @@ export async function checkAnswer() {
     }
 
     // Set the type on the solution machine for the equivalence checker
-    solutionMachine.type = requiredType;
+    if (kind === 'BUILD') solutionMachine.type = requiredType;
 
     const isCorrect = await areEquivalent(userMachine, solutionMachine);
 

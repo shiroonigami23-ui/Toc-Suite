@@ -341,3 +341,42 @@ export function structuralIssues(machine) {
   }
   return issues;
 }
+
+/**
+ * ε-NFA → NFA (ε-removal). Keeps the original states: δ'(q, a) = ECLOSE(δ(ECLOSE(q), a)),
+ * and q is accepting iff ECLOSE(q) contains an accepting state. Unreachable states are dropped.
+ */
+export function removeEpsilon(machine) {
+  const states = machine.states || [];
+  const ids = states.map(s => s.id);
+  const eps = new Map(ids.map(id => [id, []]));
+  const moves = [];
+  for (const t of machine.transitions || []) {
+    for (const s of splitSymbols(t.symbol)) {
+      if (s === EPS) eps.get(t.from)?.push(t.to);
+      else moves.push({ from: t.from, to: t.to, symbol: s });
+    }
+  }
+  const close = (id) => {
+    const out = new Set([id]); const st = [id];
+    while (st.length) for (const r of eps.get(st.pop()) || []) if (!out.has(r)) { out.add(r); st.push(r); }
+    return out;
+  };
+  const acc = new Set(states.filter(s => s.accepting).map(s => s.id));
+  const trans = new Set();
+  for (const q of ids) {
+    const cq = close(q);
+    for (const m of moves) if (cq.has(m.from)) for (const r of close(m.to)) trans.add(`${q}\u0000${m.symbol}\u0000${r}`);
+  }
+  const all = [...trans].map(k => { const [from, symbol, to] = k.split('\u0000'); return { from, to, symbol }; });
+  const start = states.find(s => s.initial)?.id;
+  const keep = new Set([start]); const st = [start];
+  while (st.length) { const q = st.pop(); for (const t of all) if (t.from === q && !keep.has(t.to)) { keep.add(t.to); st.push(t.to); } }
+  return {
+    ...machine,
+    type: 'NFA',
+    states: states.filter(s => keep.has(s.id)).map(s => ({ ...s, accepting: [...close(s.id)].some(r => acc.has(r)) })),
+    transitions: all.filter(t => keep.has(t.from) && keep.has(t.to)),
+    alphabet: machineAlphabet(machine),
+  };
+}

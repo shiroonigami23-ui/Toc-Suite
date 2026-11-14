@@ -31,6 +31,13 @@ const SPEC = [
   [/1-bit binary adder/, null],
   [/even number of "0"s has been read/, w => prefixes(w).map(p => (n(p, '0') % 2 ? 'I' : 'P')).join('')],
   [/ends with "110"/, w => prefixes(w).map(p => (p.endsWith('110') ? 'R' : 'N')).join('')],
+  [/echoes the most recent input/, w => '-' + w],
+  [/binary number read so far is divisible by 3/, w => 'Y' + prefixes(w).map(p => (parseInt(p, 2) % 3 ? 'N' : 'Y')).join('')],
+  [/last three inputs were "aba"/, w => '0' + prefixes(w).map(p => (p.endsWith('aba') ? '1' : '0')).join('')],
+  [/one's complement/, w => [...w].map(c => (c === '0' ? '1' : '0')).join('')],
+  [/delays its input by one step/, w => [...w].map((c, i) => (i ? w[i - 1] : '0')).join('')],
+  [/equals the input two steps earlier/, w => [...w].map((c, i) => (i >= 2 && w[i - 2] === c ? '1' : '0')).join('')],
+  [/two's complement of a binary number fed least-significant bit first/, w => { const k = w.indexOf('1'); return k < 0 ? w : w.slice(0, k + 1) + [...w.slice(k + 1)].map(c => (c === '0' ? '1' : '0')).join(''); }],
 ];
 
 function entries() {

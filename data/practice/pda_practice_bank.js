@@ -469,90 +469,132 @@ export const PDA_PRACTICE_BANK = [
     }
   },
   {
-    "id": "pda_an_bm_or_am_bn",
-    "title": "Union: a^n b^m OR a^m b^n (n=m)",
+    "id": "pda_ai_bj_j_eq_i_or_2i",
+    "title": "Union: a^i b^j with j = i or j = 2i",
     "level": "medium",
-    "description": "Accept strings where either the number of 'a's matches 'b's, or the input follows a specific structure where count is irrelevant but symbols are grouped.",
-    "instruction": "This requires an epsilon transition from the start state to two different branches. Branch A checks n=m, Branch B simply accepts the pattern.",
+    "description": "L = {a^i b^j | i ≥ 0 and (j = i or j = 2i)} over {a, b}. Every 'a' is matched by either one 'b' or two 'b's, and the choice must be the same for the whole string.",
+    "instruction": "Guess the branch at the start with an ε-move. Branch 1 pushes one A per a; branch 2 pushes AA per a. Both pop one A per b and accept when the bottom marker Z is back on top after the last b.",
     "solution": {
       "type": "PDA",
       "states": [
         {
-          "id": "start",
+          "id": "s",
           "initial": true,
           "accepting": false,
-          "x": 100,
-          "y": 300
+          "x": 180,
+          "y": 200
         },
         {
-          "id": "q_eq",
+          "id": "one",
           "initial": false,
           "accepting": false,
-          "x": 300,
+          "x": 460,
           "y": 200
         },
         {
-          "id": "q_match",
+          "id": "two",
           "initial": false,
-          "accepting": true,
-          "x": 500,
+          "accepting": false,
+          "x": 740,
           "y": 200
         },
         {
-          "id": "q_any",
+          "id": "pop",
+          "initial": false,
+          "accepting": false,
+          "x": 1020,
+          "y": 200
+        },
+        {
+          "id": "f",
           "initial": false,
           "accepting": true,
-          "x": 400,
-          "y": 400
+          "x": 180,
+          "y": 440
         }
       ],
       "transitions": [
         {
-          "from": "start",
-          "to": "q_eq",
+          "from": "s",
+          "to": "one",
           "symbol": "",
           "pop": "Z",
           "push": "Z"
         },
         {
-          "from": "q_eq",
-          "to": "q_eq",
+          "from": "s",
+          "to": "two",
+          "symbol": "",
+          "pop": "Z",
+          "push": "Z"
+        },
+        {
+          "from": "one",
+          "to": "one",
           "symbol": "a",
           "pop": "Z",
           "push": "AZ"
         },
         {
-          "from": "q_eq",
-          "to": "q_eq",
+          "from": "one",
+          "to": "one",
           "symbol": "a",
           "pop": "A",
           "push": "AA"
         },
         {
-          "from": "q_eq",
-          "to": "q_match",
-          "symbol": "b",
-          "pop": "A",
-          "push": ""
-        },
-        {
-          "from": "q_match",
-          "to": "q_match",
-          "symbol": "b",
-          "pop": "A",
-          "push": ""
-        },
-        {
-          "from": "start",
-          "to": "q_any",
+          "from": "two",
+          "to": "two",
           "symbol": "a",
+          "pop": "Z",
+          "push": "AAZ"
+        },
+        {
+          "from": "two",
+          "to": "two",
+          "symbol": "a",
+          "pop": "A",
+          "push": "AAA"
+        },
+        {
+          "from": "one",
+          "to": "pop",
+          "symbol": "b",
+          "pop": "A",
+          "push": ""
+        },
+        {
+          "from": "two",
+          "to": "pop",
+          "symbol": "b",
+          "pop": "A",
+          "push": ""
+        },
+        {
+          "from": "pop",
+          "to": "pop",
+          "symbol": "b",
+          "pop": "A",
+          "push": ""
+        },
+        {
+          "from": "one",
+          "to": "f",
+          "symbol": "",
           "pop": "Z",
           "push": "Z"
         },
         {
-          "from": "q_any",
-          "to": "q_any",
-          "symbol": "b",
+          "from": "two",
+          "to": "f",
+          "symbol": "",
+          "pop": "Z",
+          "push": "Z"
+        },
+        {
+          "from": "pop",
+          "to": "f",
+          "symbol": "",
           "pop": "Z",
           "push": "Z"
         }
@@ -562,9 +604,11 @@ export const PDA_PRACTICE_BANK = [
         "b"
       ],
       "stackAlphabet": [
-        "A",
-        "Z"
-      ]
+        "Z",
+        "A"
+      ],
+      "initialStackSymbol": "Z",
+      "acceptanceMode": "FINAL_STATE"
     }
   },
   {

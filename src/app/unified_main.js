@@ -123,11 +123,18 @@ export const StudioContext = {
             </summary>
             <div class="control-section-content">
               <div style="margin-bottom:12px">
-                <div style="display:flex;gap:8px">
-                  <select id="practiceMode" style="flex:1;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <select id="practiceKind" style="flex:1 1 100%;" aria-label="Practice type">
+                    <option value="BUILD">Build from a description</option>
+                    <option value="ENFA_TO_NFA">Convert: ε-NFA → NFA</option>
+                    <option value="NFA_TO_DFA">Convert: NFA → DFA</option>
+                    <option value="DFA_TO_MIN_DFA">Convert: DFA → Minimal DFA</option>
+                    <option value="NFA_TO_MIN_DFA">Convert: NFA → Minimal DFA</option>
+                  </select>
+                  <select id="practiceMode" style="flex:1;" aria-label="Difficulty">
+                    <option value="easy">Easy</option>
                     <option value="basic">Basic</option>
                     <option value="medium">Medium</option>
-                    <option value="easy">Easy</option>
                     <option value="hard">Hard</option>
                   </select>
                   <button class="icon-btn" id="genPracticeBtn" type="button">Generate</button>
@@ -409,10 +416,14 @@ export const StudioContext = {
             </summary>
             <div class="control-section-content">
               <div style="margin-bottom:12px">
-                <div style="display:flex;gap:8px">
-                  <select id="practiceMode" style="flex:1;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <select id="practiceKind" style="flex:1 1 100%;" aria-label="Practice type">
+                    <option value="BUILD">Build from a description</option>
+                    <option value="MOORE_TO_MEALY">Convert: Moore → Mealy</option>
+                    <option value="MEALY_TO_MOORE">Convert: Mealy → Moore</option>
+                  </select>
+                  <select id="practiceMode" style="flex:1;" aria-label="Difficulty">
                     <option value="easy">Easy</option>
-                    <option value="basic">Basic</option>
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
                   </select>

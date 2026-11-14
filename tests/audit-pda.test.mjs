@@ -27,7 +27,7 @@ export const PDA_SPEC = {
   pda_wwr: w => w.length % 2 === 0 && w === rev(w),
   pda_a2n_bn: w => form(/^a+b+$/)(w) && n(w, 'a') === 2 * n(w, 'b'),
   pda_nb_greater_na: w => n(w, 'b') > n(w, 'a'),
-  pda_an_bm_or_am_bn: null,   // description is not a precise language
+  pda_ai_bj_j_eq_i_or_2i: w => form(/^a*b*$/)(w) && (n(w, 'b') === n(w, 'a') || n(w, 'b') === 2 * n(w, 'a')),
   pda_odd_palindrome: w => { const i = w.indexOf('c'); return i >= 0 && w.length === 2 * i + 1 && n(w, 'c') === 1 && w.slice(0, i) === rev(w.slice(i + 1)); },
   pda_na_eq_nb: w => n(w, 'a') === n(w, 'b'),
   pda_diff_counts: w => form(/^a*b*c*$/)(w) && n(w, 'a') + n(w, 'b') === n(w, 'c'),

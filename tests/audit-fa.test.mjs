@@ -152,3 +152,25 @@ test('library.json automata accept exactly what their titles say', async () => {
   }
   assert.deepEqual(bad, []);
 });
+
+test('conversion practice: every source converts to its answer, and the checker accepts the answer', async () => {
+  globalThis.document = globalThis.document || { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] };
+  const { conversionProblems } = await import('../src/fa/practice.js');
+  const bank = await loadBank();
+  let n = 0;
+  const bad = [];
+  for (const kind of ['ENFA_TO_NFA', 'NFA_TO_DFA', 'DFA_TO_MIN_DFA', 'NFA_TO_MIN_DFA']) {
+    for (const [level, list] of Object.entries(bank[kind])) list.forEach((e, i) => {
+      n++;
+      const key = `${kind}/${level}/${i}`;
+      const sigma = [...new Set([...FA.machineAlphabet(e.source), ...FA.machineAlphabet(e.machine)])].sort();
+      if (!FA.compare(FA.toMinimalDfa(e.source, sigma), FA.toMinimalDfa(e.machine, sigma)).equivalent) bad.push(`${key}: answer ≠ source language`);
+      const probs = conversionProblems(kind, e.machine, e.machine);
+      if (probs.length) bad.push(`${key}: reference answer rejected: ${probs[0]}`);
+      if (kind === 'ENFA_TO_NFA' && !e.source.transitions.some(t => FA.isEpsilon(t.symbol))) bad.push(`${key}: source has no ε-moves`);
+      if (kind === 'DFA_TO_MIN_DFA' && !conversionProblems(kind, e.source, e.machine).length) bad.push(`${key}: source is already minimal`);
+    });
+  }
+  assert.ok(n >= 150, `only ${n} conversion questions`);
+  assert.deepEqual(bad, []);
+});
