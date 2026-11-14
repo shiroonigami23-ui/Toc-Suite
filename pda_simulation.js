@@ -5,86 +5,93 @@
 
 import { addLogMessage } from './utils.js';
 
-export function runPdaSimulation(inputString, machine) {
+export function runPdaSimulation(inputString, machine, { maxConfigs = 60000, silent = false } = {}) {
     const { states, transitions, initialStackSymbol, acceptanceMode } = machine;
     const initialState = states.find((s) => s.initial);
 
     if (!initialState) return { success: false, message: 'No initial state defined.' };
 
-    let queue = [{
-        state: initialState.id,
-        input: inputString,
-        stack: [initialStackSymbol || 'Z'],
-        path: []
-    }];
+    const mode = String(acceptanceMode || 'FINAL_STATE').toUpperCase();
+    const accepting = new Set(states.filter((s) => s.accepting).map((s) => s.id));
+    const byFrom = new Map();
+    for (const t of transitions) {
+        if (!byFrom.has(t.from)) byFrom.set(t.from, []);
+        byFrom.get(t.from).push(t);
+    }
+    // A PDA can grow its stack forever on ε-moves; no accepting run needs a stack much
+    // taller than the remaining input, so taller configurations are pruned.
+    const maxPush = Math.max(1, ...transitions.map((t) => (isEpsilon(t.push) ? 0 : String(t.push).length)));
+    const stackCap = (remaining) => remaining * maxPush + 2 * states.length + 4;
 
-    const MAX_STEPS = 1000;
-    let steps = 0;
+    // Breadth-first search over configurations (state, input position, stack), each visited once.
+    const queue = [{ state: initialState.id, pos: 0, stack: [initialStackSymbol || 'Z'], parent: null, transition: null }];
+    const seen = new Set();
+    let head = 0;
+    let truncated = false;
 
-    while (queue.length > 0 && steps < MAX_STEPS) {
-        steps += 1;
-        const { state, input, stack, path } = queue.shift();
+    while (head < queue.length) {
+        if (head >= maxConfigs) { truncated = true; break; }
+        const node = queue[head++];
+        const key = `${node.state}|${node.pos}|${node.stack.join('\u0001')}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
 
-        const currentStateObj = states.find((s) => s.id === state);
-        const inputDone = input.length === 0;
-        const byFinal = !!currentStateObj?.accepting;
-        const byEmptyStack = stack.length === 0;
-        const mode = String(acceptanceMode || 'FINAL_STATE').toUpperCase();
+        const inputDone = node.pos === inputString.length;
+        const byFinal = accepting.has(node.state);
+        const byEmptyStack = node.stack.length === 0;
         const accepted =
             mode === 'EMPTY_STACK' ? (inputDone && byEmptyStack) :
             mode === 'BOTH' ? (inputDone && byFinal && byEmptyStack) :
             (inputDone && byFinal);
 
-        if (accepted) {
-            return { success: true, path: [...path, { state, input: 'eps', stack: [...stack] }] };
-        }
+        if (accepted) return { success: true, path: buildPath(node, inputString) };
 
-        const currentSymbol = input.length > 0 ? input[0] : null;
-        const stackTop = stack.length > 0 ? stack[stack.length - 1] : null;
+        const currentSymbol = inputDone ? null : inputString[node.pos];
+        const stackTop = node.stack.length > 0 ? node.stack[node.stack.length - 1] : null;
 
-        const possibleTransitions = transitions.filter((t) => {
-            const matchInput = (t.symbol === currentSymbol || isEpsilon(t.symbol));
-            const matchStack = (isEpsilon(t.pop) || t.pop === stackTop);
-            return t.from === state && matchInput && matchStack;
-        });
-
-        for (const t of possibleTransitions) {
-            const nextStack = [...stack];
-
+        for (const t of byFrom.get(node.state) || []) {
+            const epsIn = isEpsilon(t.symbol);
+            if (!epsIn && t.symbol !== currentSymbol) continue;
+            const nextStack = node.stack.slice();
             if (!isEpsilon(t.pop)) {
-                if (nextStack.length === 0 || nextStack[nextStack.length - 1] !== t.pop) {
-                    continue;
-                }
+                if (stackTop !== t.pop) continue;
                 nextStack.pop();
             }
-
             if (!isEpsilon(t.push)) {
                 const symbols = String(t.push).split('');
-                for (let i = symbols.length - 1; i >= 0; i -= 1) {
-                    nextStack.push(symbols[i]);
-                }
+                for (let i = symbols.length - 1; i >= 0; i -= 1) nextStack.push(symbols[i]);
             }
-
-            const nextInput = !isEpsilon(t.symbol) ? input.substring(1) : input;
-
-            queue.push({
-                state: t.to,
-                input: nextInput,
-                stack: nextStack,
-                path: [...path, { state, input: t.symbol || 'eps', stack: [...stack], transition: t }]
-            });
+            const pos = epsIn ? node.pos : node.pos + 1;
+            if (nextStack.length > stackCap(inputString.length - pos)) { truncated = true; continue; }
+            queue.push({ state: t.to, pos, stack: nextStack, parent: node, transition: t });
         }
     }
 
-    const timeout = steps >= MAX_STEPS;
-    addLogMessage(timeout ? 'PDA simulation stopped: step limit reached.' : 'PDA simulation rejected input.', timeout ? 'timer' : 'x-circle');
+    if (!silent) {
+        addLogMessage(truncated && head >= maxConfigs ? 'PDA simulation stopped: search limit reached.' : 'PDA simulation rejected input.', truncated && head >= maxConfigs ? 'timer' : 'x-circle');
+    }
     return {
         success: false,
-        message: timeout ? 'Possible infinite loop detected.' : 'Input string rejected by PDA logic.'
+        message: truncated && head >= maxConfigs ? 'Search limit reached (possible infinite ε-loop).' : 'Input string rejected by PDA logic.'
     };
+}
+
+function buildPath(node, input) {
+    const chain = [];
+    for (let n = node; n; n = n.parent) chain.push(n);
+    chain.reverse();
+    const path = [];
+    for (let i = 0; i < chain.length - 1; i++) {
+        const n = chain[i];
+        const t = chain[i + 1].transition;
+        path.push({ state: n.state, input: t.symbol || 'eps', stack: [...n.stack], transition: t, remaining: input.slice(n.pos) });
+    }
+    const last = chain[chain.length - 1];
+    path.push({ state: last.state, input: 'eps', stack: [...last.stack], remaining: '' });
+    return path;
 }
 
 function isEpsilon(v) {
     const s = String(v || '').trim().toLowerCase();
-    return s === '' || s === 'eps' || s === 'ε' || s === 'îµ';
+    return s === '' || s === 'eps' || s === 'epsilon' || s === 'ε' || s === 'ϵ' || s === 'λ' || s === '_epsilon_' || s === 'îµ';
 }

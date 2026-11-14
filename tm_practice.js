@@ -12,6 +12,8 @@ import { MACHINE } from './tm_state.js';
 
 let currentChallenge = null;
 
+const trimTape = (tape) => String(tape ?? '').replace(/^B+|B+$/g, '');
+
 export function generateTmPractice(level) {
     const bank = TM_PRACTICE_BANK[level] || TM_PRACTICE_BANK.easy;
     currentChallenge = bank[Math.floor(Math.random() * bank.length)];
@@ -47,18 +49,29 @@ export async function checkTmAnswer(userMachine) {
 
     // 2. ENHANCEMENT: If no test cases, perform comparative testing
     // This compares the user's machine behavior against the solution machine
+    // Every input up to length 5 over the challenge's own alphabet (parentheses, a/b/c, …),
+    // and for transformation tasks the final tape must match too, not just accept/reject.
     if (testCases.length === 0 && currentChallenge.machine) {
-        const testInputs = ["", "0", "1", "00", "11", "01", "10", "000", "111", "010", "101"];
+        const sigma = currentChallenge.inputAlphabet || ['0', '1'];
+        const testInputs = [''];
+        for (let layer = [''], n = 1; n <= 5; n++) {
+            layer = layer.flatMap(p => sigma.map(c => p + c));
+            testInputs.push(...layer);
+        }
         testCases = testInputs.map(input => {
-            const solResult = runTmSimulation(input, currentChallenge.machine);
-            return { input, expected: solResult.success };
+            const solResult = runTmSimulation(input, currentChallenge.machine, 20000);
+            return { input, expected: solResult.success, tape: solResult.success ? trimTape(solResult.finalTape) : null };
         });
     }
 
     // 3. Execution Loop
     for (const tc of testCases) {
-        const result = runTmSimulation(tc.input, userMachine);
-        
+        const result = runTmSimulation(tc.input, userMachine, 20000);
+
+        if (result.success && tc.tape != null && trimTape(result.finalTape) !== tc.tape) {
+            addLogMessage(`On input "${tc.input || 'ε'}" your machine halts with tape "${trimTape(result.finalTape) || '(blank)'}", expected "${tc.tape || '(blank)'}".`, 'x-circle');
+            return { success: false, failedString: tc.input || 'ε', expected: true };
+        }
         if (result.success !== tc.expected) {
             // Log the specific mismatch for the user
             addLogMessage(`Mismatch found on input: "${tc.input || 'ε'}"`, 'x-circle');

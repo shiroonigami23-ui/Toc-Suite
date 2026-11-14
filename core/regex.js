@@ -7,7 +7,7 @@ import { determinize, minimize, EPS } from './fa.js';
 
 class Parser {
   constructor(src) {
-    this.s = String(src).replace(/eps(ilon)?/g, EPS).replace(/λ/g, EPS).replace(/\s+/g, '');
+    this.s = String(src).replace(/eps(ilon)?/g, EPS).replace(/[λϵ]/g, EPS).replace(/\s+/g, '').replace(/[.·]/g, '').replace(/∪/g, '+');
     this.i = 0;
   }
   peek() { return this.s[this.i]; }

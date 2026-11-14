@@ -6,6 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-10b981.svg?style=flat-square)](LICENSE)
 [![Library Build](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/build-library.yml?label=Library%20Build&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/build-library.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/shiroonigami23-ui/Toc-Suite/tests.yml?label=Tests&style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite/actions/workflows/tests.yml)
 [![Netlify Status](https://img.shields.io/badge/Deploy-Netlify-00c7b7?style=flat-square)](https://toc-suite-v3.netlify.app/)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Toc--Suite-111827?style=flat-square)](https://github.com/shiroonigami23-ui/Toc-Suite)
 
@@ -28,7 +29,31 @@ This project combines:
 - assignment/quiz submission flow backed by Netlify Functions + Postgres (Neon)
 - architect/admin review and selective GitHub push pipeline
 
-## 0) Recent Enhancements (Current Build)
+## 0) Automata Assistant (new)
+
+A panel in the FA studio (**Automata Assistant**, under Machine Intelligence) that helps you *build* automata, not just draw them. Everything runs in the browser, no server, no API key.
+
+| Feature | What it does |
+|---|---|
+| **Describe → DFA** | Type the language in plain English (or a regex, or set-builder) and get the minimal DFA drawn for you. Handles starts/ends/contains, counts, mod, length, nth-from-end, divisibility, "followed later by", finite word lists, and `and` / `or` / `not` combinations. The panel always shows *how it read your sentence* so you can catch a misread. |
+| **Guide me** | Same input, but it does **not** draw the answer. You draw, and it watches: a progress bar, a "Next:" tip, and a red ring on any state that is wrong, with the exact string that proves it. |
+| **Examples → DFA** | Give accepted (`+ ab`) and rejected (`- ba`) strings; it learns the smallest consistent DFA (RPNI state merging). |
+| **Check / live hints** | Compares your drawing with the target and explains mistakes in words: a state doing two jobs (with the suffix that separates them), wrong accepting flags, missing moves, or a counterexample with its trace. |
+| **Tidy layout** | Layered auto-layout with crossing reduction; trap state parked in the corner. |
+
+**The built-in model.** Each clause of a description is classified by a small multinomial logistic-regression model (`core/nl-model.json`, ~155 KB) trained on generated phrasings (`tools/nl-dataset.mjs`, `tools/train-nl-model.mjs`, fixed seed, so it retrains byte-for-byte). The model only picks the *kind* of condition; the automaton itself is then built exactly (KMP pattern automata, counters, product constructions, Thompson + subset construction for regexes), so a recognised sentence never gives an approximate machine. Accuracy on held-out phrasings it was never trained on is reported by the trainer; on the 120 practice-bank questions it understands 110 and agrees with every reference solution.
+
+**Exact checking.** Practice answers in the FA studio are compared by DFA equivalence (product construction) instead of sample strings, and a wrong answer gets the shortest string where you differ. Mealy/Moore answers use an exact lock-step search too.
+
+### Audit (what the tests found and fixed)
+`npm test` runs the whole suite (unit, differential and data audits):
+- **FA practice bank:** 20 stored solutions accepted the wrong language (e.g. "start with 0 OR end with 1" rejected `1`; "(0|1)*01*" rejected `0`). Each is now rebuilt from an independent brute-force definition (`tests/practice-truth.mjs`, `tools/fix-practice-bank.mjs`), and the English reader cross-checks every other question.
+- **PDA practice bank:** 28 of 33 solutions accepted the wrong language (mostly accepting states that ignored the stack). All rebuilt and verified on every input up to length 7. The PDA simulator now dedupes configurations and prunes runaway ε-pushes, so non-deterministic machines no longer hit the step limit.
+- **TM:** 8 practice solutions were broken (copy, reverse, palindrome, wcw, parentheses, mark-ends, even zeros, copy-arbitrary) and the TM library used `direction` instead of `move`, so its machines never moved. The TM checker now tests every input up to length 5 over the problem's own alphabet and compares the final tape, not just accept/reject.
+- **Mealy/Moore:** Mealy→Moore conversion could produce a machine with no start state and mis-wired states whose names shared a prefix (`q1` vs `q11`); four practice machines were wrong; multi-character input symbols (the serial adder's `00/01/10/11`) were read one character at a time.
+- **Core FA code:** NFA→DFA no longer adds a stray unreachable `{}` state; equivalence handles differing alphabets; regex `+` is accepted as union.
+
+## 0.1) Recent Enhancements
 
 - Grammar Studio now includes dedicated RL and REL conversion tabs (separate, not merged).
 - RL and REL panels now render dynamic transition tables with animated step cards.
@@ -58,6 +83,12 @@ npx serve . -l 5173
 Then open:
 ```text
 http://localhost:5173
+```
+
+### Tests
+```bash
+npm test               # node --test tests/*.test.mjs (Node 20+)
+npm run train-model    # retrain core/nl-model.json (deterministic)
 ```
 
 ## 3) Core Features

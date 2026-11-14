@@ -19,83 +19,60 @@ async function toMealy(machine) {
 }
 
 /**
- * Generates a set of short, random test strings to sample equivalence.
- * Since proving equivalence mathematically is complex (requires minimization and isomorphism on state-output equivalence),
- * we use simulation testing as a robust, practical verification tool for user feedback.
- * @param {string[]} inputAlphabet The alphabet to generate strings from.
- * @returns {string[]} An array of test strings.
+ * Exact equivalence check. Both machines are viewed as Mealy machines and explored in
+ * lock-step over pairs of states (breadth-first), so the first difference found is a
+ * shortest input on which the two output strings differ. A missing transition halts a
+ * machine, exactly as in the simulator.
+ * @returns {Promise<{equivalent: boolean, counterexample: string[]|null, outputA?: string, outputB?: string}>}
  */
-function generateTestStrings(inputAlphabet) {
-    if (inputAlphabet.length === 0) return [''];
-    const tests = new Set(['', inputAlphabet[0]]);
-    
-    for (let len = 1; len <= 5; len++) {
-        for (let i = 0; i < 5; i++) { // Generate multiple strings of this length
-            let s = '';
-            for (let j = 0; j < len; j++) {
-                s += inputAlphabet[Math.floor(Math.random() * inputAlphabet.length)];
-            }
-            tests.add(s);
+export async function compareTransducers(machineA, machineB) {
+    // Moore machines also emit λ(q0) before reading anything.
+    if (machineA.type === 'MOORE' && machineB.type === 'MOORE') {
+        const a0 = machineA.states.find(s => s.initial), b0 = machineB.states.find(s => s.initial);
+        if ((a0?.output ?? '') !== (b0?.output ?? '')) {
+            return { equivalent: false, counterexample: [], outputA: a0?.output ?? '', outputB: b0?.output ?? '' };
         }
     }
-    return Array.from(tests).filter(s => s.length <= 5); // Limit length for performance
+    const A = await toMealy(machineA), B = await toMealy(machineB);
+    const sigma = [...new Set([...A.transitions, ...B.transitions].map(t => t.symbol))];
+    const step = (m, q, a) => (q == null ? null : m.transitions.find(t => t.from === q && t.symbol === a) || null);
+    const a0 = A.states.find(s => s.initial)?.id ?? null, b0 = B.states.find(s => s.initial)?.id ?? null;
+    const queue = [{ qa: a0, qb: b0, word: [] }];
+    const seen = new Set([`${a0}|${b0}`]);
+    while (queue.length) {
+        const { qa, qb, word } = queue.shift();
+        for (const a of sigma) {
+            const ta = step(A, qa, a), tb = step(B, qb, a);
+            const oa = ta ? (ta.output ?? '') : null, ob = tb ? (tb.output ?? '') : null;
+            if (oa !== ob) {
+                const w = [...word, a];
+                return { equivalent: false, counterexample: w, outputA: runSimulation(w.join(''), A, true).output, outputB: runSimulation(w.join(''), B, true).output };
+            }
+            if (!ta) continue;                       // both halted here
+            const key = `${ta.to}|${tb.to}`;
+            if (!seen.has(key)) { seen.add(key); queue.push({ qa: ta.to, qb: tb.to, word: [...word, a] }); }
+        }
+    }
+    return { equivalent: true, counterexample: null };
 }
 
 /**
- * The main function to check for logical equivalence between two Mealy/Moore automata.
- * Equivalence means that for the same input string, both machines produce the identical output string.
- * This implementation uses a robust simulation sampling method.
- * * @param {object} machineA The first automaton (usually the user's).
- * @param {object} machineB The second automaton (usually the solution).
- * @returns {Promise<boolean>} A promise that resolves to true if they are equivalent based on testing.
+ * Checks whether two Mealy/Moore machines produce identical output for every input.
+ * @returns {Promise<boolean>}
  */
 export async function areEquivalent(machineA, machineB) {
     try {
-        addLogMessage('Standardizing machines to Mealy format...', 'code');
-        const mealyA = await toMealy(machineA);
-        const mealyB = await toMealy(machineB);
-
-        // Determine the common alphabet
-        const alphabetA = new Set(mealyA.transitions.map(t => t.symbol));
-        const alphabetB = new Set(mealyB.transitions.map(t => t.symbol));
-        const inputAlphabet = Array.from(new Set([...alphabetA, ...alphabetB]));
-
-        if (inputAlphabet.length === 0) {
-            if (mealyA.transitions.length === 0 && mealyB.transitions.length === 0) return true;
-            throw new Error("No common input alphabet defined for testing.");
-        }
-        
-        addLogMessage(`Input Alphabet detected: {${inputAlphabet.join(', ')}}.`, 'list');
-        
-        const testStrings = generateTestStrings(inputAlphabet);
-        let allTestsPassed = true;
-
-        addLogMessage(`Running ${testStrings.length} equivalence test strings...`, 'test-tube');
-
-        for (const input of testStrings) {
-            // Run silent simulation on both standardized Mealy machines
-            const resultA = runSimulation(input, mealyA, true);
-            const resultB = runSimulation(input, mealyB, true);
-            
-            // Check for output mismatch
-            if (resultA.output !== resultB.output) {
-                allTestsPassed = false;
-                addLogMessage(`FAIL: Input '<strong>${input || 'ε'}</strong>' produced output '<strong>${resultA.output}</strong>' (User) vs '<strong>${resultB.output}</strong>' (Solution).`, 'x-circle');
-                break;
-            }
-        }
-
-        if (allTestsPassed) {
-            addLogMessage('All sampled test strings produced identical outputs.', 'check-circle');
+        const r = await compareTransducers(machineA, machineB);
+        if (r.equivalent) {
+            addLogMessage('Machines are equivalent: identical output on every input (exact check).', 'check-circle');
             return true;
         }
-
+        const w = r.counterexample.join('') || 'ε';
+        addLogMessage(`FAIL: Input '<strong>${w}</strong>' produced output '<strong>${r.outputA}</strong>' (User) vs '<strong>${r.outputB}</strong>' (Solution).`, 'x-circle');
         return false;
-
     } catch (e) {
         console.error("Mealy/Moore Equivalence Check Failed:", e);
         addLogMessage(`Equivalence Check Error: ${e.message}`, 'alert-triangle');
         return false;
     }
 }
-

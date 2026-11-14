@@ -8,90 +8,165 @@
       {
         "id": "q_start",
         "initial": true,
-        "x": 100,
-        "y": 300
+        "accepting": false,
+        "x": 140,
+        "y": 200
       },
       {
-        "id": "q_match_0",
+        "id": "q_seek0",
         "initial": false,
-        "x": 300,
-        "y": 150
+        "accepting": false,
+        "x": 400,
+        "y": 200
       },
       {
-        "id": "q_match_1",
+        "id": "q_seek1",
         "initial": false,
-        "x": 300,
-        "y": 450
-      },
-      {
-        "id": "q_back_0",
-        "initial": false,
-        "x": 500,
-        "y": 150
-      },
-      {
-        "id": "q_back_1",
-        "initial": false,
-        "x": 500,
-        "y": 450
+        "accepting": false,
+        "x": 660,
+        "y": 200
       },
       {
         "id": "q_accept",
         "initial": false,
         "accepting": true,
-        "x": 700,
-        "y": 300
+        "x": 920,
+        "y": 200
+      },
+      {
+        "id": "q_check0",
+        "initial": false,
+        "accepting": false,
+        "x": 140,
+        "y": 440
+      },
+      {
+        "id": "q_back",
+        "initial": false,
+        "accepting": false,
+        "x": 400,
+        "y": 440
+      },
+      {
+        "id": "q_check1",
+        "initial": false,
+        "accepting": false,
+        "x": 660,
+        "y": 440
       }
     ],
     "transitions": [
       {
         "from": "q_start",
-        "to": "q_match_0",
+        "to": "q_seek0",
         "read": "0",
         "write": "B",
-        "direction": "R"
+        "move": "R"
       },
       {
         "from": "q_start",
-        "to": "q_match_1",
+        "to": "q_seek1",
         "read": "1",
         "write": "B",
-        "direction": "R"
-      },
-      {
-        "from": "q_match_0",
-        "to": "q_match_0",
-        "read": "0",
-        "write": "0",
-        "direction": "R"
-      },
-      {
-        "from": "q_match_0",
-        "to": "q_match_0",
-        "read": "1",
-        "write": "1",
-        "direction": "R"
-      },
-      {
-        "from": "q_match_0",
-        "to": "q_back_0",
-        "read": "B",
-        "write": "B",
-        "direction": "L"
-      },
-      {
-        "from": "q_back_0",
-        "to": "q_start",
-        "read": "0",
-        "write": "B",
-        "direction": "L"
+        "move": "R"
       },
       {
         "from": "q_start",
         "to": "q_accept",
         "read": "B",
         "write": "B",
-        "direction": "S"
+        "move": "R"
+      },
+      {
+        "from": "q_seek0",
+        "to": "q_seek0",
+        "read": "0",
+        "write": "0",
+        "move": "R"
+      },
+      {
+        "from": "q_seek0",
+        "to": "q_seek0",
+        "read": "1",
+        "write": "1",
+        "move": "R"
+      },
+      {
+        "from": "q_seek0",
+        "to": "q_check0",
+        "read": "B",
+        "write": "B",
+        "move": "L"
+      },
+      {
+        "from": "q_check0",
+        "to": "q_back",
+        "read": "0",
+        "write": "B",
+        "move": "L"
+      },
+      {
+        "from": "q_check0",
+        "to": "q_accept",
+        "read": "B",
+        "write": "B",
+        "move": "R"
+      },
+      {
+        "from": "q_seek1",
+        "to": "q_seek1",
+        "read": "0",
+        "write": "0",
+        "move": "R"
+      },
+      {
+        "from": "q_seek1",
+        "to": "q_seek1",
+        "read": "1",
+        "write": "1",
+        "move": "R"
+      },
+      {
+        "from": "q_seek1",
+        "to": "q_check1",
+        "read": "B",
+        "write": "B",
+        "move": "L"
+      },
+      {
+        "from": "q_check1",
+        "to": "q_back",
+        "read": "1",
+        "write": "B",
+        "move": "L"
+      },
+      {
+        "from": "q_check1",
+        "to": "q_accept",
+        "read": "B",
+        "write": "B",
+        "move": "R"
+      },
+      {
+        "from": "q_back",
+        "to": "q_back",
+        "read": "0",
+        "write": "0",
+        "move": "L"
+      },
+      {
+        "from": "q_back",
+        "to": "q_back",
+        "read": "1",
+        "write": "1",
+        "move": "L"
+      },
+      {
+        "from": "q_back",
+        "to": "q_start",
+        "read": "B",
+        "write": "B",
+        "move": "R"
       }
     ],
     "alphabet": [
@@ -99,6 +174,6 @@
       "1",
       "B"
     ],
-    "blank": "B"
+    "blankSymbol": "B"
   }
 }

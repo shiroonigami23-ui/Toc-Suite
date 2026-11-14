@@ -148,45 +148,45 @@ export async function convertMooreToMealy(mooreMachine, stepCallback = async () 
 export async function convertMealyToMoore(machine, stepCallback = async () => {}) {
     const newStates = [];
     const newTransitions = [];
-    const stateMapping = new Map();
+    const copies = new Map();            // original state id -> [{ id, output }]
+    const stateMapping = new Map();      // "state|output" -> new id
 
     await stepCallback(machine, "Analyzing Mealy transitions for state-output pairs...");
 
-    // 1. Identify all unique (State, Output) pairs
-    machine.states.forEach(s => {
-        const incomingOutputs = [...new Set(
-            machine.transitions.filter(t => t.to === s.id).map(t => t.output)
-        )];
-        
-        if (s.initial && incomingOutputs.length === 0) incomingOutputs.push('0');
+    const outputs = [...new Set(machine.transitions.map(t => t.output).filter(o => o != null && o !== ''))];
+    const addCopy = (s, out, initial = false) => {
+        const newId = `${s.id}_${out}`;
+        if (stateMapping.has(`${s.id}|${out}`)) return;
+        const k = (copies.get(s.id) || []).length;
+        newStates.push({ id: newId, x: s.x + k * 60, y: s.y + k * 70, initial, output: out });
+        stateMapping.set(`${s.id}|${out}`, newId);
+        if (!copies.has(s.id)) copies.set(s.id, []);
+        copies.get(s.id).push({ id: newId, output: out });
+    };
 
-        incomingOutputs.forEach(out => {
-            const newId = `${s.id}_${out}`;
-            newStates.push({
-                id: newId, x: s.x, y: s.y,
-                initial: s.initial && out === '0',
-                output: out
-            });
-            stateMapping.set(`${s.id}|${out}`, newId);
-        });
+    // 1. One Moore state per (state, output arriving in it). The start state also needs a copy
+    //    for the moment before any input is read; its output λ(q0) is a free choice.
+    machine.states.forEach(s => {
+        const incoming = [...new Set(machine.transitions.filter(t => t.to === s.id).map(t => t.output))];
+        if (s.initial) {
+            const startOut = incoming[0] ?? outputs[0] ?? '0';
+            addCopy(s, startOut, true);
+        }
+        incoming.forEach(out => addCopy(s, out));
     });
 
     const intermediateMachine = { ...machine, states: newStates, transitions: [] };
     await stepCallback(intermediateMachine, `Split states into ${newStates.length} Moore states based on unique outputs.`);
 
-    // 2. Build Moore Transitions
+    // 2. Every copy of a state inherits that state's transitions, pointing at the copy of the
+    //    destination that carries the transition's output.
     machine.transitions.forEach(t => {
-        newStates.filter(ns => ns.id.startsWith(t.from)).forEach(sourceNS => {
-            const targetNSId = stateMapping.get(`${t.to}|${t.output}`);
-            newTransitions.push({
-                from: sourceNS.id,
-                to: targetNSId,
-                symbol: t.symbol
-            });
-        });
+        for (const src of copies.get(t.from) || []) {
+            newTransitions.push({ from: src.id, to: stateMapping.get(`${t.to}|${t.output}`), symbol: t.symbol });
+        }
     });
 
-    const finalResult = { type: 'MOORE', states: newStates, transitions: newTransitions };
+    const finalResult = { ...machine, type: 'MOORE', states: newStates, transitions: newTransitions };
     await stepCallback(finalResult, "Reconstructed transitions between new Moore states.");
 
     return finalResult;

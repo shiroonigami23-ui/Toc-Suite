@@ -6,7 +6,7 @@ import { parseDescription } from '../core/nl.js';
 
 const model = JSON.parse(readFileSync(new URL('../core/nl-model.json', import.meta.url)));
 const cnt = (w, c) => [...w].filter(x => x === c).length;
-const bin = (w) => (w.length ? parseInt(w, 2) : NaN);
+const bin = (w) => (w.length ? parseInt(w, 2) : 0);
 
 // [description, alphabet, predicate]  — predicate checked on every string up to length 7.
 export const CASES = [
@@ -30,8 +30,16 @@ export const CASES = [
   ["strings containing exactly one b", 'ab', w => cnt(w, 'b') === 1],
   ['strings with at most one a', 'ab', w => cnt(w, 'a') <= 1],
   ['strings where the number of a is divisible by 3', 'ab', w => cnt(w, 'a') % 3 === 0],
-  ['binary numbers divisible by 3', '01', w => w.length > 0 && bin(w) % 3 === 0],
-  ['binary strings divisible by 5', '01', w => w.length > 0 && bin(w) % 5 === 0],
+  ['strings over {a,b} with an a somewhere before a b', 'ab', w => /a.*b/.test(w)],
+  ['strings where some b comes before some a', 'ab', w => /b.*a/.test(w)],
+  ['binary strings where a 1 is followed later by a 0', '01', w => /1.*0/.test(w)],
+  ['strings that contain either aa or bb', 'ab', w => w.includes('aa') || w.includes('bb')],
+  ['only the strings ab, ba and aab', 'ab', w => ['ab', 'ba', 'aab'].includes(w)],
+  ['DFA for L = (a+b)*abb', 'ab', w => w.endsWith('abb')],
+  ['strings where the last symbol is not 0', '01', w => w.endsWith('1')],
+  ['strings that start and end with a over {a,b}', 'ab', w => w.startsWith('a') && w.endsWith('a')],
+  ['binary numbers divisible by 3', '01', w => bin(w) % 3 === 0   /* textbook: ε is value 0 */],
+  ['binary strings divisible by 5', '01', w => bin(w) % 5 === 0],
   ['strings that start with a and end with b', 'ab', w => w.startsWith('a') && w.endsWith('b')],
   ['strings that start with 1 or end with 0', '01', w => w.startsWith('1') || w.endsWith('0')],
   ['strings that start and end with the same symbol', 'ab', w => w.length > 0 && w[0] === w[w.length - 1]],

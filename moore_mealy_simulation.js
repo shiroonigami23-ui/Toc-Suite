@@ -64,8 +64,9 @@ export function runSimulation(inputStr, machineToTest = null, isSilentMode = fal
 
 
     // --- Input Processing Loop ---
-    for (let i = 0; i < inputStr.length; i++) {
-        const symbol = inputStr[i];
+    const inputSymbols = tokenizeInput(inputStr, machine);
+    for (let i = 0; i < inputSymbols.length; i++) {
+        const symbol = inputSymbols[i];
         if (halted) break;
 
         const transition = machine.transitions.find(t => t.from === currentStateId && t.symbol === symbol);
@@ -225,4 +226,23 @@ async function playAuto() {
             await sleep(speed);
         }
     }
+}
+
+/**
+ * Splits an input string into the machine's symbols, longest match first, so alphabets
+ * with multi-character symbols (e.g. the adder's 00/01/10/11) work. Comma- or space-separated
+ * input ("01,11,10") is accepted too.
+ */
+export function tokenizeInput(inputStr, machine) {
+    const str = String(inputStr);
+    const symbols = [...new Set([...(machine.alphabet || []), ...machine.transitions.map(t => t.symbol)])]
+        .filter(Boolean).sort((a, b) => b.length - a.length);
+    if (/[,\s]/.test(str)) return str.split(/[,\s]+/).filter(Boolean);
+    if (symbols.every(x => x.length === 1)) return [...str];
+    const out = [];
+    for (let i = 0; i < str.length;) {
+        const m = symbols.find(x => str.startsWith(x, i));
+        if (!m) { out.push(str[i]); i += 1; } else { out.push(m); i += m.length; }
+    }
+    return out;
 }

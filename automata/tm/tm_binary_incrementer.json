@@ -1,58 +1,74 @@
 {
   "title": "Binary Incrementer",
-  "description": "Increments a binary number by 1. Start at the rightmost bit (end of string).",
+  "description": "Adds 1 to a binary number: walks to the right end, then carries leftwards (1→0) until a 0 or blank becomes 1.",
   "type": "TM",
   "machine": {
     "type": "TM",
     "states": [
       {
-        "id": "q_start",
+        "id": "q_right",
         "initial": true,
-        "x": 100,
+        "accepting": false,
+        "x": 140,
         "y": 200
       },
       {
         "id": "q_carry",
         "initial": false,
-        "x": 300,
+        "accepting": false,
+        "x": 400,
         "y": 200
       },
       {
-        "id": "q_done",
+        "id": "q_accept",
         "initial": false,
         "accepting": true,
-        "x": 500,
+        "x": 660,
         "y": 200
       }
     ],
     "transitions": [
       {
-        "from": "q_start",
+        "from": "q_right",
+        "to": "q_right",
+        "read": "0",
+        "write": "0",
+        "move": "R"
+      },
+      {
+        "from": "q_right",
+        "to": "q_right",
+        "read": "1",
+        "write": "1",
+        "move": "R"
+      },
+      {
+        "from": "q_right",
         "to": "q_carry",
         "read": "B",
         "write": "B",
-        "direction": "L"
+        "move": "L"
       },
       {
         "from": "q_carry",
         "to": "q_carry",
         "read": "1",
         "write": "0",
-        "direction": "L"
+        "move": "L"
       },
       {
         "from": "q_carry",
-        "to": "q_done",
+        "to": "q_accept",
         "read": "0",
         "write": "1",
-        "direction": "R"
+        "move": "R"
       },
       {
         "from": "q_carry",
-        "to": "q_done",
+        "to": "q_accept",
         "read": "B",
         "write": "1",
-        "direction": "R"
+        "move": "R"
       }
     ],
     "alphabet": [
@@ -60,6 +76,6 @@
       "1",
       "B"
     ],
-    "blank": "B"
+    "blankSymbol": "B"
   }
 }

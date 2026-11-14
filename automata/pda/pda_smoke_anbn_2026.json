@@ -1,6 +1,6 @@
 {
   "id": "pda_smoke_anbn_2026",
-  "title": "PDA Smoke: a^n b^n",
+  "title": "PDA Smoke: a^n b^n (n ≥ 1)",
   "type": "PDA",
   "states": [
     {

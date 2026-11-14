@@ -42,30 +42,28 @@ export async function checkAnswer() {
 
     addLogMessage("Comparing your PDA with the reference solution...", 'loader');
     
-    // Expanded test suite to cover Part 1 through Part 19
-    const testStrings = [
-        "", "a", "b", "c", "0", "1", "ab", "ba", "01", "10", 
-        "aabb", "aaabbb", "abc", "aabbcc", "(( ))", "()", "()()",
-        "0011", "1100", "aba", "a#a", "aa#aa", "[[ ]]", "{[ ]}"
-    ];
-    
-    const alphabet = currentPractice.solution.alphabet;
+    // Every string up to length 6 over the problem's own alphabet (a few thousand at most),
+    // so a PDA that is only right on a handful of "typical" inputs cannot pass.
+    const alphabet = currentPractice.solution.alphabet ||
+        [...new Set(currentPractice.solution.transitions.map(t => t.symbol).filter(Boolean))];
+    const maxLen = alphabet.length >= 4 ? 5 : 6;
+    const testStrings = [''];
+    for (let layer = [''], n = 1; n <= maxLen; n++) {
+        layer = layer.flatMap(p => alphabet.map(c => p + c));
+        testStrings.push(...layer);
+    }
     let passed = true;
     let failString = "";
+    let expected = false;
 
     for (const test of testStrings) {
-        // Only test strings that fit the specific problem's alphabet
-        const isValidInput = test.split('').every(char => alphabet.includes(char));
-        
-        if (isValidInput) {
-            const userResult = runPdaSimulation(test, MACHINE);
-            const solResult = runPdaSimulation(test, currentPractice.solution);
-
-            if (userResult.success !== solResult.success) {
-                passed = false;
-                failString = test;
-                break;
-            }
+        const userResult = runPdaSimulation(test, MACHINE, { silent: true });
+        const solResult = runPdaSimulation(test, currentPractice.solution, { silent: true });
+        if (userResult.success !== solResult.success) {
+            passed = false;
+            failString = test;
+            expected = solResult.success;
+            break;
         }
     }
 
@@ -73,7 +71,7 @@ export async function checkAnswer() {
         customAlert("Success!", `Machine validated for ${currentPractice.title}!`);
         addLogMessage("Validation Complete: All internal test cases passed.", 'check-circle');
     } else {
-        customAlert("Incorrect", `Failed on input: "${failString || 'ε'}"`);
+        customAlert("Incorrect", `On input "${failString || 'ε'}" your PDA ${expected ? 'rejects' : 'accepts'} it, but it should ${expected ? 'accept' : 'reject'} it.`);
         addLogMessage(`Mismatch found on "${failString || 'ε'}"`, 'x-circle');
     }
 }

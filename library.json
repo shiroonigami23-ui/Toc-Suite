@@ -508,6 +508,13 @@
           "accepting": true,
           "x": 500,
           "y": 200
+        },
+        {
+          "id": "q3",
+          "initial": false,
+          "accepting": false,
+          "x": 400,
+          "y": 340
         }
       ],
       "transitions": [
@@ -524,15 +531,15 @@
         {
           "from": "q0",
           "to": "q1",
-          "symbol": "\u03b5"
+          "symbol": "ε"
         },
         {
           "from": "q1",
-          "to": "q1",
+          "to": "q3",
           "symbol": "a"
         },
         {
-          "from": "q1",
+          "from": "q3",
           "to": "q2",
           "symbol": "b"
         },
@@ -550,7 +557,7 @@
       "alphabet": [
         "a",
         "b",
-        "\u03b5"
+        "ε"
       ]
     }
   },

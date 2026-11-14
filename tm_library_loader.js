@@ -102,7 +102,10 @@ function createLibraryEntryEl(entry) {
     container.style.padding = "12px";
     container.style.borderBottom = "1px solid #e2e8f0";
 
-    const machineData = entry.machine || entry;
+    const machineData = JSON.parse(JSON.stringify(entry.machine || entry));
+    // Older library files used "direction" and "blank"; the simulator reads "move" and "blankSymbol".
+    for (const t of machineData.transitions || []) if (t.move == null && t.direction != null) t.move = t.direction;
+    if (machineData.blankSymbol == null && machineData.blank != null) machineData.blankSymbol = machineData.blank;
 
     container.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">

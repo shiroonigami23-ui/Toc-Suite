@@ -11,13 +11,14 @@
 // is always built exactly, so the result is correct whenever the reading is.
 
 import * as FA from './fa.js';
+import { regexToDfa } from './regex.js';
 
 export const INTENTS = [
   'STARTS', 'ENDS', 'CONTAINS', 'NOT_CONTAINS', 'EXACT',
   'LEN_EQ', 'LEN_GE', 'LEN_LE', 'LEN_MOD',
   'COUNT_MOD', 'COUNT_EQ', 'COUNT_GE', 'COUNT_LE',
   'NTH_END', 'NTH_START', 'DIVISIBLE', 'SAME_ENDS', 'DIFF_ENDS',
-  'FOLLOWED', 'NO_CONSEC', 'ALL', 'NONE', 'FILLER',
+  'FOLLOWED', 'NO_CONSEC', 'ALL', 'NONE', 'FILLER', 'SUBSEQ',
 ];
 
 const NUM_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, once: 1, twice: 2, thrice: 3, single: 1 };
@@ -29,7 +30,7 @@ const ORDINALS = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6,
 export function clean(text) {
   return String(text)
     .toLowerCase()
-    .replace(/[“”‘’`]/g, "'")
+    .replace(/[“”‘’`"]/g, "'")
     .replace(/σ|∑/g, 'sigma')
     .replace(/≥|>=/g, ' at least ')
     .replace(/≤|<=/g, ' at most ')
@@ -119,9 +120,26 @@ const PROTECT = [
   [/\b(0s|1s|a's|b's|as|bs) and (0s|1s|a's|b's|as|bs)\b/g, '$1_AND_$2'],
 ];
 
+/** Rewrites that make clause boundaries and meanings explicit. */
+export function normalizePhrasing(text) {
+  return clean(text)
+    .replace(/\(?\s*(?:sigma|alphabet)\s*=\s*\{[^}]*\}\s*\)?/g, ' ')                       // "(Σ={a, b})"
+    .replace(/\b(?:over|on|from)\s+(?:the\s+)?(?:alphabet\s+)?(?:sigma\s*=\s*)?\{[^}]*\}/g, ' ')
+    .replace(/\b(second|third|fourth|fifth|\d+(?:st|nd|rd|th))[\s-]+(?:to[\s-]+)?last\b/g, '$1 from the end')
+    .replace(/\bpenultimate\b/g, 'second from the end')
+    .replace(/'(epsilon|ε|eps|empty string)'/g, '$1')
+    .replace(/('[^']+') (?:which |that )?(?:is )?followed (?:later )?(?:at some point |somewhere |eventually )?(?:later )?by (?:an? |some )?('[^']+')(?! immediately)/g, (m, x, y) => (/later|some point|somewhere|eventually/.test(m) ? `${x} before ${y}` : m))
+    .replace(/\blength\s*(?:=|is|==)\s*(\d+)\s*mod\s*(\d+)/g, 'length mod $2 is $1')
+    .replace(/('[^']+') (?:that |which )?(?:appears? |occurs? |comes? )?(?:somewhere )?before (?:some |an? |any )?('[^']+')/g, '$1 before $2')
+    .replace(/\|\s*w\s*\|/g, ' length ')
+    .replace(/\beither ('[^']+'|[a-z0-9]+) or ('[^']+'|[a-z0-9]+)/g, '$1 or $2')
+    .replace(/\b(start|starts|begin|begins)\s+and\s+(end|ends)\s+with\s+(?!the\b|same\b|different\b|a different\b|a same\b)('?[a-z0-9]+'?)/g, '$1 with $3 and $2 with $3')
+    .replace(/\b(?:non-?empty|except (?:the )?(?:empty string|epsilon|ε)|other than (?:the )?(?:empty string|epsilon|ε))\b/g, ' of length at least 1 ');
+}
+
 /** Returns disjuncts → conjuncts: [[clause, clause], [clause]]. */
 export function splitClauses(text) {
-  let t = clean(text)
+  let t = normalizePhrasing(text)
     .replace(/\b[a-z]\s+in\s+\{[^{}]*\}\s*\*?/g, ' ')   // set-builder: "w in {a,b}*"
     .replace(/\{([^{}]*)\}\*?/g, (m, inner) => (/^\s*[a-z0-9'"]{1,3}(\s*,\s*[a-z0-9'"]{1,3})*\s*$/.test(inner) ? ' ALPHA ' : ` , ${inner} , `))
     .replace(/[{}:|]/g, ' , ').replace(/\bl\s*=\s*/g, ' ');
@@ -268,8 +286,8 @@ export function primitiveDfa(intent, s, alphabet) {
     case 'DIVISIBLE': {
       const base = s.base || A.length, k = s.k;
       const digits = new Map(A.map((a, i) => [a, /^\d$/.test(a) ? +a : i]));
-      // state k = empty string (not a number) -> reject, then value mod k
-      return D(A, k + 1, k, q => q === (s.r ?? 0) % k, (q, a) => (((q === k ? 0 : q) * base + digits.get(a)) % k));
+      // Textbook convention: the start state is remainder 0, so ε (value 0) is accepted.
+      return D(A, k, 0, q => q === (s.r ?? 0) % k, (q, a) => ((q * base + digits.get(a)) % k));
     }
     case 'SAME_ENDS': case 'DIFF_ENDS': {
       // 0 = start; 1+2i = first was a_i & last == a_i; 2+2i = first a_i & last != a_i
@@ -286,6 +304,10 @@ export function primitiveDfa(intent, s, alphabet) {
     case 'FOLLOWED': {
       // every c is immediately followed by d: 0 ok, 1 just saw c (need d), 2 dead
       return D(A, 3, 0, q => q === 0, (q, a) => (q === 2 ? 2 : q === 1 ? (a === s.d ? (a === s.c ? 1 : 0) : 2) : (a === s.c ? 1 : 0)));
+    }
+    case 'SUBSEQ': {
+      const w = s.w, m = w.length;           // greedy subsequence matcher
+      return D(A, m + 1, 0, q => q === m, (q, a) => (q < m && a === w[q] ? q + 1 : q));
     }
     case 'ALL': return D(A, 1, 0, () => true, () => 0);
     case 'NONE': return D(A, 1, 0, () => false, () => 0);
@@ -331,6 +353,18 @@ function slotsFor(intent, clause, alphabet) {
       const base = /\bdecimal\b/.test(clause) ? 10 : /\bternary\b/.test(clause) ? 3 : alphabet.length;
       return { ...m, base };
     }
+    case 'SUBSEQ': {
+      // "<x> … before … <y>": x is the last symbol on the left of the keyword, y the last on the right.
+      const parts = clause.split(/\b(?:before|later|eventually|then)\b/);
+      if (parts.length >= 2) {
+        const left = stringsIn(parts[0], alphabet).filter(x => !/^an?$/.test(x) || alphabet.includes(x));
+        const right = stringsIn(parts.slice(1).join(' '), alphabet);
+        const lw = left.at(-1), rw = right.at(-1);
+        if (lw && rw) return { w: lw + rw };
+      }
+      if (strs.length >= 2 && strs.every(x => x.length === 1)) return { w: strs.slice(0, 2).join('') };
+      return word !== undefined ? { w: word } : null;
+    }
     case 'FOLLOWED': {
       const syms = strs.filter(s => s.length === 1);
       return syms.length >= 2 ? { c: syms[0], d: syms[1] } : null;
@@ -364,6 +398,7 @@ function describe(intent, s, neg) {
     SAME_ENDS: () => 'starts and ends with the same symbol', DIFF_ENDS: () => 'starts and ends with different symbols',
     FOLLOWED: () => `every ${q(s.c)} is immediately followed by ${q(s.d)}`,
     NO_CONSEC: () => `has no ${s.n} consecutive ${q(s.c)}`, ALL: () => 'any string', NONE: () => 'no string at all',
+    SUBSEQ: () => `contains ${s.w.split('').map(q).join(' … ')} in that order (not necessarily adjacent)`,
   }[intent]();
   return neg ? `NOT (${txt})` : txt;
 }
@@ -375,7 +410,7 @@ const INHERENTLY_NEG = new Set(['NOT_CONTAINS', 'NO_CONSEC', 'NONE', 'DIFF_ENDS'
  * Parse an English description. Returns
  *   { ok, dfa, alphabet, explanation, clauses: [{text, intent, confidence, slots, negated}], problems }
  */
-export function parseDescription(text, model, { minConfidence = 0.35 } = {}) {
+function parseLowercase(text, model, { minConfidence = 0.35 } = {}) {
   const det = detectAlphabet(text);
   const disjuncts = splitClauses(text);
   // Infer the alphabet from mentioned symbols when not given.
@@ -385,6 +420,29 @@ export function parseDescription(text, model, { minConfidence = 0.35 } = {}) {
     const digits = /\b[01]+\b|\b[01]'?s\b|'[01]+'/.test(body);
     const letters = /'[abc]+'|\b(?:[abc]{2,})\b|\b[bc]'?s\b|\b(?:of|with|by|is|from) [abc]\b|\b[abc]'s\b/.test(body);
     alphabet = digits && !letters ? ['0', '1'] : /\bc\b|'c'|[abc]*c[abc]*'/.test(body) ? ['a', 'b', 'c'] : ['a', 'b'];
+  }
+  // A regular expression typed inside the description wins: "(0|1)*01", "L = (a+b)*abb".
+  const re = findRegex(text, alphabet, det.explicit);
+  if (re) {
+    const sigma = [...new Set([...alphabet, ...re.symbols])].sort();
+    if (!det.explicit || re.symbols.every(c => alphabet.includes(c))) {
+      const dfa = regexToDfa(re.compiled, sigma);
+      return { ok: true, dfa, alphabet: sigma, regex: re.src,
+        explanation: `Σ = {${sigma.join(', ')}}; accept exactly the strings matching the regular expression ${re.src}.`,
+        clauses: [{ text: re.src, intent: 'REGEX', confidence: 1, slots: {} }], problems: [] };
+    }
+  }
+  // A finite list of words: "only strings '00' or '11'", "language a or b", "the strings ab, ba".
+  const fin = normalizePhrasing(text).trim().match(/\b(?:only (?:the )?(?:strings?|words?)|language|exactly the strings?|just the strings?)\s+((?:'[^']*'|[a-z0-9ε]+)(?:\s*(?:,|or|and)\s*(?:'[^']*'|[a-z0-9ε]+))*)$/);
+  if (fin) {
+    const words = fin[1].split(/\s*(?:,|\bor\b|\band\b)\s*/).map(w => w.replace(/'/g, '')).filter(w => w !== '');
+    const toks = words.map(w => (/^(ε|epsilon|eps)$/.test(w) ? [] : FA.tokens(w, alphabet)));
+    if (words.length && toks.every(t => t.every(c => alphabet.includes(c)))) {
+      const dfa = toks.map(t => primitiveDfa('EXACT', { w: t.join('') }, alphabet)).reduce((x, y) => FA.union(x, y));
+      return { ok: true, dfa: FA.minimize(dfa), alphabet,
+        explanation: `Σ = {${alphabet.join(', ')}}; accept exactly the strings ${toks.map(t => `'${t.join('') || 'ε'}'`).join(', ')}.`,
+        clauses: [{ text: fin[0], intent: 'EXACT', confidence: 1, slots: { w: words.join('|') } }], problems: [] };
+    }
   }
   const problems = [];
   const clausesOut = [];
@@ -397,17 +455,34 @@ export function parseDescription(text, model, { minConfidence = 0.35 } = {}) {
     for (const clause of conj) {
       const pred = predict(model, clause);
       let intent = pred.intent;
-      // "the last symbol is 1" / "the first symbol is 0" are ends/starts conditions.
-      const fl = clause.match(/\b(first|last|final|leading|trailing) (?:symbol|character|letter|bit|digit)s? (?:is|are|=|must be|should be) '?([a-z0-9]+)'?/);
-      if (fl && FA.tokens(fl[2], alphabet).every(x => alphabet.includes(x)) && !/\bfrom\b/.test(clause)
-          && !/\b(\d+(st|nd|rd|th)|second|third|fourth|fifth|sixth) (last|final)\b/.test(clause)) {
+      // Deterministic readings for phrasings where position words matter more than verbs.
+      const fl = clause.match(/\b(first|last|final|leading|trailing) (?:symbol|character|letter|bit|digit)s? (?:is|are|=|must be|should be) (not )?'?([a-z0-9]+)'?/);
+      const nthEnd = clause.match(/\b(second|third|fourth|fifth|sixth|\d+(?:st|nd|rd|th)) (?:symbol |character |letter |bit |digit )?from the (?:end|right)\b/);
+      if (fl && FA.tokens(fl[3], alphabet).every(x => alphabet.includes(x)) && !nthEnd && !/\bfrom\b/.test(clause)) {
         intent = /first|leading/.test(fl[1]) ? 'STARTS' : 'ENDS';
         pred.confidence = 1;
         pred.ranked = [[intent, 1], ...pred.ranked];
+        if (fl[2]) {
+          // "the last symbol is not 0": some *other* symbol is last (so ε is rejected).
+          const others = alphabet.filter(c => c !== fl[3]);
+          const dfa = others.map(c => primitiveDfa(intent, { w: c }, alphabet)).reduce((x, y) => FA.union(x, y));
+          clausesOut.push({ text: clause, intent, confidence: 1, slots: { w: others.join('|') }, negated: false });
+          descs.push({ dfa, text: `${intent === 'STARTS' ? 'starts' : 'ends'} with ${others.map(c => `'${c}'`).join(' or ')}` });
+          last = { intent, neg: false };
+          continue;
+        }
+      } else if (/\b(before|later|eventually|somewhere after|subsequence)\b/.test(clause) && stringsIn(clause, alphabet).length >= 1 && !/\bimmediately\b/.test(clause)) {
+        intent = 'SUBSEQ';
+        pred.confidence = 1;
+      } else if (nthEnd && intent !== 'NTH_END' && (/\b(is|be|=|equals?)\b/.test(clause))) {
+        intent = 'NTH_END';
+        pred.confidence = Math.max(pred.confidence, 0.9);
       }
       // Ellipsis: "contain aa or bb", "both aa and bb" -> the bare "bb" reuses the previous verb.
-      if ((intent === 'FILLER' || pred.confidence < minConfidence) && last && isBareOperand(clause, alphabet)) {
-        const slots = slotsFor(last.intent, clause, alphabet);
+      if (isBareOperand(clause, alphabet) && (last || stringsIn(clause, alphabet).length)) {
+        const inherit = last || { intent: 'CONTAINS', neg: false };
+        const slots = slotsFor(inherit.intent, clause, alphabet);
+        if (!last && slots) { clausesOut.push({ text: clause, intent: 'CONTAINS', confidence: pred.confidence, slots, negated: false, inherited: true }); descs.push({ intent: 'CONTAINS', slots, neg: false }); last = inherit; continue; }
         if (slots) {
           clausesOut.push({ text: clause, intent: last.intent, confidence: pred.confidence, slots, negated: last.neg, inherited: true, ranked: pred.ranked.slice(0, 3) });
           descs.push({ intent: last.intent, slots, neg: last.neg });
@@ -435,19 +510,20 @@ export function parseDescription(text, model, { minConfidence = 0.35 } = {}) {
         if (det.explicit) { problems.push(`“${clause}” uses ${missing.join(', ')}, which is not in the alphabet {${alphabet.join(',')}}.`); continue; }
         alphabet = [...new Set([...alphabet, ...missing])].sort();
       }
-      const neg = !INHERENTLY_NEG.has(intent) && negated(clause.replace(/\b(no|not) (more|less|fewer|greater|longer|shorter) than\b/g, '')) && !/\bnot only\b/.test(clause);
+      let neg = !INHERENTLY_NEG.has(intent) && negated(clause.replace(/\b(no|not) (more|less|fewer|greater|longer|shorter) than\b/g, '')) && !/\bnot only\b/.test(clause);
+      if (neg && intent === 'SAME_ENDS') { intent = 'DIFF_ENDS'; neg = false; }   // "last is NOT the same as first"
       clausesOut.push({ text: clause, intent, confidence: pred.confidence, slots, negated: neg, ranked: pred.ranked.slice(0, 3) });
       descs.push({ intent, slots, neg });
       last = { intent, neg };
     }
     for (const d of descs) {
-      let dfa = primitiveDfa(d.intent, d.slots, alphabet);
+      let dfa = d.dfa || primitiveDfa(d.intent, d.slots, alphabet);
       dfa = FA.withAlphabet(dfa, alphabet);
       if (d.neg) dfa = FA.complement(dfa, alphabet);
       acc = acc ? FA.intersect(acc, dfa) : FA.minimize(dfa);
     }
     if (descs.length) {
-      parts.push(descs.map(d => describe(d.intent, d.slots, d.neg)).join(' AND '));
+      parts.push(descs.map(d => d.text || describe(d.intent, d.slots, d.neg)).join(' AND '));
       total = total ? FA.union(total, acc) : acc;
     }
   }
@@ -467,12 +543,65 @@ export function parseDescription(text, model, { minConfidence = 0.35 } = {}) {
   };
 }
 
-const BARE_OK = new Set(['both', 'also', 'either', 'the', 'substring', 'substrings', 'string', 'strings', 'too', 'as', 'well', 'an', 'then', 'pattern', 'one', 'of']);
+const BARE_OK = new Set(['both', 'also', 'either', 'the', 'substring', 'substrings', 'string', 'strings', 'too', 'as', 'well', 'an', 'then', 'pattern', 'one', 'of', 'symbols', 'characters', 'letters']);
 function isBareOperand(clause, alphabet) {
-  if (!stringsIn(clause, alphabet).length) return false;
   const sigma = new Set(alphabet);
-  return clause.replace(/'[^']*'|"[^"]*"/g, ' ').replace(/[^a-z0-9 ]/g, ' ').split(' ').filter(Boolean)
-    .every(w => BARE_OK.has(w) || FA.tokens(w, alphabet).every(x => sigma.has(x)));
+  const ws = clause.replace(/'[^']*'|"[^"]*"/g, ' zqzq ').replace(/[^a-z0-9 ]/g, ' ').split(' ').filter(Boolean);
+  if (!ws.length) return false;
+  return ws.every(w => w === 'zqzq' || BARE_OK.has(w) || /^\d+$/.test(w) || w in NUM_WORDS || FA.tokens(w, alphabet).every(x => sigma.has(x)));
+}
+
+/**
+ * Find a regular expression written inside the description. Letters must be alphabet symbols,
+ * and it needs an operator (*, +, |, ∪, parentheses) so plain words are never mistaken for one.
+ */
+function findRegex(text, alphabet, explicit) {
+  let t = clean(text).replace(/\(?\s*(?:sigma|alphabet)\s*=\s*\{[^}]*\}\s*\)?/g, ' ').replace(/\bl\s*=\s*/g, ' ');
+  const sigmaRe = '(' + alphabet.join('|') + ')';
+  t = t.replace(/\bsigma\b|σ/g, '§');
+  const symOk = new Set(alphabet);
+  const isTok = (w) => /^[()|¦+*?.·∪§εϵλ^⁺0-9a-z]+$/.test(w) && [...w.replace(/[()|¦+*?.·∪§εϵλ^⁺]/g, '')].every(c => symOk.has(c) || (!explicit && /[a-c0-1]/.test(c)));
+  // "(ab or ba)*" → "(ab|ba)*": 'or' between two regex pieces is union
+  t = t.replace(/([a-z0-9)*ε]) (?:or|\|) (?=[a-z0-9(ε])/g, '$1¦').replace(/ ?\. ?/g, '.');
+  // postfix plus written "a+ b*": a '+' glued to its operand and followed by a space is Kleene plus
+  t = t.replace(/([a-z0-9])\+(?= |$)/g, '$1$1⁺');
+  // with '|' already used for union, a '+' after ')' is Kleene plus: (a|b)+a
+  if (/[|¦]/.test(t)) t = t.replace(/\)\+/g, ')⁺⁺');
+  const words = t.split(/\s+/);
+  let best = null;
+  for (let i = 0; i < words.length; i++) {
+    let j = i;
+    while (j < words.length && isTok(words[j])) j++;
+    if (j > i) {
+      let cand = words.slice(i, j).join('');
+      // trim unbalanced parentheses at the ends
+      for (let k = 0; k < 3; k++) {
+        const bal = [...cand].reduce((b, c) => b + (c === '(' ? 1 : c === ')' ? -1 : 0), 0);
+        if (bal > 0 && cand.endsWith('(')) cand = cand.slice(0, -1);
+        else if (bal < 0 && cand.startsWith(')')) cand = cand.slice(1);
+        else if (bal > 0 && cand.startsWith('(')) cand = cand.slice(1);
+        else if (bal < 0 && cand.endsWith(')')) cand = cand.slice(0, -1);
+      }
+      if (/[*|+?()∪§⁺]/.test(cand) && cand.replace(/[^a-z0-9§]/g, '').length >= 2 && (!best || cand.length > best.length)) best = cand;
+      i = j;
+    }
+  }
+  if (!best) return null;
+  // ")⁺⁺": Kleene plus on a group → (G)(G)*
+  while (best.includes(')⁺⁺')) {
+    const end = best.indexOf(')⁺⁺');
+    let depth = 0, start = end;
+    for (; start >= 0; start--) { if (best[start] === ')') depth++; else if (best[start] === '(' && --depth === 0) break; }
+    const g = best.slice(start, end + 1);
+    best = best.slice(0, start) + g + g + '*' + best.slice(end + 3);
+  }
+  best = best.replace(/⁺/g, '*').replace(/¦/g, '|');
+  const src = best.replace(/§/g, sigmaRe);
+  try {
+    regexToDfa(src);
+    const symbols = [...new Set(src.replace(/[^a-z0-9]/g, ''))];
+    return { src: best.replace(/§/g, 'Σ'), symbols, compiled: src };
+  } catch { return null; }
 }
 
 function symbolsOf(intent, s) {
@@ -487,6 +616,32 @@ function needs(intent) {
     LEN_EQ: 'length', LEN_GE: 'length', LEN_LE: 'length', LEN_MOD: 'modulus', COUNT_MOD: 'symbol and modulus',
     COUNT_EQ: 'symbol and count', COUNT_GE: 'symbol and count', COUNT_LE: 'symbol and count',
     NTH_END: 'position and symbol', NTH_START: 'position and symbol', DIVISIBLE: 'divisor',
-    FOLLOWED: 'two symbols', NO_CONSEC: 'symbol',
+    FOLLOWED: 'two symbols', NO_CONSEC: 'symbol', SUBSEQ: 'symbols',
   }[intent] || 'details';
+}
+
+
+/**
+ * Parse an English description into a DFA. Text is matched case-insensitively, but symbols
+ * written in capitals in the description (Σ = {P, R}, "RR") keep their case in the result.
+ */
+export function parseDescription(text, model, opts) {
+  const r = parseLowercase(text, model, opts);
+  if (!r || !r.alphabet) return r;
+  const src = String(text);
+  const written = [...(src.match(/\{[^}]*\}/g) || []), ...(src.match(/'[^']*'|"[^"]*"|“[^”]*”/g) || [])].join(' ');
+  const map = new Map();
+  for (const a of r.alphabet) {
+    const up = a.toUpperCase();
+    if (up !== a && written.includes(up) && !new RegExp(`(^|[^a-z])${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(written.replace(/[A-Z]/g, ''))) map.set(a, up);
+  }
+  if (!map.size) return r;
+  const fix = (x) => map.get(x) ?? x;
+  const fixText = (t) => t && t.replace(/'([^']*)'/g, (m, w) => `'${[...w].map(fix).join('')}'`).replace(/Σ = \{([^}]*)\}/, (m, l) => `Σ = {${l.split(', ').map(fix).join(', ')}}`);
+  return {
+    ...r,
+    alphabet: r.alphabet.map(fix),
+    dfa: r.dfa && { ...r.dfa, alphabet: r.dfa.alphabet.map(fix) },
+    explanation: fixText(r.explanation),
+  };
 }

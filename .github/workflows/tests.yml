@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit, differential and practice-bank audits
+        run: npm test
+      - name: Model retrains reproducibly
+        run: |
+          cp core/nl-model.json /tmp/committed-model.json
+          node tools/train-nl-model.mjs
+          cmp core/nl-model.json /tmp/committed-model.json || { echo "core/nl-model.json is stale: run npm run train-model and commit it"; exit 1; }

@@ -9,7 +9,7 @@
         {
           "id": "q0",
           "initial": true,
-          "accepting": true,
+          "accepting": false,
           "x": 200,
           "y": 300
         },
@@ -23,8 +23,15 @@
         {
           "id": "q2",
           "initial": false,
-          "accepting": true,
+          "accepting": false,
           "x": 700,
+          "y": 300
+        },
+        {
+          "id": "q3",
+          "initial": false,
+          "accepting": true,
+          "x": 950,
           "y": 300
         }
       ],
@@ -59,7 +66,14 @@
         },
         {
           "from": "q2",
-          "to": "q2",
+          "to": "q3",
+          "symbol": "",
+          "pop": "Z",
+          "push": "Z"
+        },
+        {
+          "from": "q0",
+          "to": "q3",
           "symbol": "",
           "pop": "Z",
           "push": "Z"
@@ -72,12 +86,14 @@
       "stackAlphabet": [
         "X",
         "Z"
-      ]
+      ],
+      "initialStackSymbol": "Z",
+      "acceptanceMode": "FINAL_STATE"
     }
   },
   {
     "id": "pda_smoke_anbn_2026",
-    "title": "PDA Smoke: a^n b^n",
+    "title": "PDA Smoke: a^n b^n (n ≥ 1)",
     "type": "PDA",
     "states": [
       {
@@ -191,12 +207,12 @@
         "to": "q0",
         "symbol": ")",
         "pop": "(",
-        "push": "\u03b5"
+        "push": "ε"
       },
       {
         "from": "q0",
         "to": "q1",
-        "symbol": "\u03b5",
+        "symbol": "ε",
         "pop": "Z",
         "push": "Z"
       }
@@ -257,19 +273,19 @@
         "to": "q_pop",
         "symbol": "b",
         "pop": "A",
-        "push": "\u03b5"
+        "push": "ε"
       },
       {
         "from": "q_pop",
         "to": "q_pop",
         "symbol": "b",
         "pop": "A",
-        "push": "\u03b5"
+        "push": "ε"
       },
       {
         "from": "q_pop",
         "to": "q_accept",
-        "symbol": "\u03b5",
+        "symbol": "ε",
         "pop": "Z",
         "push": "Z"
       }

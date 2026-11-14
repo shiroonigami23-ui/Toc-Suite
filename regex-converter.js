@@ -83,7 +83,8 @@ function createStarNfa(nfa) {
 function normalizeRegexInput(regex) {
   const raw = String(regex || '').trim();
   if (!raw) throw new Error('Regex input is empty.');
-  return raw.replace(/\bor\b/gi, '|').replace(/\s+/g, '');
+  // '+' is union in most TOC textbooks: (a+b)*  ==  (a|b)*
+  return raw.replace(/\bor\b/gi, '|').replace(/\s+/g, '').replace(/\+/g, '|');
 }
 
 function tokenize(regex) {

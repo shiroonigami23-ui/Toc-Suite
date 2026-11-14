@@ -10,7 +10,7 @@
 export const EPS = 'ε';
 
 export function isEpsilon(sym) {
-  return sym === '' || sym === EPS || sym === 'eps' || sym === 'epsilon' || sym === 'λ';
+  return sym === '' || sym === EPS || sym === 'eps' || sym === 'epsilon' || sym === 'λ' || sym === 'ϵ' || sym === '_EPSILON_';
 }
 
 /** Split "a,b" / "a, b" labels into individual symbols. */

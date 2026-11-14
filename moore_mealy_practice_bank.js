@@ -56,8 +56,8 @@ window.MM_PRACTICE_BANK = {
                         { from: "q0", to: "q1", symbol: "1" },
                         { from: "q1", to: "q2", symbol: "0" },
                         { from: "q1", to: "q1", symbol: "1" },
-                        { from: "q2", to: "q2", symbol: "0" }, 
-                        { from: "q2", to: "q2", symbol: "1" }
+                        { from: "q2", to: "q0", symbol: "0" }, 
+                        { from: "q2", to: "q1", symbol: "1" }
                     ],
                     alphabet: ["0", "1"],
                     output_alphabet: ["N", "X"]
@@ -122,7 +122,7 @@ window.MM_PRACTICE_BANK = {
                         { from: "q1", to: "q0", symbol: "0" },
                         { from: "q1", to: "q11", symbol: "1" }, 
                         { from: "q11", to: "q0", symbol: "0" }, 
-                        { from: "q11", to: "q1", symbol: "1" }  
+                        { from: "q11", to: "q11", symbol: "1" }  // still ending in "11"
                     ],
                     alphabet: ["0", "1"],
                     output_alphabet: ["N", "Y"]
@@ -306,7 +306,7 @@ window.MM_PRACTICE_BANK = {
                         { from: "q1", to: "q0", symbol: "0", output: "N" },
                         { from: "q1", to: "q11", symbol: "1", output: "N" },
                         
-                        { from: "q11", to: "q0", symbol: "1", output: "N" }, // reset pattern to 1
+                        { from: "q11", to: "q11", symbol: "1", output: "N" }, // "111" still ends in "11"
                         { from: "q11", to: "q0_0", symbol: "0", output: "R" }, // Final 110 output R
                         
                         { from: "q0_0", to: "q0_0", symbol: "0", output: "N" }, // reset pattern to 0
@@ -355,8 +355,8 @@ window.MM_PRACTICE_BANK = {
                     { from: "q0", to: "q1", symbol: "1" },
                     { from: "q1", to: "q2", symbol: "0" }, 
                     { from: "q1", to: "q1", symbol: "1" },
-                    { from: "q2", to: "q2", symbol: "0" },
-                    { from: "q2", to: "q2", symbol: "1" }
+                    { from: "q2", to: "q0", symbol: "0" },
+                    { from: "q2", to: "q1", symbol: "1" }
                 ],
                 alphabet: ["0", "1"],
                 output_alphabet: ["N", "X"]
