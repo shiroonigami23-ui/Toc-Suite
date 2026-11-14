@@ -1,8 +1,8 @@
 // Differential tests: the studio's original FA code vs the verified core, on random machines.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as FA from '../core/fa.js';
-import { regexToDfa } from '../core/regex.js';
+import * as FA from '../src/core/fa.js';
+import { regexToDfa } from '../src/core/regex.js';
 
 globalThis.window = globalThis.window || {};
 
@@ -23,7 +23,7 @@ function randomMachine(type, n = 2 + ri(4), sigma = ['a', 'b']) {
 const words = (sigma, n) => { const o = ['']; for (let i = 0; i < o.length; i++) if (o[i].length < n) for (const a of sigma) o.push(o[i] + a); return o; };
 
 test('simulation.js runSimulation agrees with the core on random DFA/NFA/ε-NFA', async () => {
-  const { runSimulation } = await import('../simulation.js');
+  const { runSimulation } = await import('../src/fa/simulation.js');
   for (const type of ['DFA', 'NFA', 'ENFA']) for (let k = 0; k < 60; k++) {
     const m = randomMachine(type);
     const d = FA.toMinimalDfa(m, ['a', 'b']);
@@ -35,7 +35,7 @@ test('simulation.js runSimulation agrees with the core on random DFA/NFA/ε-NFA'
 });
 
 test('automata.js convertNfaToDfa + minimizeDfa preserve the language', async () => {
-  const { convertNfaToDfa, minimizeDfa, convertEnfaToNfa } = await import('../automata.js');
+  const { convertNfaToDfa, minimizeDfa, convertEnfaToNfa } = await import('../src/fa/automata.js');
   for (const type of ['NFA', 'ENFA']) for (let k = 0; k < 60; k++) {
     const m = randomMachine(type);
     const ref = FA.toMinimalDfa(m, ['a', 'b']);
@@ -49,7 +49,7 @@ test('automata.js convertNfaToDfa + minimizeDfa preserve the language', async ()
 });
 
 test('regex-converter.js (Grammar studio) agrees with core regex on random expressions', async () => {
-  const { parseRegexAndBuildEnfa } = await import('../regex-converter.js');
+  const { parseRegexAndBuildEnfa } = await import('../src/grammar/regex-converter.js');
   const gen = (d) => {
     const r = rnd();
     if (d <= 0 || r < 0.3) return ['a', 'b'][ri(2)];
@@ -67,7 +67,7 @@ test('regex-converter.js (Grammar studio) agrees with core regex on random expre
 });
 
 test('equivalence.js areEquivalent handles alphabet differences', async () => {
-  const { areEquivalent } = await import('../equivalence.js');
+  const { areEquivalent } = await import('../src/fa/equivalence.js');
   const onlyA = { type: 'DFA', states: [{ id: 'x', initial: true, accepting: true }], transitions: [{ from: 'x', to: 'x', symbol: 'a' }] };
   const withB = { type: 'DFA', alphabet: ['a', 'b'], states: [{ id: 'p', initial: true, accepting: true }, { id: 'd' }],
     transitions: [{ from: 'p', to: 'p', symbol: 'a' }, { from: 'p', to: 'd', symbol: 'b' }, { from: 'd', to: 'd', symbol: 'a' }, { from: 'd', to: 'd', symbol: 'b' }] };
@@ -77,7 +77,7 @@ test('equivalence.js areEquivalent handles alphabet differences', async () => {
 
 test('practice bank solutions are valid machines', async () => {
   globalThis.window = globalThis.window || {};
-  await import('../practice-bank.js');
+  await import('../data/practice/practice-bank.js');
   const bank = globalThis.window.PRACTICE_BANK;
   let n = 0;
   const problems = [];
@@ -108,9 +108,9 @@ test('practice bank: every listed question matches its brute-force ground truth'
 
 test('practice bank: the English reader agrees with every stored solution it understands', async () => {
   const { readFileSync } = await import('node:fs');
-  const { parseDescription } = await import('../core/nl.js');
+  const { parseDescription } = await import('../src/core/nl.js');
   const { TRUTH } = await import('./practice-truth.mjs');
-  const model = JSON.parse(readFileSync(new URL('../core/nl-model.json', import.meta.url)));
+  const model = JSON.parse(readFileSync(new URL('../src/core/nl-model.json', import.meta.url)));
   const bank = await loadBank();
   const plain = (q) => q.replace(/<[^>]+>/g, ' ').replace(/\$/g, '').replace(/\\Sigma/g, 'Σ').replace(/\\[a-z]+/g, ' ');
   let understood = 0;
@@ -131,15 +131,15 @@ test('practice bank: the English reader agrees with every stored solution it und
 
 async function loadBank() {
   globalThis.window = globalThis.window || {};
-  await import('../practice-bank.js');
+  await import('../data/practice/practice-bank.js');
   return globalThis.window.PRACTICE_BANK;
 }
 
 test('library.json automata accept exactly what their titles say', async () => {
   const { readFileSync } = await import('node:fs');
-  const { parseDescription } = await import('../core/nl.js');
-  const model = JSON.parse(readFileSync(new URL('../core/nl-model.json', import.meta.url)));
-  const lib = JSON.parse(readFileSync(new URL('../library.json', import.meta.url)));
+  const { parseDescription } = await import('../src/core/nl.js');
+  const model = JSON.parse(readFileSync(new URL('../src/core/nl-model.json', import.meta.url)));
+  const lib = JSON.parse(readFileSync(new URL('../data/libraries/library.json', import.meta.url)));
   const bad = [];
   for (const e of lib) {
     const m = e.machine || e;

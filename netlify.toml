@@ -2,3 +2,57 @@
   publish = "."
   command = "echo \"Static site - no build step required\""
   ignore = "bash scripts/ignore-build.sh"
+
+# --- Old URLs (before the 2026-11 folder restructure) keep working ---
+[[redirects]]
+  from = "/grammar_studio.html"
+  to = "/pages/grammar_studio.html"
+  status = 301
+[[redirects]]
+  from = "/splash_help.html"
+  to = "/pages/splash_help.html"
+  status = 301
+[[redirects]]
+  from = "/splash_settings.html"
+  to = "/pages/splash_settings.html"
+  status = 301
+[[redirects]]
+  from = "/architect-portal-2026.html"
+  to = "/pages/architect-portal-2026.html"
+  status = 301
+[[redirects]]
+  from = "/architect-review-2026.html"
+  to = "/pages/architect-review-2026.html"
+  status = 301
+[[redirects]]
+  from = "/mealy_moore_studio.html"
+  to = "/index.html#mm"
+  status = 301
+[[redirects]]
+  from = "/style.css"
+  to = "/assets/css/style.css"
+  status = 301
+[[redirects]]
+  from = "/icon-192.png"
+  to = "/assets/icons/icon-192.png"
+  status = 301
+[[redirects]]
+  from = "/icon-512.png"
+  to = "/assets/icons/icon-512.png"
+  status = 301
+[[redirects]]
+  from = "/library.json"
+  to = "/data/libraries/library.json"
+  status = 301
+[[redirects]]
+  from = "/pda_library.json"
+  to = "/data/libraries/pda_library.json"
+  status = 301
+[[redirects]]
+  from = "/tm_library.json"
+  to = "/data/libraries/tm_library.json"
+  status = 301
+[[redirects]]
+  from = "/moore_mealy_library.json"
+  to = "/data/libraries/moore_mealy_library.json"
+  status = 301

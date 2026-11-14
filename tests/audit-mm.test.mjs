@@ -7,10 +7,10 @@ import { words } from './practice-truth.mjs';
 const el = () => ({ innerHTML: '', textContent: '', style: {}, classList: { add() {}, remove() {} } });
 globalThis.window = globalThis.window || {};
 globalThis.document = globalThis.document || { getElementById: el, querySelector: () => null, querySelectorAll: () => [] };
-await import('../moore_mealy_practice_bank.js');
-const { runSimulation } = await import('../moore_mealy_simulation.js');
-const { convertMooreToMealy, convertMealyToMoore } = await import('../moore_mealy_automata.js');
-const { compareTransducers } = await import('../moore_mealy_equivalence.js');
+await import('../data/practice/moore_mealy_practice_bank.js');
+const { runSimulation } = await import('../src/mm/moore_mealy_simulation.js');
+const { convertMooreToMealy, convertMealyToMoore } = await import('../src/mm/moore_mealy_automata.js');
+const { compareTransducers } = await import('../src/mm/moore_mealy_equivalence.js');
 
 const run = (w, m) => runSimulation(w, m, true).output;
 const prefixes = (w) => [...w].map((_, i) => w.slice(0, i + 1));
@@ -103,7 +103,7 @@ test('exact Mealy/Moore equivalence agrees with brute force and returns a shorte
 
 test('moore_mealy_library.json machines match their descriptions', async () => {
   const { readFileSync } = await import('node:fs');
-  const lib = JSON.parse(readFileSync(new URL('../moore_mealy_library.json', import.meta.url)));
+  const lib = JSON.parse(readFileSync(new URL('../data/libraries/moore_mealy_library.json', import.meta.url)));
   const spec = {
     'Even Ones Detector': w => '1' + prefixes(w).map(p => (n(p, '1') % 2 ? '0' : '1')).join(''),
     "Moore: Detect '10' Sequence": w => '0' + prefixes(w).map(p => (p.endsWith('10') ? '1' : '0')).join(''),

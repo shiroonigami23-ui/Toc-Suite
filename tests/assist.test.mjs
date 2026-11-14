@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as FA from '../core/fa.js';
-import { regexToDfa } from '../core/regex.js';
-import { learnDfa, parseExamples } from '../core/learn.js';
-import { autoLayout, crossings, minSeparation } from '../core/layout.js';
-import { diagnose, trace } from '../core/diagnose.js';
+import * as FA from '../src/core/fa.js';
+import { regexToDfa } from '../src/core/regex.js';
+import { learnDfa, parseExamples } from '../src/core/learn.js';
+import { autoLayout, crossings, minSeparation } from '../src/core/layout.js';
+import { diagnose, trace } from '../src/core/diagnose.js';
 
 const all = (sigma, n) => { const o = ['']; for (let i = 0; i < o.length; i++) if (o[i].length < n) for (const a of sigma) o.push(o[i] + a); return o; };
 

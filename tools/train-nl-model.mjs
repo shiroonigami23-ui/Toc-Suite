@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Train the clause-intent classifier used by core/nl.js and write core/nl-model.json.
+// Train the clause-intent classifier used by src/core/nl.js and write src/core/nl-model.json.
 //   node tools/train-nl-model.mjs            # train + report accuracy
 // Model: multinomial logistic regression (softmax) over word uni/bigram features,
 // trained with mini-batch SGD + L2. Deterministic (fixed seeds), ~1 s on a laptop.
@@ -7,11 +7,11 @@
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { features, INTENTS } from '../core/nl.js';
+import { features, INTENTS } from '../src/core/nl.js';
 import { generate, TEMPLATES } from './nl-dataset.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const OUT = join(here, '..', 'core', 'nl-model.json');
+const OUT = join(here, '..', 'src', 'core', 'nl-model.json');
 
 function shuffle(arr, seed = 1) {
   let s = seed;

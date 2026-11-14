@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as FA from '../core/fa.js';
-import { regexToDfa, regexToEnfa, parseRegex } from '../core/regex.js';
+import * as FA from '../src/core/fa.js';
+import { regexToDfa, regexToEnfa, parseRegex } from '../src/core/regex.js';
 
 const lang = (dfa, maxLen = 6) => {
   const out = [];

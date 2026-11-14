@@ -1,17 +1,17 @@
 // Rebuilds the stored solution of every practice question listed in tests/practice-truth.mjs
 // whose stored machine disagrees with the ground truth. Run: node tools/fix-practice-bank.mjs
 import { readFileSync, writeFileSync } from 'node:fs';
-import * as FA from '../core/fa.js';
-import { regexToDfa } from '../core/regex.js';
-import { parseDescription } from '../core/nl.js';
-import { withLayout } from '../core/layout.js';
+import * as FA from '../src/core/fa.js';
+import { regexToDfa } from '../src/core/regex.js';
+import { parseDescription } from '../src/core/nl.js';
+import { withLayout } from '../src/core/layout.js';
 import { TRUTH, words } from '../tests/practice-truth.mjs';
 
-const file = new URL('../practice-bank.js', import.meta.url);
+const file = new URL('../data/practice/practice-bank.js', import.meta.url);
 globalThis.window = {};
 await import(file.href);
 const bank = window.PRACTICE_BANK;
-const model = JSON.parse(readFileSync(new URL('../core/nl-model.json', import.meta.url)));
+const model = JSON.parse(readFileSync(new URL('../src/core/nl-model.json', import.meta.url)));
 
 let fixed = 0;
 for (const [key, t] of Object.entries(TRUTH)) {

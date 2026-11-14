@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moved · Toc-Suite</title>
+<script>
+  // Pages moved into folders in Nov 2026. Static hosts without redirect rules (e.g. GitHub Pages)
+  // land here; send old links to their new home instead of showing a dead end.
+  (function () {
+    var moved = {
+      'grammar_studio.html': 'pages/grammar_studio.html',
+      'splash_help.html': 'pages/splash_help.html',
+      'splash_settings.html': 'pages/splash_settings.html',
+      'architect-portal-2026.html': 'pages/architect-portal-2026.html',
+      'architect-review-2026.html': 'pages/architect-review-2026.html',
+      'mealy_moore_studio.html': 'index.html#mm',
+      'pda_studio.html': 'index.html#pda',
+      'tm_studio.html': 'index.html#tm'
+    };
+    var path = location.pathname, name = path.split('/').pop();
+    var base = path.slice(0, path.length - name.length);
+    if (moved[name]) location.replace(base + moved[name] + (moved[name].indexOf('#') < 0 ? location.search + location.hash : ''));
+  })();
+</script>
+<style>body{font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#0f172a;color:#e2e8f0;text-align:center}a{color:#38bdf8}</style>
+</head>
+<body><div><h1>Page not found</h1><p>This page may have moved.</p><p><a href="./">Open Toc-Suite</a></p></div></body>
+</html>

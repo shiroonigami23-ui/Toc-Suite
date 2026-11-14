@@ -7,8 +7,8 @@ import { words } from './practice-truth.mjs';
 
 globalThis.window = globalThis.window || {};
 globalThis.document = globalThis.document || { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] };
-const { TM_PRACTICE_BANK } = await import('../tm_practice_bank.js');
-const { runTmSimulation } = await import('../tm_simulation.js');
+const { TM_PRACTICE_BANK } = await import('../data/practice/tm_practice_bank.js');
+const { runTmSimulation } = await import('../src/tm/tm_simulation.js');
 
 const cnt = (w, c) => [...w].filter(x => x === c).length;
 const bin = (w) => parseInt(w, 2);
@@ -62,7 +62,7 @@ test('TM solutions only use moves the plain TM validator allows', () => {
 });
 
 test('tm_library.json machines work', () => {
-  const lib = JSON.parse(readFileSync(new URL('../tm_library.json', import.meta.url)));
+  const lib = JSON.parse(readFileSync(new URL('../data/libraries/tm_library.json', import.meta.url)));
   const inc = lib.find(e => /increment/i.test(e.title)).machine;
   const pal = lib.find(e => /palindrome/i.test(e.title)).machine;
   for (const w of words(['0', '1'], 6)) {

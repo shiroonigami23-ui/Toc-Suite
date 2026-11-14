@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "automata/**"
-      - "Data/**"
+      - "data/automata/**"
+      - "data/inbox/**"
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Sort Data and Merge Libraries
+      - name: Sort inbox and Merge Libraries
         run: |
           import json, pathlib
           
@@ -43,21 +43,21 @@ jobs:
               return True
 
           type_to_folder = {
-              "DFA": "automata/fa", "NFA": "automata/fa", "ENFA": "automata/fa",
-              "PDA": "automata/pda",
-              "MOORE": "automata/mm", "MEALY": "automata/mm",
-              "TM": "automata/tm"
+              "DFA": "data/automata/fa", "NFA": "data/automata/fa", "ENFA": "data/automata/fa",
+              "PDA": "data/automata/pda",
+              "MOORE": "data/automata/mm", "MEALY": "data/automata/mm",
+              "TM": "data/automata/tm"
           }
           
           libraries = {
-              "automata/fa": "library.json",
-              "automata/pda": "pda_library.json",
-              "automata/mm": "moore_mealy_library.json",
-              "automata/tm": "tm_library.json"
+              "data/automata/fa": "data/libraries/library.json",
+              "data/automata/pda": "data/libraries/pda_library.json",
+              "data/automata/mm": "data/libraries/moore_mealy_library.json",
+              "data/automata/tm": "data/libraries/tm_library.json"
           }
 
-          # --- Step 1: Ingest and Sort from Data/ ---
-          data_dir = pathlib.Path("Data")
+          # --- Step 1: Ingest and Sort from data/inbox/ ---
+          data_dir = pathlib.Path("data/inbox")
           if data_dir.exists():
               for file in data_dir.glob("*.json"):
                   try:
@@ -66,16 +66,16 @@ jobs:
                       
                       # Map the prefix to the correct directory
                       prefix_to_folder = {
-                          "TM": "automata/tm",
-                          "PDA": "automata/pda",
-                          "FA": "automata/fa",
-                          "MM": "automata/mm"
+                          "TM": "data/automata/tm",
+                          "PDA": "data/automata/pda",
+                          "FA": "data/automata/fa",
+                          "MM": "data/automata/mm"
                       }
                       
                       # Fallback to internal content if no prefix is found
                       content = json.loads(file.read_text(encoding="utf-8"))
                       m_type = prefix if prefix in prefix_to_folder else (content.get("type") or "FA").upper()
-                      target_folder = prefix_to_folder.get(m_type, "automata/fa")
+                      target_folder = prefix_to_folder.get(m_type, "data/automata/fa")
                       
                       target_path = pathlib.Path(target_folder) / file.name
                       target_path.parent.mkdir(parents=True, exist_ok=True)
@@ -118,6 +118,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add automata/ *.json Data/
+          git add data/
           git commit -m "chore(data): auto-sort and rebuild libraries [skip ci]" || echo "No changes"
           git push

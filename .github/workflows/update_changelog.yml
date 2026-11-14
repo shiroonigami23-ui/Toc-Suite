@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "automata/**"
+      - "data/automata/**"
       - "!CHANGELOG.md"
 
 jobs:
@@ -26,8 +26,8 @@ jobs:
         run: |
           import subprocess, datetime, pathlib, json
           
-          # Detect new JSON files added in the automata/ subfolders
-          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
+          # Detect new JSON files added in the data/automata/ subfolders
+          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "data/automata/**/*.json"]
           try:
               added_files = subprocess.check_output(cmd).decode("utf-8").splitlines()
           except Exception:

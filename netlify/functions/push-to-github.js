@@ -52,7 +52,7 @@ exports.handler = async (event) => {
         const repo = process.env.GITHUB_REPO || 'shiroonigami23-ui/toc-suite';
 
         const fileName = `${type}_${editedName}.json`;
-        const filePath = `Data/${fileName}`;
+        const filePath = `data/inbox/${fileName}`;
         const content = Buffer.from(JSON.stringify(editedData, null, 2)).toString('base64');
         const githubUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
 

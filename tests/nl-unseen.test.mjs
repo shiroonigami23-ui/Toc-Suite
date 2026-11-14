@@ -3,10 +3,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as FA from '../core/fa.js';
-import { parseDescription } from '../core/nl.js';
+import * as FA from '../src/core/fa.js';
+import { parseDescription } from '../src/core/nl.js';
 
-const model = JSON.parse(readFileSync(new URL('../core/nl-model.json', import.meta.url)));
+const model = JSON.parse(readFileSync(new URL('../src/core/nl-model.json', import.meta.url)));
 const cnt = (w, c) => [...w].filter(x => x === c).length;
 
 const UNSEEN = [

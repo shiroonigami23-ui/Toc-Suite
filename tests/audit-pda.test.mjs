@@ -7,8 +7,8 @@ import { words } from './practice-truth.mjs';
 
 globalThis.window = globalThis.window || {};
 globalThis.document = globalThis.document || { getElementById: () => null, querySelector: () => null, querySelectorAll: () => [] };
-const { PDA_PRACTICE_BANK } = await import('../pda_practice_bank.js');
-const { runPdaSimulation } = await import('../pda_simulation.js');
+const { PDA_PRACTICE_BANK } = await import('../data/practice/pda_practice_bank.js');
+const { runPdaSimulation } = await import('../src/pda/pda_simulation.js');
 
 const n = (w, c) => [...w].filter(x => x === c).length;
 const rev = (w) => [...w].reverse().join('');
@@ -80,7 +80,7 @@ test('every PDA practice solution accepts exactly its language (inputs up to len
 });
 
 test('pda_library.json machines accept their languages', () => {
-  const lib = JSON.parse(readFileSync(new URL('../pda_library.json', import.meta.url)));
+  const lib = JSON.parse(readFileSync(new URL('../data/libraries/pda_library.json', import.meta.url)));
   const specFor = (e) => (/parenthes/i.test(e.title) ? PDA_SPEC.pda_balanced_parentheses
     : /n >= 1|n ≥ 1/.test(e.title) ? (w => w !== '' && PDA_SPEC.pda_an_bn(w)) : PDA_SPEC.pda_an_bn);
   const problems = [];

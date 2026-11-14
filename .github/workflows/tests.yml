@@ -17,6 +17,6 @@ jobs:
         run: npm test
       - name: Model retrains reproducibly
         run: |
-          cp core/nl-model.json /tmp/committed-model.json
+          cp src/core/nl-model.json /tmp/committed-model.json
           node tools/train-nl-model.mjs
-          cmp core/nl-model.json /tmp/committed-model.json || { echo "core/nl-model.json is stale: run npm run train-model and commit it"; exit 1; }
+          cmp src/core/nl-model.json /tmp/committed-model.json || { echo "src/core/nl-model.json is stale: run npm run train-model and commit it"; exit 1; }

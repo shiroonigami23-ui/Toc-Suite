@@ -64,7 +64,7 @@ exports.handler = async (event) => {
 
             const type = String(sub.type || '').toLowerCase();
             const fileName = `${type}_${sub.name}.json`;
-            const filePath = `Data/${fileName}`;
+            const filePath = `data/inbox/${fileName}`;
             const content = Buffer.from(JSON.stringify(sub.data, null, 2)).toString('base64');
             const githubUrl = `https://api.github.com/repos/${repo}/contents/${filePath}`;
 

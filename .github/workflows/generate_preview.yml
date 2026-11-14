@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - "automata/**"
-      - "!PREVIEW.md" # Prevent documentation recursion
+      - "data/automata/**"
+      - "!docs/PREVIEW.md" # Prevent documentation recursion
 
 jobs:
   visualize:
@@ -26,7 +26,7 @@ jobs:
           import json, pathlib, subprocess
 
           # 1. Detect latest machine
-          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "automata/**/*.json"]
+          cmd = ["git", "diff", "--name-only", "--diff-filter=A", "HEAD~1", "HEAD", "data/automata/**/*.json"]
           try:
               files = subprocess.check_output(cmd).decode("utf-8").splitlines()
               target_file = pathlib.Path(files[0]) if files else None
@@ -70,12 +70,12 @@ jobs:
           # 5. Assemble and Write
           header = [f"# 🌌 Latest Machine: {title}", f"**Machine Type:** {m_type}\n", f"**Source:** `{target_file}`\n"]
           content = "\n".join(header + table + ["\n"] + diagram + ["\n---", "*Generated automatically by Toc-Suite Visualizer Engine.*"])
-          pathlib.Path("PREVIEW.md").write_text(content, encoding="utf-8")
+          pathlib.Path("docs/PREVIEW.md").write_text(content, encoding="utf-8")
         
       - name: Commit Preview Update
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PREVIEW.md
+          git add docs/PREVIEW.md
           git commit -m "docs: update machine preview [skip ci]" || echo "No changes"
           git push

@@ -7,11 +7,11 @@
   <title>Finite Automata Practice - Enhanced Interactive Studio</title>
   
   <meta name="theme-color" content="#4a90e2">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
   <script src="https://unpkg.com/lucide@1.73.0/dist/umd/lucide.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
 <body>
@@ -33,8 +33,8 @@
         <button class="splash-nav-btn" data-target="Grammar" role="tab">Grammar Studio</button>
       </div>
       <div id="splashUtilityRow">
-        <a href="splash_help.html" class="splash-utility-btn">Help Guide</a>
-        <a href="splash_settings.html" class="splash-utility-btn">Settings</a>
+        <a href="pages/splash_help.html" class="splash-utility-btn">Help Guide</a>
+        <a href="pages/splash_settings.html" class="splash-utility-btn">Settings</a>
       </div>
     </div>
   </div>
@@ -365,13 +365,13 @@
 
       const aiScript = document.createElement('script');
       aiScript.type = 'module';
-      aiScript.src = 'ai-auth.js';
+      aiScript.src = 'src/shared/ai-auth.js';
       aiScript.onerror = () => console.error('Failed to load ai-auth.js');
       document.body.appendChild(aiScript);
 
       const appScript = document.createElement('script');
       appScript.type = 'module';
-      appScript.src = 'unified_main.js';
+      appScript.src = 'src/app/unified_main.js';
       appScript.onerror = () => console.error('Failed to load unified_main.js');
       document.body.appendChild(appScript);
     }

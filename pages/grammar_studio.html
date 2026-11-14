@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grammar Studio | TOC-Suite</title>
+  <meta name="theme-color" content="#4a90e2" />
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script src="https://unpkg.com/lucide@1.73.0/dist/umd/lucide.js"></script>
+</head>
+<body class="grammar-page">
+  <div class="app-container grammar-app" style="max-width:1400px;">
+    <header class="header grammar-header">
+      <div>
+        <h1>Grammar Studio</h1>
+        <p class="grammar-subtitle">CFG to NPDA, animated conversion, parse trees, and derivation tracing.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="grammarPanelToggleBtn" class="panel-toggle-btn" type="button" aria-label="Toggle grammar controls" aria-expanded="false">
+          <i data-lucide="menu"></i>
+        </button>
+        <button id="grammarBackBtn" class="splash-utility-btn grammar-back-btn" type="button">Back to Splash</button>
+      </div>
+    </header>
+
+    <main class="main-content grammar-main" style="align-items:stretch;">
+      <aside id="controlPanel" class="control-panel grammar-panel" style="position:relative;top:auto;max-height:none;">
+        <details class="control-section">
+          <summary><i data-lucide="book-open"></i><span>CFG Input</span></summary>
+          <div class="control-section-content">
+            <label for="grammarStart" style="font-weight:600;font-size:0.85rem;">Start Symbol</label>
+            <input id="grammarStart" class="modal-input" value="S" maxlength="12" />
+            <label for="grammarInput" style="font-weight:600;font-size:0.85rem;">Grammar Rules</label>
+            <textarea id="grammarInput" class="modal-input" style="min-height:220px;font-family:Consolas,monospace;" spellcheck="false">S -> a S b | eps</textarea>
+            <button id="grammarValidateBtn" class="run-btn" type="button">Validate Grammar</button>
+            <div id="grammarStatus" class="integration-status" style="margin-top:10px;">Ready.</div>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="sparkles"></i><span>Conversion</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <button id="grammarAnimateBtn" class="icon-btn" type="button">Animate CFG to NPDA</button>
+            <button id="grammarBuildBtn" class="icon-btn" type="button">Build NPDA JSON</button>
+            <button id="grammarOpenPdaBtn" class="icon-btn" type="button">Open in PDA Studio</button>
+            <button id="grammarDownloadBtn" class="icon-btn" type="button">Download NPDA JSON</button>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="git-fork"></i><span>Parse Tree</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <label for="parseTarget" style="font-weight:600;font-size:0.85rem;">Target String</label>
+            <input id="parseTarget" class="modal-input" placeholder="Example: aaabbb" />
+            <button id="parseGenerateBtn" class="icon-btn" type="button">Generate Parse Tree</button>
+            <div style="font-size:0.82rem;color:#475569;">Use `eps`, `esp`, `epsilon`, or `ε` for epsilon.</div>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="workflow"></i><span>Regex and Machine Bridge</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <label for="grammarRegexInput" style="font-weight:600;font-size:0.85rem;">Regular Expression</label>
+            <input id="grammarRegexInput" class="modal-input" placeholder="Example: a or ab" />
+            <button id="grammarRegexToFaBtn" class="icon-btn" type="button">Convert Regex and Open FA</button>
+            <button id="grammarOpenTmBtn" class="icon-btn" type="button">Open TM Workspace</button>
+            <div style="font-size:0.8rem;color:#64748b;">Regex converter currently supports single-symbol regex and the `ab` demo concatenation.</div>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="languages"></i><span>RL and REL Conversion</span></summary>
+          <div class="control-section-content" style="display:grid;gap:12px;">
+            <div style="border:1px solid #dbeafe;border-radius:12px;padding:10px;background:#f8fbff;">
+              <label for="rlInput" style="font-weight:700;font-size:0.85rem;">RL Input (Regular Language / Regex)</label>
+              <input id="rlInput" class="modal-input" placeholder="Example: a|b or ab*" />
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+                <button id="rlPreviewFaBtn" class="icon-btn" type="button">Preview RL -> FA</button>
+                <button id="rlPreviewMmBtn" class="icon-btn" type="button">Preview RL -> MM</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;">
+                <button id="rlOpenFaBtn" class="icon-btn" type="button">Open RL in FA</button>
+                <button id="rlOpenMmBtn" class="icon-btn" type="button">Open RL in Mealy/Moore</button>
+              </div>
+            </div>
+            <div style="border:1px solid #fde68a;border-radius:12px;padding:10px;background:#fffbeb;">
+              <label for="relInput" style="font-weight:700;font-size:0.85rem;">REL Input (Recursively Enumerable Language)</label>
+              <textarea id="relInput" class="modal-input" style="min-height:90px;font-family:Consolas,monospace;" placeholder="Example: { ww | w in {a,b}* }"></textarea>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+                <button id="relPreviewTmBtn" class="icon-btn" type="button">Preview REL -> TM</button>
+                <button id="relOpenTmBtn" class="icon-btn" type="button">Open REL in TM</button>
+              </div>
+            </div>
+            <div id="rlRelStatus" class="integration-status">Build RL/REL conversion plan to inspect steps before opening a machine studio.</div>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="compass"></i><span>Machine Navigator</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;">
+              <button id="switchToFaBtn" class="icon-btn" data-machine-switch="FA" type="button">FA (Regular)</button>
+              <button id="switchToMmBtn" class="icon-btn" data-machine-switch="MM" type="button">Mealy/Moore</button>
+              <button id="switchToPdaBtn" class="icon-btn" data-machine-switch="PDA" type="button">PDA (CFL)</button>
+              <button id="switchToTmBtn" class="icon-btn" data-machine-switch="TM" type="button">TM (RE)</button>
+            </div>
+            <button id="switchToGrammarBtn" class="icon-btn" data-machine-switch="Grammar" type="button" disabled>Grammar (Current)</button>
+            <div style="font-size:0.8rem;color:#64748b;">Shortcut: <code>Ctrl+Alt+1..5</code> for FA, MM, PDA, TM, Grammar.</div>
+          </div>
+        </details>
+
+        <details class="control-section">
+          <summary><i data-lucide="book-check"></i><span>Context-Free Pumping Lemma</span></summary>
+          <div class="control-section-content" style="display:grid;gap:8px;">
+            <input id="cfgLanguageInput" class="modal-input" placeholder="Language (e.g., {a^n b^n c^n})" />
+            <input id="cfgWitnessInput" class="modal-input" placeholder="Witness string w (e.g., a^p b^p c^p)" />
+            <input id="cfgSplitInput" class="modal-input" placeholder="Split guess uvxyz (e.g., u=a^(p-k), v=a^k, x=b^p, y=c^k, z=c^(p-k))" />
+            <button id="cfgLemmaGuideBtn" class="icon-btn" type="button">Build Proof Plan</button>
+            <div id="cfgLemmaOutput" class="integration-status">Fill fields and generate a contradiction plan.</div>
+          </div>
+        </details>
+      </aside>
+
+      <section class="visualization-panel grammar-visual" style="min-height:600px;">
+        <div class="grammar-tab-strip" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="icon-btn grammar-tab-btn" data-tab="rl" type="button">RL Conversion</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="rel" type="button">REL Conversion</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="steps" type="button">Steps</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="npda" type="button">NPDA</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="table" type="button">Logic Table</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="tree" type="button">Parse Tree</button>
+          <button class="icon-btn grammar-tab-btn" data-tab="derivation" type="button">Derivation</button>
+        </div>
+
+        <div id="grammarTabRl" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">RL Conversion Designer</h3>
+          <div id="rlConversionHeadline" class="integration-status" style="margin-bottom:10px;">Use RL preview from the left panel to populate this designer.</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px;">
+            <div class="help-step-content">
+              <strong>Input Class</strong>
+              <div id="rlInputClass" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+            <div class="help-step-content">
+              <strong>Target Machine</strong>
+              <div id="rlTargetMachine" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+            <div class="help-step-content">
+              <strong>Complexity Note</strong>
+              <div id="rlComplexityNote" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+          </div>
+          <h4 style="margin:0 0 8px 0;">Design Notes</h4>
+          <ul id="rlConversionChecklist" class="help-step-content" style="margin:0 0 10px 0;padding:14px 20px;min-height:120px;"></ul>
+          <h4 style="margin:0 0 8px 0;">Conversion Steps</h4>
+          <div id="rlConversionSteps" class="help-step-content" style="min-height:180px;max-height:280px;overflow:auto;"></div>
+          <h4 style="margin:10px 0 8px 0;">Dynamic Transition Table</h4>
+          <div class="help-step-content" style="overflow:auto;max-height:220px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">From</th>
+                  <th style="text-align:left;">Symbol</th>
+                  <th style="text-align:left;">To</th>
+                  <th style="text-align:left;">Role</th>
+                </tr>
+              </thead>
+              <tbody id="rlTransitionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="grammarTabRel" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">REL Conversion Designer</h3>
+          <div id="relConversionHeadline" class="integration-status" style="margin-bottom:10px;">Use REL preview from the left panel to populate this designer.</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px;">
+            <div class="help-step-content">
+              <strong>Input Class</strong>
+              <div id="relInputClass" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+            <div class="help-step-content">
+              <strong>Target Machine</strong>
+              <div id="relTargetMachine" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+            <div class="help-step-content">
+              <strong>Complexity Note</strong>
+              <div id="relComplexityNote" style="margin-top:4px;color:#334155;">-</div>
+            </div>
+          </div>
+          <h4 style="margin:0 0 8px 0;">Design Notes</h4>
+          <ul id="relConversionChecklist" class="help-step-content" style="margin:0 0 10px 0;padding:14px 20px;min-height:120px;"></ul>
+          <h4 style="margin:0 0 8px 0;">Conversion Steps</h4>
+          <div id="relConversionSteps" class="help-step-content" style="min-height:180px;max-height:280px;overflow:auto;"></div>
+          <h4 style="margin:10px 0 8px 0;">Dynamic Transition Table</h4>
+          <div class="help-step-content" style="overflow:auto;max-height:220px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">State</th>
+                  <th style="text-align:left;">Read</th>
+                  <th style="text-align:left;">Write</th>
+                  <th style="text-align:left;">Move</th>
+                  <th style="text-align:left;">Next</th>
+                  <th style="text-align:left;">Role</th>
+                </tr>
+              </thead>
+              <tbody id="relTransitionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="grammarTabSteps" class="grammar-tab-panel" style="display:block;">
+          <h3 style="margin:0 0 8px 0;">Conversion Animation</h3>
+          <div id="grammarStepLog" class="help-step-content" style="min-height:250px;max-height:340px;overflow:auto;"></div>
+        </div>
+
+        <div id="grammarTabNpda" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Generated NPDA</h3>
+          <pre id="grammarNpdaJson" class="help-step-content" style="min-height:420px;overflow:auto;font-family:Consolas,monospace;"></pre>
+        </div>
+
+        <div id="grammarTabTable" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Grammar and NPDA Transition Table</h3>
+          <div class="help-step-content" style="overflow:auto;max-height:210px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">Production</th>
+                  <th style="text-align:left;">Type</th>
+                </tr>
+              </thead>
+              <tbody id="grammarRulesTableBody"></tbody>
+            </table>
+          </div>
+          <div class="help-step-content" style="overflow:auto;max-height:220px;margin-top:10px;">
+            <table class="logic-table" style="width:100%;border-collapse:collapse;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;">#</th>
+                  <th style="text-align:left;">From</th>
+                  <th style="text-align:left;">Input</th>
+                  <th style="text-align:left;">Pop</th>
+                  <th style="text-align:left;">Push</th>
+                  <th style="text-align:left;">To</th>
+                </tr>
+              </thead>
+              <tbody id="grammarTransitionTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="grammarTabTree" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Parse Tree</h3>
+          <div style="border:1px solid #e2e8f0;border-radius:12px;background:#fff;overflow:auto;min-height:420px;">
+            <svg id="parseTreeSvg" width="1200" height="520"></svg>
+          </div>
+        </div>
+
+        <div id="grammarTabDerivation" class="grammar-tab-panel" style="display:none;">
+          <h3 style="margin:0 0 8px 0;">Leftmost Derivation</h3>
+          <ol id="grammarDerivationList" class="help-step-content" style="min-height:420px;overflow:auto;margin:0;padding:16px 22px;"></ol>
+          <h4 style="margin:10px 0 8px 0;">Derivation Timeline</h4>
+          <div id="grammarDerivationTimeline" class="help-step-content" style="min-height:180px;max-height:260px;overflow:auto;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="../src/grammar/grammar_main.js"></script>
+</body>
+</html>
