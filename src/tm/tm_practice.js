@@ -4,7 +4,9 @@
  * logical validation for the Turing Machine Studio.
  */
 
-import { TM_PRACTICE_BANK } from '../../data/practice/tm_practice_bank.js';
+// The bank is loaded the first time a challenge is requested, not with the studio.
+let bankPromise = null;
+const loadBank = () => (bankPromise ??= import('../../data/practice/tm_practice_bank.js').then(m => m.TM_PRACTICE_BANK));
 import { animateTmDrawing } from './tm_animation.js';
 import { runTmSimulation } from './tm_simulation.js';
 import { addLogMessage, customAlert } from '../shared/utils.js';
@@ -14,7 +16,8 @@ let currentChallenge = null;
 
 const trimTape = (tape) => String(tape ?? '').replace(/^B+|B+$/g, '');
 
-export function generateTmPractice(level) {
+export async function generateTmPractice(level) {
+    const TM_PRACTICE_BANK = await loadBank();
     const bank = TM_PRACTICE_BANK[level] || TM_PRACTICE_BANK.easy;
     currentChallenge = bank[Math.floor(Math.random() * bank.length)];
 

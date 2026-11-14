@@ -260,7 +260,9 @@ export function initAssistPanel() {
   $('assistCheckBtn').addEventListener('click', () => runCheck('final'));
   $('assistLive').addEventListener('change', (e) => (e.target.checked ? startLive() : stopLive()));
   $('assistDesc').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) onDescribe(false); });
-  loadModel().catch(() => {});   // warm up
+  // The 155 KB model is fetched on first use (Build / Guide / Check), or when the browser is idle.
+  const warm = () => loadModel().catch(() => {});
+  if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warm, { timeout: 8000 }); else setTimeout(warm, 4000);
 }
 
 // Exposed for the practice checker and for debugging in the console.

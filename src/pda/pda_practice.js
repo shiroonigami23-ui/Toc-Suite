@@ -3,7 +3,9 @@
  * Logic for generating PDA exercises and validating user answers.
  */
 
-import { PDA_PRACTICE_BANK } from '../../data/practice/pda_practice_bank.js';
+// The bank (~80 KB) is loaded the first time a practice problem is requested, not with the studio.
+let bankPromise = null;
+const loadBank = () => (bankPromise ??= import('../../data/practice/pda_practice_bank.js').then(m => m.PDA_PRACTICE_BANK));
 import { MACHINE, setMachine, pushUndo } from './pda_state.js';
 import { runPdaSimulation } from './pda_simulation.js';
 import { addLogMessage, customAlert } from '../shared/utils.js';
@@ -11,7 +13,8 @@ import { animatePdaDrawing } from './pda_animation.js';
 
 let currentPractice = null;
 
-export function generatePractice(level = 'easy') {
+export async function generatePractice(level = 'easy') {
+    const PDA_PRACTICE_BANK = await loadBank();
     const filtered = PDA_PRACTICE_BANK.filter(p => p.level === level);
     const selected = filtered[Math.floor(Math.random() * filtered.length)];
     currentPractice = selected;
