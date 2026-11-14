@@ -43,5 +43,17 @@ def build(name, md):
     pages = int(subprocess.check_output(['python3', '-c', f'import pypdf;print(len(pypdf.PdfReader("{pdf}").pages))'], text=True))
     print(f'{name}: {pdf.relative_to(ROOT)} — {pages} pages')
 
+# The study papers: docs/papers/NN-name.md, each its own PDF. Figures are Graphviz sources in
+# docs/papers/figures/*.dot, rendered to SVG before pandoc runs.
+for dot in sorted((ROOT / 'docs' / 'papers' / 'figures').glob('*.dot')):
+    svg = dot.with_suffix('.svg')
+    if not svg.exists() or svg.stat().st_mtime < dot.stat().st_mtime:
+        subprocess.run(['dot', '-Tsvg', str(dot), '-o', str(svg)], check=True)
+for paper in sorted((ROOT / 'docs' / 'papers').glob('[0-9][0-9]-*.md')):
+    BOOKS['paper-' + paper.stem] = paper
+
 for n in (sys.argv[1:] or BOOKS):
+    if n == 'papers':
+        for k in [k for k in BOOKS if k.startswith('paper-')]: build(k, BOOKS[k])
+        continue
     if BOOKS[n].exists() or (BOOKS[n].parent / 'src').is_dir(): build(n, BOOKS[n])

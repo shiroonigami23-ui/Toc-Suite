@@ -86,7 +86,6 @@ jobs:
         with: { node-version: 22 }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 21 }
-      - uses: android-actions/setup-android@v3
       - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
       - name: Create the Android project
         working-directory: mobile
@@ -122,10 +121,11 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
-          BT=$(ls "$ANDROID_SDK_ROOT/build-tools" | sort -V | tail -1)
-          "$ANDROID_SDK_ROOT/build-tools/$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
-          "$ANDROID_SDK_ROOT/build-tools/$BT/apksigner" sign --ks release.jks --ks-key-alias tocsuite --ks-pass "pass:$PASS" --key-pass "pass:$PASS" --out "Toc-Suite-$V.apk" aligned.apk
-          "$ANDROID_SDK_ROOT/build-tools/$BT/apksigner" verify "Toc-Suite-$V.apk"
+          SDK="${ANDROID_HOME:-$ANDROID_SDK_ROOT}"
+          BT=$(ls "$SDK/build-tools" | sort -V | tail -1)
+          "$SDK/build-tools/$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          "$SDK/build-tools/$BT/apksigner" sign --ks release.jks --ks-key-alias tocsuite --ks-pass "pass:$PASS" --key-pass "pass:$PASS" --out "Toc-Suite-$V.apk" aligned.apk
+          "$SDK/build-tools/$BT/apksigner" verify "Toc-Suite-$V.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: android

@@ -1,0 +1,5 @@
+digraph G { graph [rankdir=LR, bgcolor="transparent", fontname="Helvetica", nodesep=0.5, ranksep=0.6]; node [shape=circle, fontname="Helvetica", fontsize=13, width=0.5, style=filled, fillcolor="#eef2ff", color="#4338ca", penwidth=1.6]; edge [fontname="Helvetica", fontsize=12, color="#475569", arrowsize=0.8]; start [shape=point, width=0.01, style=invis];
+s [label="s"]; f [shape=doublecircle, label="f"]; start -> s;
+s -> a1 [label="ε"]; a1 -> a2 [label="a"]; a2 -> a1 [label="ε"]; a2 -> m [label="ε"]; s -> m [label="ε"];
+m -> b1 [label="ε"]; b1 -> f [label="b"];
+a1 [label=""]; a2 [label=""]; m [label=""]; b1 [label=""]; }

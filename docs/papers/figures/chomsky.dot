@@ -1,0 +1,15 @@
+digraph G { graph [bgcolor="transparent", fontname="Helvetica", compound=true]; node [shape=plaintext, fontname="Helvetica", fontsize=12];
+subgraph cluster0 { label="All languages over Σ (uncountably many)"; style="rounded"; color="#94a3b8"; fontsize=13;
+ subgraph cluster1 { label="Recursively enumerable — Turing machines (Type 0)"; style="rounded,filled"; fillcolor="#fef2f2"; color="#ef4444";
+  subgraph cluster2 { label="Decidable (recursive) — total TMs"; style="rounded,filled"; fillcolor="#fff7ed"; color="#f97316";
+   subgraph cluster3 { label="Context-sensitive — LBAs (Type 1)"; style="rounded,filled"; fillcolor="#fefce8"; color="#eab308";
+    subgraph cluster4 { label="Context-free — PDAs (Type 2)"; style="rounded,filled"; fillcolor="#f0fdf4"; color="#22c55e";
+     subgraph cluster5 { label="Deterministic CF — DPDAs"; style="rounded,filled"; fillcolor="#ecfeff"; color="#06b6d4";
+      subgraph cluster6 { label="Regular — DFA/NFA/regex (Type 3)"; style="rounded,filled"; fillcolor="#eef2ff"; color="#6366f1";
+       r [label="a*b*,  (ab)*,  binary multiples of 3"]; }
+      d [label="aⁿbⁿ,  wcwᴿ"]; }
+     c [label="wwᴿ,  aⁱbʲcᵏ (i=j or j=k)"]; }
+    s [label="aⁿbⁿcⁿ,  ww"]; }
+   t [label="A_DFA,  EQ_DFA,  primes"]; }
+  h [label="A_TM (halting / acceptance)"]; }
+ n [label="complement of A_TM"]; } }
