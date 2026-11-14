@@ -1,6 +1,6 @@
 const { Client } = require('pg');
 
-exports.handler = async (event) => {
+const handle = async (event) => {
     if (event.httpMethod !== 'GET') return { statusCode: 405, body: 'Method Not Allowed' };
     const machineType = String((event.queryStringParameters || {}).machineType || 'FA').toUpperCase();
 
@@ -61,3 +61,17 @@ exports.handler = async (event) => {
         await client.end();
     }
 };
+
+// The Android app (Capacitor, origin https://localhost) calls this function cross-origin.
+const CORS_ORIGINS = new Set(['https://localhost', 'capacitor://localhost', 'http://localhost']);
+const withCors = (handler) => async (event) => {
+    const origin = event.headers?.origin || event.headers?.Origin || '';
+    const cors = CORS_ORIGINS.has(origin)
+        ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', Vary: 'Origin' }
+        : {};
+    if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: cors, body: '' };
+    const res = await handler(event);
+    return { ...res, headers: { ...(res.headers || {}), ...cors } };
+};
+
+exports.handler = withCors(handle);

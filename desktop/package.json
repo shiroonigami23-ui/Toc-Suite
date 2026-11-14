@@ -1,0 +1,31 @@
+{
+  "name": "toc-suite-desktop",
+  "productName": "Toc-Suite",
+  "version": "1.0.0",
+  "description": "Toc-Suite — the Theory of Computation workbench, as a desktop app",
+  "main": "main.js",
+  "author": "Aryan Singh Chandel",
+  "license": "MIT",
+  "homepage": "https://toc-suite.netlify.app",
+  "scripts": {
+    "stage": "node ../tools/stage-web.mjs web",
+    "start": "npm run stage && electron .",
+    "dist:win": "npm run stage && electron-builder --win nsis portable --x64 --publish never",
+    "dist:linux": "npm run stage && electron-builder --linux AppImage --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "app.tocsuite.desktop",
+    "productName": "Toc-Suite",
+    "copyright": "© 2026 Aryan Singh Chandel — MIT License",
+    "files": ["main.js", "web/**/*"],
+    "directories": { "output": "dist", "buildResources": "build" },
+    "win": { "icon": "build/icon.png", "target": ["nsis", "portable"] },
+    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "artifactName": "Toc-Suite-Setup-${version}.${ext}", "shortcutName": "Toc-Suite" },
+    "portable": { "artifactName": "Toc-Suite-Portable-${version}.${ext}" },
+    "linux": { "icon": "build/icon.png", "category": "Education", "artifactName": "Toc-Suite-${version}.${ext}" }
+  }
+}

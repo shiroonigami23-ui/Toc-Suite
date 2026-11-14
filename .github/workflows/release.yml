@@ -1,0 +1,193 @@
+name: Release (Windows .exe, Android .apk, container)
+
+# Push a tag like v2.0.0, or run it by hand with a version number.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version without the v (e.g. 2.0.0)'
+        required: true
+        default: '2.0.0'
+      publish:
+        description: 'Publish the GitHub release and the container (untick for a dry run)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm test
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Version
+        shell: bash
+        run: echo "V=${VERSION#v}" >> $GITHUB_ENV
+      - name: Build the installer and the portable .exe
+        working-directory: desktop
+        shell: bash
+        run: |
+          npm install --no-audit --no-fund
+          npm version "$V" --no-git-tag-version --allow-same-version
+          npm run dist:win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            desktop/dist/*.exe
+          if-no-files-found: error
+
+  linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
+      - name: Build the AppImage
+        working-directory: desktop
+        run: |
+          npm install --no-audit --no-fund
+          npm version "$V" --no-git-tag-version --allow-same-version
+          npm run dist:linux
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: desktop/dist/*.AppImage
+          if-no-files-found: error
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
+      - name: Create the Android project
+        working-directory: mobile
+        run: |
+          npm install --no-audit --no-fund
+          npm run stage
+          npx cap add android
+          npx cap sync android
+          # app icon
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+          cp -r res/* android/app/src/main/res/
+          # version from the tag: versionCode = MAJOR*10000 + MINOR*100 + PATCH
+          IFS=. read -r MA MI PA <<< "$V"
+          CODE=$(( ${MA:-1}*10000 + ${MI:-0}*100 + ${PA:-0} ))
+          sed -i "s/versionCode [0-9]*/versionCode $CODE/; s/versionName \".*\"/versionName \"$V\"/" android/app/build.gradle
+      - name: Signing key (release signing when secrets exist, otherwise a throw-away key)
+        working-directory: mobile/android
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > release.jks
+            PASS="$KEYSTORE_PASSWORD"
+          else
+            PASS=tocsuite
+            keytool -genkeypair -v -keystore release.jks -alias tocsuite -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PASS" -keypass "$PASS" -dname "CN=Toc-Suite, O=Toc-Suite, C=IN"
+          fi
+          echo "PASS=$PASS" >> $GITHUB_ENV
+      - name: Build and sign the APK
+        working-directory: mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          BT=$(ls "$ANDROID_SDK_ROOT/build-tools" | sort -V | tail -1)
+          "$ANDROID_SDK_ROOT/build-tools/$BT/zipalign" -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          "$ANDROID_SDK_ROOT/build-tools/$BT/apksigner" sign --ks release.jks --ks-key-alias tocsuite --ks-pass "pass:$PASS" --key-pass "pass:$PASS" --out "Toc-Suite-$V.apk" aligned.apk
+          "$ANDROID_SDK_ROOT/build-tools/$BT/apksigner" verify "Toc-Suite-$V.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: mobile/android/Toc-Suite-*.apk
+          if-no-files-found: error
+
+  container:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
+      - name: Stage the site
+        run: |
+          node tools/stage-web.mjs docker/site
+          echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: docker
+          file: docker/Dockerfile
+          push: ${{ github.event_name == 'push' || inputs.publish }}
+          tags: |
+            ghcr.io/${{ env.OWNER }}/toc-suite:${{ env.V }}
+            ghcr.io/${{ env.OWNER }}/toc-suite:latest
+
+  release:
+    needs: [windows, linux, android, container]
+    if: github.event_name == 'push' || inputs.publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "V=${VERSION#v}" >> $GITHUB_ENV
+      - uses: actions/download-artifact@v4
+        with: { path: out, merge-multiple: true }
+      - name: Release notes
+        run: |
+          {
+            echo "## Toc-Suite v$V"
+            echo
+            echo "| Platform | Download |"
+            echo "|---|---|"
+            echo "| Windows installer | \`Toc-Suite-Setup-$V.exe\` |"
+            echo "| Windows portable (no install) | \`Toc-Suite-Portable-$V.exe\` |"
+            echo "| Android | \`Toc-Suite-$V.apk\` (allow installs from this source) |"
+            echo "| Linux | \`Toc-Suite-$V.AppImage\` (\`chmod +x\`, then run) |"
+            echo "| Docker | \`docker run -p 8080:80 ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/toc-suite:$V\` |"
+            echo "| Web | https://toc-suite.netlify.app |"
+            echo
+            echo "The apps contain the whole workbench and work offline; assignment submission uses the live site."
+            echo
+            awk 'NR>1 && /^## /{exit} NR>1{print}' CHANGELOG.md
+          } > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.V }}
+          name: Toc-Suite v${{ env.V }}
+          body_path: notes.md
+          files: out/*
+          make_latest: true

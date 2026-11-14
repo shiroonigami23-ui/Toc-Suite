@@ -361,7 +361,9 @@
       document.body.appendChild(appScript);
     }
 
-    if ('serviceWorker' in navigator && !isFileProtocol && (isSecure || isLocalhost)) {
+    // The desktop (app://) and Android (Capacitor) builds ship their files inside the app: no offline cache needed.
+    const isPackagedApp = location.protocol === 'app:' || !!window.Capacitor;
+    if ('serviceWorker' in navigator && !isFileProtocol && !isPackagedApp && (isSecure || isLocalhost)) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./service-worker.js')
           .then(() => console.log('Service Worker Registered'))

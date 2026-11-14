@@ -1,3 +1,4 @@
+import { api } from '../shared/remote.js';
 import * as FA from '../fa/ui.js';
 import * as FA_STATE from '../fa/state.js';
 import * as FA_RENDER from '../fa/renderer.js';
@@ -975,7 +976,7 @@ async function renderSplashAssignmentHint() {
     panel.innerHTML = '<div id="splashAssignmentHint" style="background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.25);padding:8px 12px;border-radius:999px;font-size:0.9rem;display:inline-block;align-self:center;">Checking active assignments...</div>';
     const hint = document.getElementById('splashAssignmentHint');
     try {
-        const res = await fetch('/.netlify/functions/list-active-assignments?machineType=ALL');
+        const res = await fetch(api('/.netlify/functions/list-active-assignments?machineType=ALL'));
         if (!res.ok) {
             hint.textContent = 'Assignments unavailable right now.';
             return;

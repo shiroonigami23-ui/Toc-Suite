@@ -1,3 +1,4 @@
+import { api } from './remote.js';
 function safeGet(key, fallback = '') {
     try {
         return localStorage.getItem(key) ?? fallback;
@@ -65,7 +66,7 @@ export function normalizeMachineType(type) {
 
 export async function getActiveAssignments(machineType) {
     const normalized = normalizeMachineType(machineType);
-    const res = await fetch(`/.netlify/functions/list-active-assignments?machineType=${encodeURIComponent(normalized)}`);
+    const res = await fetch(api(`/.netlify/functions/list-active-assignments?machineType=${encodeURIComponent(normalized)}`));
     if (!res.ok) return [];
     const data = await res.json();
     return Array.isArray(data) ? data : [];
@@ -159,7 +160,7 @@ export async function stageToDb(payload) {
     if (!isAssignment && safeGet('tocShareSaves', 'true') === 'false') return;
     const authEmail = safeGet(AUTH_KEYS.email, '');
     const clientFingerprint = getClientFingerprint();
-    const res = await fetch('/.netlify/functions/save-to-db', {
+    const res = await fetch(api('/.netlify/functions/save-to-db'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, authEmail: authEmail || null, clientFingerprint })
