@@ -180,7 +180,15 @@ Every release ships the whole workbench as native apps, built by [the release wo
 | Linux | `Toc-Suite-x.y.z.AppImage` | `chmod +x`, then run |
 | Docker | `ghcr.io/shiroonigami23-ui/toc-suite` | `docker run -p 8080:80 ghcr.io/shiroonigami23-ui/toc-suite` |
 
-The apps work offline; assignment submission talks to the live site. Get them from [**Releases**](https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest); the container is listed under **Packages**.
+<p align="center"><img src="docs/media/app-intro.gif" alt="Animated launch intro of the desktop and Android apps" width="80%"></p>
+
+The apps open with an animated 3D intro (tap to skip; a short fade with reduced motion) and tilt the studio buttons under the pointer — the website stays plain. They work offline; assignment submission talks to the live site. Get them from [**Releases**](https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest); the container is listed under **Packages**.
+
+## Help and Settings
+
+The **Help** page has a quick start, a Builder/Assistant guide, studio playbooks, a shortcut sheet, links to all ten study papers and the interactive theory labs. **Settings** save as you change them: theme, text size, motion, drawing speed, presets, the assignment identity, export/import and local-data controls.
+
+<img src="docs/media/settings.png" alt="Settings page" width="100%">
 
 ## Practice that is actually checked
 

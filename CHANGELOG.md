@@ -7,9 +7,13 @@
 - **Grammar Studio rebuilt**: exact parse trees and ambiguity witnesses for any CFG, leftmost/rightmost derivations, simplification and Chomsky normal form step by step, CYK table, FIRST/FOLLOW and the LL(1) table, CFG → PDA, right/left-linear grammar → NFA, regex → ε-NFA/DFA, an exhaustive pumping-lemma checker, Chomsky-type classification, example grammars, and a navigation bar to every studio.
 - **Apps and packages**: GitHub Actions release workflow building a Windows installer and portable `.exe` (Electron), an Android `.apk` (Capacitor), a Linux AppImage, and a Docker image on GitHub Packages.
 - **Study papers**: ten standalone Theory of Computation papers (preliminaries, finite automata, regular languages, transducers, grammars, PDAs, Turing machines, decidability, complexity) and a 40-problem solved workbook, in `docs/papers/`.
+- **Animated launch intro in the Windows and Android apps**: a 3D neon orbit with the app icon rising out of it, a warp-speed starfield and the title, about 3 seconds, tap or any key to skip, a short fade with reduced motion; dark launch screen on Android and a dark window on Windows. Studio buttons on the home screen tilt in 3D under the pointer. The website is unchanged.
+- **Help page rebuilt**: quick start, Builder and Assistant guide with examples, studio playbooks, a keyboard-shortcut sheet, the ten study papers, app downloads, and the existing theory labs, practice and quiz under a searchable section.
+- **Settings page rebuilt**: changes save instantly (no floating save bar), theme cards, text-size, motion and drawing-speed toggles with a live preview, presets including Presenting, sign-in and sign-out of the assignment identity, settings export and import, storage usage, and an About card with the version and download links.
 - Concept trailer in the README.
 - Tests: `builder.test.mjs` (phrasings run on the studios' own simulators) and `cfg.test.mjs`.
 ### Fixed
+- Home from the Grammar Studio reopened the Grammar Studio (the last-route memory sent it back); Home now always shows the home screen.
 - Mealy/Moore drawings were animated with the FA renderer (labels without outputs, a console error at the end).
 - The PDA simulator pruned configurations whose final stack was taller than the remaining input, rejecting e.g. `aaaa` for `{aⁱbʲ | i > j}`.
 - Netlify deploys: removed AI variables no longer trip secret scanning; the live URL is now `toc-suite.netlify.app`.

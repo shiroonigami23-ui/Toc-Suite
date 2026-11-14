@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>TOC Help and Theory Lab</title>
+  <title>Help | Toc-Suite</title>
+  <meta name="theme-color" content="#667eea" />
+  <link rel="icon" href="../assets/icons/icon-192.png" />
+  <script src="../assets/vendor/lucide-icons.js"></script>
   <link rel="stylesheet" href="../assets/css/style.css" />
   <style>
     .help-hero {
@@ -124,26 +127,67 @@
     }
   </style>
 </head>
-<body>
-  <main class="app-container" style="max-width:1200px;min-height:100dvh;height:auto;">
-    <header class="header">
-      <h1>TOC Help and Theory Lab</h1>
-      <a href="../index.html" class="splash-utility-btn">Back to Menu</a>
+<body class="gs-page hc-page">
+  <div class="gs-shell hc-shell">
+    <header class="gs-header hc-header">
+      <div class="gs-brand">
+        <a class="gs-home" href="../index.html#home" aria-label="Toc-Suite home"><img src="../assets/icons/icon-192.png" alt="" width="34" height="34"></a>
+        <div><h1>Help &amp; Theory Lab</h1><p>How to use every studio, plus interactive theory tools, practice and a quiz.</p></div>
+      </div>
+      <nav class="gs-nav" aria-label="Pages">
+        <a href="../index.html#home"><i data-lucide="house"></i><span>Home</span></a>
+        <a href="splash_help.html" class="active" aria-current="page"><i data-lucide="life-buoy"></i><span>Help</span></a>
+        <a href="splash_settings.html"><i data-lucide="settings"></i><span>Settings</span></a>
+        <a href="grammar_studio.html"><i data-lucide="languages"></i><span>Grammar</span></a>
+      </nav>
     </header>
 
-    <section class="help-hero">
-      <h2 style="margin:0;">Learn App + Theory Together</h2>
-      <p style="margin:8px 0 0 0;opacity:0.95;">This page combines studio workflows, exam-ready concepts, and dynamic formula helpers (including Arden lemma).</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-        <input id="topicSearch" class="modal-input" placeholder="Search: arden, cfg, pda, pumping, closure" style="margin:0;max-width:360px;background:#ffffff;color:#0f172a;" />
-        <button id="prevTopic" class="icon-btn" type="button">Previous</button>
-        <button id="nextTopic" class="icon-btn" type="button">Next</button>
-        <div class="integration-status" id="topicCounter" style="margin:0;background:rgba(255,255,255,0.2);color:#fff;">Topic 1 / 1</div>
+    <nav class="hp-toc" aria-label="On this page">
+      <a href="#hp-start">Quick start</a><a href="#hp-builder">Builder &amp; Assistant</a><a href="#hp-studios">Studios</a><a href="#hp-keys">Shortcuts</a><a href="#hp-papers">Study papers</a><a href="#hp-labs">Theory labs</a><a href="#hp-apps">Apps</a>
+    </nav>
+
+    <section id="hp-start" class="hp-section">
+      <h2><i data-lucide="rocket"></i> Quick start</h2>
+      <div class="hp-steps">
+        <div class="gs-card hp-step"><span>1</span><b>Pick a studio</b><p>Finite Automata, Mealy/Moore, PDA, Turing Machine or Grammar — from the home screen, or <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1…5</kbd>.</p></div>
+        <div class="gs-card hp-step"><span>2</span><b>Draw or describe</b><p>Use the toolbar (<kbd>S</kbd> state, <kbd>T</kbd> transition, <kbd>D</kbd> delete) — or type the language into the Builder and let it draw a verified machine.</p></div>
+        <div class="gs-card hp-step"><span>3</span><b>Test it</b><p>Step through one input with the simulator, or run a bulk test of many strings at once.</p></div>
+        <div class="gs-card hp-step"><span>4</span><b>Save &amp; share</b><p><kbd>Ctrl</kbd>+<kbd>S</kbd> saves JSON, <kbd>Ctrl</kbd>+<kbd>E</kbd> exports a PNG. Work also autosaves in this browser.</p></div>
       </div>
     </section>
 
-    <details class="help-accordion" id="help-section-tools">
-      <summary>App Tool Guide</summary>
+    <section id="hp-builder" class="hp-section">
+      <h2><i data-lucide="wand-sparkles"></i> Automata Builder &amp; Assistant</h2>
+      <div class="hp-two">
+        <div class="gs-card">
+          <h3>Builder — describe a language, get a machine</h3>
+          <p>Open it with the floating <b>Build</b> button in any studio. Write the language in plain English or set notation; the Builder picks the right machine, switches studio if needed, draws it and checks it.</p>
+          <ul class="hp-examples">
+            <li><code>DFA for strings over {a,b} ending in ab</code></li>
+            <li><code>a^n b^n c^m where n,m &gt;= 1</code> → PDA</li>
+            <li><code>a^n b^n c^n</code> → Turing machine</li>
+            <li><code>Mealy machine that outputs 1 after 101</code></li>
+            <li><code>binary numbers divisible by 3</code></li>
+          </ul>
+          <p class="gs-hint">Naming a machine type wins (“NFA for…”, “PDA for…”); otherwise the current studio's type is used when it can recognise the language. DFAs/NFAs are proven equivalent to the language; PDAs, TMs and transducers are tested on every short input.</p>
+        </div>
+        <div class="gs-card">
+          <h3>Assistant panel — inside every studio</h3>
+          <p>In the side panel of each studio:</p>
+          <ul class="hp-list">
+            <li><b>Describe → Build &amp; draw</b>: same as the Builder, drawn in place.</li>
+            <li><b>Guide me</b>: sets a hidden target so you can practise drawing it yourself.</li>
+            <li><b>Check</b>: compares <i>your</i> machine with the target on all short inputs and shows the first counter-example.</li>
+          </ul>
+          <p class="gs-hint">The Grammar Studio has its own tools: parse trees, CNF, CYK table, LL(1), CFG→PDA, regular grammar→NFA and a pumping checker.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="hp-studios" class="hp-section">
+      <h2><i data-lucide="layout-grid"></i> Studio playbooks</h2>
+<details class="help-accordion" id="help-section-tools" open>
+      <summary>Workflow, common mistakes and pre-submit checklist</summary>
       <div class="help-accordion-content" id="tool-guide">
         <div class="guide-hero">
           <h3 style="margin:0;">Operator Playbook</h3>
@@ -186,29 +230,36 @@
             </div>
           </div>
 
-          <div class="guide-block">
-            <h4 style="margin:0 0 8px 0;">Global Speed Shortcuts</h4>
-            <div class="guide-pills">
-              <span class="guide-pill">Ctrl/Cmd+S Save</span>
-              <span class="guide-pill">Ctrl/Cmd+O Load</span>
-              <span class="guide-pill">Ctrl/Cmd+E Export</span>
-              <span class="guide-pill">Ctrl/Cmd+Z Undo</span>
-              <span class="guide-pill">Ctrl/Cmd+Y Redo</span>
-              <span class="guide-pill">V/S/T/D Tool Switch</span>
-              <span class="guide-pill">Enter Run</span>
-              <span class="guide-pill">Esc Clear</span>
-              <span class="guide-pill">Ctrl+Alt+1 FA</span>
-              <span class="guide-pill">Ctrl+Alt+2 MM</span>
-              <span class="guide-pill">Ctrl+Alt+3 PDA</span>
-              <span class="guide-pill">Ctrl+Alt+4 TM</span>
-              <span class="guide-pill">Ctrl+Alt+5 Grammar</span>
-            </div>
-            <div class="guide-alert">Tip: If import looks wrong, re-import from any studio. Smart router will auto-switch to the right machine page and animate drawing.</div>
-          </div>
         </div>
       </div>
     </details>
 
+    </section>
+
+    <section id="hp-keys" class="hp-section">
+      <h2><i data-lucide="keyboard"></i> Keyboard shortcuts</h2>
+      <div class="gs-card hp-keys">
+        <div><kbd>Ctrl</kbd>+<kbd>S</kbd> Save</div><div><kbd>Ctrl</kbd>+<kbd>O</kbd> Open</div><div><kbd>Ctrl</kbd>+<kbd>E</kbd> Export PNG</div>
+        <div><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Y</kbd> Undo / redo</div><div><kbd>S</kbd> <kbd>T</kbd> <kbd>D</kbd> <kbd>V</kbd> Tools</div><div><kbd>+</kbd> <kbd>−</kbd> Zoom</div>
+        <div><kbd>Enter</kbd> Run test</div><div><kbd>Esc</kbd> Close panel</div><div><kbd>?</kbd> All shortcuts</div>
+        <div><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1…5</kbd> Switch studio</div>
+      </div>
+    </section>
+
+    <section id="hp-papers" class="hp-section">
+      <h2><i data-lucide="book-open"></i> Study papers</h2>
+      <p class="gs-hint">Ten printable chapters (about 85 pages) covering the whole course, with figures, worked examples and exercises with answers.</p>
+      <div class="hp-papers"><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/01-preliminaries.pdf" target="_blank" rel="noopener"><span class="hp-num">01</span><b>Preliminaries</b><small>Sets, strings, languages, proofs by induction</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/02-finite-automata.pdf" target="_blank" rel="noopener"><span class="hp-num">02</span><b>Finite Automata</b><small>DFA, NFA, ε-NFA, subset construction, minimisation</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/03-regular-languages.pdf" target="_blank" rel="noopener"><span class="hp-num">03</span><b>Regular Languages</b><small>Regex, Arden, closure, pumping, Myhill–Nerode</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/04-transducers.pdf" target="_blank" rel="noopener"><span class="hp-num">04</span><b>Transducers</b><small>Mealy and Moore machines, conversions</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/05-context-free-grammars.pdf" target="_blank" rel="noopener"><span class="hp-num">05</span><b>Context-Free Grammars</b><small>Derivations, ambiguity, CNF, GNF, CYK</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/06-pushdown-automata.pdf" target="_blank" rel="noopener"><span class="hp-num">06</span><b>Pushdown Automata</b><small>PDA ↔ CFG, acceptance modes, DPDA</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/07-turing-machines.pdf" target="_blank" rel="noopener"><span class="hp-num">07</span><b>Turing Machines</b><small>Design patterns, variants, LBA</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/08-decidability.pdf" target="_blank" rel="noopener"><span class="hp-num">08</span><b>Decidability</b><small>Halting, reductions, Rice, PCP</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/09-complexity.pdf" target="_blank" rel="noopener"><span class="hp-num">09</span><b>Complexity</b><small>P, NP, reductions, NP-completeness</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/10-solved-problems.pdf" target="_blank" rel="noopener"><span class="hp-num">10</span><b>Solved Problems</b><small>Exam-style worked problems with answers</small></a></div>
+    </section>
+
+    <section id="hp-labs" class="hp-section">
+      <h2><i data-lucide="flask-conical"></i> Theory labs</h2>
+      <div class="hp-search">
+        <input id="topicSearch" placeholder="Search topics: arden, cfg, pda, pumping, closure" />
+        <button id="prevTopic" class="assist-btn" type="button">Previous</button>
+        <button id="nextTopic" class="assist-btn" type="button">Next</button>
+        <span id="topicCounter" class="st-badge">Topic 1 / 1</span>
+      </div>
     <details class="help-accordion" id="help-section-topics">
       <summary>Topic Navigator</summary>
       <div class="help-accordion-content">
@@ -349,7 +400,20 @@
         </section>
       </div>
     </details>
-  </main>
+    </section>
+
+    <section id="hp-apps" class="hp-section">
+      <h2><i data-lucide="download"></i> Desktop &amp; Android apps</h2>
+      <div class="gs-card hp-apps">
+        <p>Toc-Suite also runs as an installable app — the same studios, offline, with an animated intro.</p>
+        <div class="st-row">
+          <a class="assist-btn primary" href="https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest" target="_blank" rel="noopener">Windows · Android · Linux downloads</a>
+          <a class="assist-btn" href="https://github.com/shiroonigami23-ui/Toc-Suite" target="_blank" rel="noopener">Source on GitHub</a>
+        </div>
+        <p class="gs-hint">In the browser you can also “Install app” from the address bar menu — it works offline after the first visit.</p>
+      </div>
+    </section>
+  </div>
 
   <script>
     const HELP_KEYS = {
@@ -789,13 +853,18 @@
     sectionIds.forEach((id) => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.open = Boolean(openState[id]);
+      el.open = id in openState ? Boolean(openState[id]) : id === 'help-section-tools';
       el.addEventListener('toggle', () => {
         const next = safeParse(safeGet(HELP_KEYS.openSections, '{}'), {});
         next[id] = el.open;
         safeSet(HELP_KEYS.openSections, JSON.stringify(next));
       });
     });
+  </script>
+  <script type="module">
+    import { applyPrefs } from '../src/shared/page_prefs.js';
+    import { refreshLucideIcons } from '../src/shared/utils.js';
+    applyPrefs(); refreshLucideIcons();
   </script>
 </body>
 </html>

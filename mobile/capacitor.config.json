@@ -2,6 +2,6 @@
   "appId": "app.tocsuite.mobile",
   "appName": "Toc-Suite",
   "webDir": "www",
-  "android": { "allowMixedContent": false, "backgroundColor": "#f5f7fa" },
+  "android": { "allowMixedContent": false, "backgroundColor": "#07071a" },
   "server": { "androidScheme": "https" }
 }

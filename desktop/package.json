@@ -8,7 +8,7 @@
   "license": "MIT",
   "homepage": "https://toc-suite.netlify.app",
   "scripts": {
-    "stage": "node ../tools/stage-web.mjs web",
+    "stage": "node ../tools/stage-web.mjs web --app",
     "start": "npm run stage && electron .",
     "dist:win": "npm run stage && electron-builder --win nsis portable --x64 --publish never",
     "dist:linux": "npm run stage && electron-builder --linux AppImage --x64 --publish never"

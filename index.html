@@ -22,7 +22,7 @@
     <div class="splash-orb splash-orb-1"></div>
     <div class="splash-orb splash-orb-2"></div>
     <div class="splash-shell">
-      <div class="splash-kicker">TOC-Suite 2026</div>
+      <div class="splash-kicker">Toc-Suite · v2.0.0</div>
       <h1 class="splash-title">Enhanced Automata Studio</h1>
       <p id="splashStudentWelcome" class="splash-student">Welcome, Student</p>
       <div class="splash-tabs" role="tablist" aria-label="Studios">
@@ -180,44 +180,6 @@
           </div>
       </div>
   </div>
-  <div id="splashHelpModal" class="modal-overlay" style="display:none">
-      <div class="modal-box splash-dialog">
-          <h3>Interactive Help</h3>
-          <p class="modal-description" id="helpStepTitle">Step 1</p>
-          <div id="helpStepContent" class="help-step-content"></div>
-          <div class="help-step-progress">
-              <span id="helpStepCounter">1/4</span>
-          </div>
-          <div class="modal-actions">
-              <button id="helpPrevBtn" type="button">Previous</button>
-              <button id="helpNextBtn" type="button">Next</button>
-              <button id="helpCloseBtn" type="button">Close</button>
-          </div>
-      </div>
-  </div>
-  <div id="splashSettingsModal" class="modal-overlay" style="display:none">
-      <div class="modal-box splash-dialog">
-          <h3>Settings</h3>
-          <p class="modal-description">Set your profile and app theme for all studios.</p>
-          <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
-          <label for="themeSelect" style="font-size:0.9rem;font-weight:600;">Theme</label>
-          <select id="themeSelect" class="modal-input">
-              <option value="default">Default</option>
-              <option value="ocean">Ocean</option>
-              <option value="forest">Forest</option>
-              <option value="sunset">Sunset</option>
-          </select>
-          <div class="integration-status">
-              <div><strong>Neon DB:</strong> Connected in code via `DATABASE_URL` on Netlify functions.</div>
-              <div><strong>GitHub:</strong> Push workflow configured via `GITHUB_PAT` in Netlify functions.</div>
-          </div>
-          <div class="modal-actions">
-              <button id="settingsCancelBtn" type="button">Cancel</button>
-              <button id="settingsSaveBtn" type="button">Save Settings</button>
-          </div>
-      </div>
-  </div>
-
   <script>
     const isFileProtocol = window.location.protocol === 'file:';
     const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);

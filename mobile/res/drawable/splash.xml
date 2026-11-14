@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch screen: dark background matching the animated intro, app icon centred. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/toc_splash_bg" />
+    <item android:width="120dp" android:height="120dp" android:gravity="center">
+        <bitmap android:src="@mipmap/ic_launcher" android:gravity="fill" />
+    </item>
+</layer-list>

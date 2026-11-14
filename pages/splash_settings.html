@@ -3,496 +3,203 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#4a90e2" />
-  <title>Toc-Suite Settings</title>
+  <title>Settings | Toc-Suite</title>
+  <meta name="theme-color" content="#667eea" />
+  <link rel="icon" href="../assets/icons/icon-192.png" />
   <link rel="stylesheet" href="../assets/css/style.css" />
-  <style>
-    .settings-hero {
-      border: 1px solid #dbeafe;
-      border-radius: 14px;
-      background: linear-gradient(120deg, #eff6ff, #f0fdfa);
-      padding: 14px;
-      margin-bottom: 12px;
-    }
-    .settings-kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
-    }
-    .settings-kpi {
-      background: #fff;
-      border: 1px solid #dbeafe;
-      border-radius: 10px;
-      padding: 8px;
-      font-size: 0.86rem;
-    }
-    .settings-accordion {
-      border: 1px solid #dbeafe;
-      border-radius: 12px;
-      background: #fff;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-    .settings-accordion > summary {
-      list-style: none;
-      cursor: pointer;
-      padding: 12px 14px;
-      font-weight: 700;
-      background: #f8fbff;
-      border-bottom: 1px solid #e6eefc;
-    }
-    .settings-accordion > summary::-webkit-details-marker { display: none; }
-    .settings-body { padding: 12px; }
-    .settings-row { display: grid; gap: 8px; }
-    .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .sticky-actions {
-      position: sticky;
-      bottom: 10px;
-      background: #fff;
-      border: 1px solid #dbeafe;
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 12px;
-      box-shadow: 0 8px 18px rgba(2, 132, 199, 0.12);
-    }
-  </style>
+  <script src="../assets/vendor/lucide-icons.js"></script>
 </head>
-<body>
-  <main class="app-container" style="max-width: 900px; height: auto; min-height: 100dvh;">
-    <header class="header">
-      <h1>Settings Center</h1>
-      <a href="../index.html" class="splash-utility-btn">Back to Menu</a>
+<body class="gs-page hc-page">
+  <div class="gs-shell hc-shell">
+    <header class="gs-header hc-header">
+      <div class="gs-brand">
+        <a class="gs-home" href="../index.html#home" aria-label="Toc-Suite home"><img src="../assets/icons/icon-192.png" alt="" width="34" height="34"></a>
+        <div><h1>Settings</h1><p>Profile, appearance, studio behaviour and your data — saved on this device as you change them.</p></div>
+      </div>
+      <nav class="gs-nav" aria-label="Pages">
+        <a href="../index.html#home"><i data-lucide="house"></i><span>Home</span></a>
+        <a href="splash_help.html"><i data-lucide="life-buoy"></i><span>Help</span></a>
+        <a href="splash_settings.html" class="active" aria-current="page"><i data-lucide="settings"></i><span>Settings</span></a>
+        <a href="grammar_studio.html"><i data-lucide="languages"></i><span>Grammar</span></a>
+      </nav>
     </header>
 
-    <section class="settings-hero">
-      <h3 style="margin:0;">Quick Status</h3>
-      <div class="settings-kpis">
-        <div class="settings-kpi"><strong>Name:</strong> <span id="kpiName">Student</span></div>
-        <div class="settings-kpi"><strong>Theme:</strong> <span id="kpiTheme">default</span></div>
-        <div class="settings-kpi"><strong>Identity:</strong> <span id="kpiIdentity">Not set</span></div>
-        <div class="settings-kpi"><strong>Auto Resume:</strong> <span id="kpiResume">Off</span></div>
-      </div>
-      <div class="preset-row" style="margin-top:10px;">
-        <button id="presetFocusBtn" class="icon-btn" type="button">Preset: Focus</button>
-        <button id="presetCalmBtn" class="icon-btn" type="button">Preset: Calm</button>
-        <button id="presetDefaultBtn" class="icon-btn" type="button">Preset: Default</button>
-      </div>
-    </section>
+    <div class="st-grid">
+      <!-- Profile -->
+      <section class="gs-card st-card">
+        <h2><i data-lucide="user-round"></i> Profile</h2>
+        <label class="st-field">Your name <input id="stName" maxlength="40" placeholder="Student" autocomplete="name" /></label>
+        <p class="st-note">Shown on the home screen and on exported work.</p>
+        <h3>Assignment identity</h3>
+        <p class="st-note">Your college email is used only when you submit an assignment or quiz. Format: <code>0902CS231028@rjit.ac.in</code>.</p>
+        <div class="st-row"><input id="stEmail" type="email" placeholder="0902CS231028@rjit.ac.in" autocomplete="email" /><button id="stEmailSave" class="assist-btn primary" type="button">Use</button></div>
+        <div id="stIdentity" class="st-identity"></div>
+        <div class="st-row"><button id="stEmailClear" class="assist-btn" type="button">Sign out</button><button id="stUnlock" class="assist-btn" type="button" title="After registering, the identity is locked for this browser session">Unlock this session</button></div>
+      </section>
 
-    <details class="settings-accordion" id="panel-profile" open>
-      <summary>Profile and Identity</summary>
-      <div class="settings-body settings-row">
-        <label for="studentNameInput" style="font-weight:600;">Student Name</label>
-        <input id="studentNameInput" class="modal-input" placeholder="Student name" maxlength="40" />
-
-        <label for="studentEmailInput" style="font-weight:600;">Student Email Login (Assignment/Quiz Submit)</label>
-        <input id="studentEmailInput" class="modal-input" placeholder="0902CS231028@rjit.ac.in" maxlength="64" style="text-transform:lowercase;" />
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="saveEmailBtn" class="icon-btn" type="button">Use This Email</button>
-          <button id="clearEmailBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Logout Email</button>
-          <button id="unlockSessionBtn" class="icon-btn" type="button">Unlock Session Identity</button>
+      <!-- Appearance -->
+      <section class="gs-card st-card">
+        <h2><i data-lucide="palette"></i> Appearance</h2>
+        <div class="st-label">Theme</div>
+        <div class="st-themes" id="stThemes" role="radiogroup" aria-label="Theme"></div>
+        <div class="st-label">Text size</div>
+        <div class="st-seg" data-key="tocFontScale" role="radiogroup" aria-label="Text size">
+          <button data-v="normal" type="button">A</button><button data-v="large" type="button" style="font-size:1.12em">A</button><button data-v="xlarge" type="button" style="font-size:1.25em">A</button>
         </div>
-        <div class="integration-status" style="margin-top:8px;">
-          <div><strong>Submit Identity:</strong> <span id="authStatePreview">Not set</span></div>
-          <div><strong>Derived Roll:</strong> <span id="authRollPreview">-</span></div>
+        <div class="st-label">Motion</div>
+        <div class="st-seg" data-key="tocMotion" role="radiogroup" aria-label="Motion">
+          <button data-v="normal" type="button">Full</button><button data-v="reduced" type="button">Reduced</button>
         </div>
-        <p id="authStatus" style="margin-top:10px;color:#475569;font-size:0.9rem;"></p>
-      </div>
-    </details>
-
-    <details class="settings-accordion" id="panel-appearance" open>
-      <summary>Appearance and Behavior</summary>
-      <div class="settings-body settings-row">
-        <label for="themeSelect" style="font-weight:600;">Theme</label>
-        <select id="themeSelect" class="modal-input">
-          <option value="default">Default</option>
-          <option value="ocean">Ocean</option>
-          <option value="forest">Forest</option>
-          <option value="sunset">Sunset</option>
-        </select>
-        <label for="fontScaleSelect" style="font-weight:600;">Text Size</label>
-        <select id="fontScaleSelect" class="modal-input">
-          <option value="normal">Normal</option>
-          <option value="large">Large</option>
-          <option value="xlarge">Extra Large</option>
-        </select>
-        <label for="motionSelect" style="font-weight:600;">Motion</label>
-        <select id="motionSelect" class="modal-input">
-          <option value="normal">Normal</option>
-          <option value="reduced">Reduced Motion</option>
-        </select>
-        <label for="animSpeedSelect" style="font-weight:600;">Animation Speed</label>
-        <select id="animSpeedSelect" class="modal-input">
-          <option value="slow">Slow (step-by-step teaching)</option>
-          <option value="normal">Normal</option>
-          <option value="fast">Fast</option>
-          <option value="instant">Instant (no animation)</option>
-        </select>
-        <label style="display:flex;gap:8px;align-items:center; margin-top:4px;">
-          <input id="autoResumeToggle" type="checkbox" />
-          Auto-open last used studio on startup
-        </label>
-      </div>
-    </details>
-
-    <details class="settings-accordion" id="panel-data">
-      <summary>Data Controls</summary>
-      <div class="settings-body settings-row">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="exportSettingsBtn" class="icon-btn" type="button">Export Settings JSON</button>
-          <button id="importSettingsBtn" class="icon-btn" type="button">Import Settings JSON</button>
-          <button id="resetSettingsBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Reset to Defaults</button>
-          <button id="clearAllDataBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Erase All Local Data</button>
+        <div class="st-label">Drawing animation speed</div>
+        <div class="st-seg" data-key="tocAnimSpeed" role="radiogroup" aria-label="Animation speed">
+          <button data-v="slow" type="button">Slow</button><button data-v="normal" type="button">Normal</button><button data-v="fast" type="button">Fast</button><button data-v="instant" type="button">Instant</button>
         </div>
-        <input id="importSettingsInput" type="file" accept=".json,application/json" style="display:none;" />
-        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;">
-          <input id="shareSavesToggle" type="checkbox" style="margin-top:3px;" />
-          <span>Share my saved machines with the class review queue (name, roll number if logged in, and the machine). Assignment and quiz submissions are always sent.</span>
-        </label>
-        <p style="margin:10px 0 0;font-size:.9rem;color:#475569;">Everything else stays in this browser. Read the <a href="policies.html#privacy">privacy policy</a>, <a href="policies.html#terms">terms of use</a> and <a href="policies.html#accessibility">accessibility statement</a>.</p>
-      </div>
-    </details>
+        <div class="st-preview" id="stPreview"><div class="st-preview-bar"></div><div class="st-preview-body"><span class="st-dot"></span><span class="st-dot acc"></span><span class="st-line"></span><b>Preview</b></div></div>
+      </section>
 
-    <details class="settings-accordion" id="panel-preview" open>
-      <summary>Live Preview</summary>
-      <div class="settings-body settings-row">
-        <div id="previewCard" class="integration-status">
-          <div><strong>Name:</strong> <span id="previewName">Student</span></div>
-          <div><strong>Theme:</strong> <span id="previewTheme">default</span></div>
-          <div><strong>Text Size:</strong> <span id="previewFont">normal</span></div>
-          <div><strong>Motion:</strong> <span id="previewMotion">normal</span></div>
+      <!-- Behaviour -->
+      <section class="gs-card st-card">
+        <h2><i data-lucide="sliders-horizontal"></i> Studio behaviour</h2>
+        <label class="st-switch"><input type="checkbox" id="stAutoResume" data-key="tocAutoResume"><span></span><div><b>Open my last studio on start</b><p class="st-note">Skip the home screen and continue where you left off.</p></div></label>
+        <label class="st-switch"><input type="checkbox" id="stShare" data-key="tocShareSaves"><span></span><div><b>Share saved machines with my instructor</b><p class="st-note">When on, “Save” also sends the machine to the class database (only with a registered identity).</p></div></label>
+        <div class="st-label">Presets</div>
+        <div class="st-row st-presets">
+          <button class="assist-btn" data-preset="focus" type="button">Focus</button>
+          <button class="assist-btn" data-preset="calm" type="button">Calm</button>
+          <button class="assist-btn" data-preset="present" type="button">Presenting</button>
+          <button class="assist-btn" data-preset="default" type="button">Defaults</button>
         </div>
-        <p id="saveStatus" style="margin-top:4px;color:#475569;font-size:0.9rem;"></p>
-      </div>
-    </details>
+        <p class="st-note">Focus: forest theme, larger text, fast drawing. Calm: ocean, reduced motion. Presenting: largest text, slow drawing.</p>
+      </section>
 
-    <section class="sticky-actions">
-      <button id="saveSettingsBtn" class="run-btn" type="button">Save All Settings</button>
-    </section>
-  </main>
+      <!-- Data -->
+      <section class="gs-card st-card">
+        <h2><i data-lucide="database"></i> Your data</h2>
+        <p class="st-note">Everything — studio autosaves, practice progress, the Grammar Studio session and these settings — lives in this browser only.</p>
+        <div class="st-row">
+          <button id="stExport" class="assist-btn" type="button"><i data-lucide="download"></i> Export settings</button>
+          <button id="stImport" class="assist-btn" type="button"><i data-lucide="upload"></i> Import</button>
+          <input id="stImportFile" type="file" accept="application/json" hidden />
+        </div>
+        <div class="st-usage" id="stUsage"></div>
+        <button id="stErase" class="assist-btn st-danger" type="button"><i data-lucide="trash-2"></i> Erase all local data…</button>
+      </section>
 
-  <script>
-    const STORAGE_KEYS = {
-      studentName: 'tocStudentName',
-      theme: 'tocTheme',
-      fontScale: 'tocFontScale',
-      motion: 'tocMotion',
-      animSpeed: 'tocAnimSpeed',
-      shareSaves: 'tocShareSaves',
-      autoResume: 'tocAutoResume',
-      authEmail: 'tocAuthEmail',
-      authRoll: 'tocAuthRoll',
-      openPanels: 'tocSettingsOpenPanelsV1'
-    };
-    const SESSION_KEYS = {
-      authLocked: 'tocAuthSessionLocked'
-    };
-    const DEFAULTS = {
-      studentName: 'Student',
-      theme: 'default',
-      fontScale: 'normal',
-      motion: 'normal',
-      animSpeed: 'normal',
-      shareSaves: 'true',
-      autoResume: 'false'
-    };
-    const THEME_COLORS = {
-      default: '#4a90e2',
-      ocean: '#0284c7',
-      forest: '#15803d',
-      sunset: '#ea580c'
-    };
-    const EMAIL_RE = /^[a-z0-9._%+-]+@rjit\.ac\.in$/i;
-    const ROLL_LOCAL_RE = /^0902(?:CS|EC|IT|AI)\d{6}$/i;
+      <!-- About -->
+      <section class="gs-card st-card st-about">
+        <h2><i data-lucide="info"></i> About</h2>
+        <div class="st-about-row"><img src="../assets/icons/icon-192.png" alt="" width="48" height="48"><div><b>Toc-Suite v2.0.0</b><div class="st-note" id="stPlatform"></div></div></div>
+        <ul class="st-links">
+          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest" target="_blank" rel="noopener">Download the Windows, Android and Linux apps</a></li>
+          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite" target="_blank" rel="noopener">Source code (MIT licence)</a></li>
+          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/CHANGELOG.md" target="_blank" rel="noopener">What's new</a></li>
+          <li><a href="policies.html#privacy">Privacy</a> · <a href="policies.html#terms">Terms</a> · <a href="policies.html#accessibility">Accessibility</a></li>
+        </ul>
+      </section>
+    </div>
+  </div>
+  <div id="stToast" class="st-toast" role="status" aria-live="polite"></div>
 
-    const safeGet = (key, fallback = '') => {
-      try { return localStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
-    };
-    const safeSet = (key, value) => {
-      try { localStorage.setItem(key, value); return true; } catch (_e) { return false; }
-    };
-    const safeRemove = (key) => {
-      try { localStorage.removeItem(key); } catch (_e) {}
-    };
-    const sessionGet = (key, fallback = '') => {
-      try { return sessionStorage.getItem(key) ?? fallback; } catch (_e) { return fallback; }
-    };
-    const sessionSet = (key, value) => {
-      try { sessionStorage.setItem(key, value); } catch (_e) {}
-    };
-    const sessionRemove = (key) => {
-      try { sessionStorage.removeItem(key); } catch (_e) {}
-    };
+  <script type="module">
+    import { applyPrefs, THEME_COLORS } from '../src/shared/page_prefs.js';
+    import { refreshLucideIcons } from '../src/shared/utils.js';
+    const $ = (id) => document.getElementById(id);
+    const get = (k, d = '') => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+    const set = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
+    const del = (k) => { try { localStorage.removeItem(k); } catch {} };
+    const sget = (k) => { try { return sessionStorage.getItem(k); } catch { return null; } };
+    const sset = (k, v) => { try { sessionStorage.setItem(k, v); } catch {} };
+    const sdel = (k) => { try { sessionStorage.removeItem(k); } catch {} };
+    const DEFAULTS = { tocTheme: 'default', tocFontScale: 'normal', tocMotion: 'normal', tocAnimSpeed: 'normal', tocAutoResume: 'false', tocShareSaves: 'true', tocStudentName: 'Student' };
+    const KEYS = Object.keys(DEFAULTS);
+    const EMAIL_RE = /^[a-z0-9._%+-]+@rjit\.ac\.in$/i, ROLL_RE = /^0902(?:CS|EC|IT|AI)\d{6}$/i;
+    let toastTimer;
+    const toast = (msg) => { const t = $('stToast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800); };
+    const save = (k, v, msg = 'Saved') => { if (set(k, v)) toast(msg); else toast('Browser storage is blocked — not saved'); applyPrefs(); render(); };
 
-    const parseIdentity = (emailRaw) => {
-      const email = String(emailRaw || '').trim().toLowerCase();
-      if (!EMAIL_RE.test(email)) return null;
-      const local = email.split('@')[0].toUpperCase();
-      if (!ROLL_LOCAL_RE.test(local)) return null;
-      return { email, roll: local };
+    // ---- theme cards
+    const THEME_NAMES = { default: 'Violet', ocean: 'Ocean', forest: 'Forest', sunset: 'Sunset' };
+    $('stThemes').innerHTML = Object.entries(THEME_COLORS).map(([k, c]) => `<button type="button" role="radio" data-theme="${k}" style="--c:${c}"><span></span>${THEME_NAMES[k]}</button>`).join('');
+    $('stThemes').addEventListener('click', (e) => { const b = e.target.closest('[data-theme]'); if (b) save('tocTheme', b.dataset.theme, `Theme: ${THEME_NAMES[b.dataset.theme]}`); });
+    document.querySelectorAll('.st-seg').forEach(seg => seg.addEventListener('click', (e) => { const b = e.target.closest('[data-v]'); if (b) save(seg.dataset.key, b.dataset.v); }));
+    document.querySelectorAll('.st-switch input').forEach(i => i.addEventListener('change', () => save(i.dataset.key, i.checked ? 'true' : 'false')));
+    let nameTimer;
+    $('stName').addEventListener('input', () => { clearTimeout(nameTimer); nameTimer = setTimeout(() => save('tocStudentName', $('stName').value.trim() || 'Student', 'Name saved'), 400); });
+
+    const PRESETS = {
+      focus: { tocTheme: 'forest', tocFontScale: 'large', tocMotion: 'normal', tocAnimSpeed: 'fast' },
+      calm: { tocTheme: 'ocean', tocFontScale: 'normal', tocMotion: 'reduced', tocAnimSpeed: 'slow' },
+      present: { tocTheme: 'default', tocFontScale: 'xlarge', tocMotion: 'normal', tocAnimSpeed: 'slow' },
+      default: { tocTheme: 'default', tocFontScale: 'normal', tocMotion: 'normal', tocAnimSpeed: 'normal' },
     };
+    document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+      for (const [k, v] of Object.entries(PRESETS[b.dataset.preset])) set(k, v);
+      applyPrefs(); render(); toast(`Preset: ${b.textContent}`);
+    }));
 
-    const applyTheme = (theme = 'default') => {
-      const safeTheme = THEME_COLORS[theme] ? theme : 'default';
-      document.body.setAttribute('data-theme', safeTheme);
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[safeTheme]);
-    };
-    const applyFontScale = (scale = 'normal') => {
-      const safeScale = ['normal', 'large', 'xlarge'].includes(scale) ? scale : 'normal';
-      document.documentElement.setAttribute('data-font-scale', safeScale);
-    };
-    const applyMotion = (mode = 'normal') => {
-      document.body.setAttribute('data-motion', mode === 'reduced' ? 'reduced' : 'normal');
-    };
-
-    const studentInput = document.getElementById('studentNameInput');
-    const studentEmailInput = document.getElementById('studentEmailInput');
-    const saveEmailBtn = document.getElementById('saveEmailBtn');
-    const clearEmailBtn = document.getElementById('clearEmailBtn');
-    const unlockSessionBtn = document.getElementById('unlockSessionBtn');
-    const authStatePreview = document.getElementById('authStatePreview');
-    const authRollPreview = document.getElementById('authRollPreview');
-    const authStatus = document.getElementById('authStatus');
-    const themeSelect = document.getElementById('themeSelect');
-    const fontScaleSelect = document.getElementById('fontScaleSelect');
-    const motionSelect = document.getElementById('motionSelect');
-    const autoResumeToggle = document.getElementById('autoResumeToggle');
-    const animSpeedSelect = document.getElementById('animSpeedSelect');
-    const shareSavesToggle = document.getElementById('shareSavesToggle');
-    const clearAllDataBtn = document.getElementById('clearAllDataBtn');
-    const saveBtn = document.getElementById('saveSettingsBtn');
-    const exportBtn = document.getElementById('exportSettingsBtn');
-    const importBtn = document.getElementById('importSettingsBtn');
-    const importInput = document.getElementById('importSettingsInput');
-    const resetBtn = document.getElementById('resetSettingsBtn');
-    const saveStatus = document.getElementById('saveStatus');
-
-    const kpiName = document.getElementById('kpiName');
-    const kpiTheme = document.getElementById('kpiTheme');
-    const kpiIdentity = document.getElementById('kpiIdentity');
-    const kpiResume = document.getElementById('kpiResume');
-
-    const presetFocusBtn = document.getElementById('presetFocusBtn');
-    const presetCalmBtn = document.getElementById('presetCalmBtn');
-    const presetDefaultBtn = document.getElementById('presetDefaultBtn');
-
-    function updateAuthPreview() {
-      const email = safeGet(STORAGE_KEYS.authEmail, '');
-      const roll = safeGet(STORAGE_KEYS.authRoll, '');
-      const locked = sessionGet(SESSION_KEYS.authLocked, '') === 'true';
-      if (email && roll) {
-        authStatePreview.textContent = email;
-        authRollPreview.textContent = roll;
-        studentEmailInput.value = email;
-        kpiIdentity.textContent = roll;
-        if (locked) {
-          authStatus.textContent = 'Email registered for this session. Identity cannot be changed until session unlock or browser restart.';
-        }
-      } else {
-        authStatePreview.textContent = 'Not set';
-        authRollPreview.textContent = '-';
-        kpiIdentity.textContent = 'Not set';
-      }
-      studentEmailInput.disabled = locked;
-      saveEmailBtn.disabled = locked;
-      clearEmailBtn.disabled = locked;
-      saveEmailBtn.style.opacity = locked ? '0.6' : '1';
-      clearEmailBtn.style.opacity = locked ? '0.6' : '1';
+    // ---- identity
+    function renderIdentity() {
+      const email = get('tocAuthEmail'), roll = get('tocAuthRoll'), locked = sget('tocAuthSessionLocked') === 'true';
+      $('stIdentity').innerHTML = email && roll
+        ? `<span class="st-badge ok">Signed in</span> <b>${roll}</b> · ${email}${locked ? ' <span class="st-badge">locked for this session</span>' : ''}`
+        : '<span class="st-badge">Not signed in</span> Practice and saving work without it.';
+      $('stEmail').disabled = locked; $('stEmailSave').disabled = locked; $('stEmailClear').disabled = locked;
+      $('stUnlock').hidden = !locked;
     }
+    $('stEmailSave').addEventListener('click', () => {
+      const email = $('stEmail').value.trim().toLowerCase();
+      const roll = email.split('@')[0].toUpperCase();
+      if (!EMAIL_RE.test(email) || !ROLL_RE.test(roll)) { toast('Use the format 0902CS231028@rjit.ac.in'); return; }
+      set('tocAuthEmail', email); set('tocAuthRoll', roll); sset('tocAuthSessionLocked', 'true');
+      toast(`Signed in as ${roll}`); renderIdentity();
+    });
+    $('stEmailClear').addEventListener('click', () => { del('tocAuthEmail'); del('tocAuthRoll'); $('stEmail').value = ''; toast('Signed out'); renderIdentity(); });
+    $('stUnlock').addEventListener('click', () => { sdel('tocAuthSessionLocked'); toast('Identity unlocked for this session'); renderIdentity(); });
 
-    const updatePreview = () => {
-      const name = (studentInput.value || '').trim() || DEFAULTS.studentName;
-      const theme = themeSelect.value || DEFAULTS.theme;
-      const fontScale = fontScaleSelect.value || DEFAULTS.fontScale;
-      const motion = motionSelect.value || DEFAULTS.motion;
-      document.getElementById('previewName').textContent = name;
-      document.getElementById('previewTheme').textContent = theme;
-      document.getElementById('previewFont').textContent = fontScale;
-      document.getElementById('previewMotion').textContent = motion;
-      kpiName.textContent = name;
-      kpiTheme.textContent = theme;
-      kpiResume.textContent = autoResumeToggle.checked ? 'On' : 'Off';
-      applyTheme(theme);
-      applyFontScale(fontScale);
-      applyMotion(motion);
-      updateAuthPreview();
-    };
-
-    const loadForm = () => {
-      studentInput.value = safeGet(STORAGE_KEYS.studentName, DEFAULTS.studentName);
-      studentEmailInput.value = safeGet(STORAGE_KEYS.authEmail, '');
-      themeSelect.value = safeGet(STORAGE_KEYS.theme, DEFAULTS.theme);
-      fontScaleSelect.value = safeGet(STORAGE_KEYS.fontScale, DEFAULTS.fontScale);
-      motionSelect.value = safeGet(STORAGE_KEYS.motion, DEFAULTS.motion);
-      autoResumeToggle.checked = safeGet(STORAGE_KEYS.autoResume, DEFAULTS.autoResume) === 'true';
-      animSpeedSelect.value = safeGet(STORAGE_KEYS.animSpeed, DEFAULTS.animSpeed);
-      shareSavesToggle.checked = safeGet(STORAGE_KEYS.shareSaves, DEFAULTS.shareSaves) !== 'false';
-      updatePreview();
-    };
-
-    const saveForm = () => {
-      const name = (studentInput.value || '').trim() || DEFAULTS.studentName;
-      const ok = [
-        safeSet(STORAGE_KEYS.studentName, name),
-        safeSet(STORAGE_KEYS.theme, themeSelect.value || DEFAULTS.theme),
-        safeSet(STORAGE_KEYS.fontScale, fontScaleSelect.value || DEFAULTS.fontScale),
-        safeSet(STORAGE_KEYS.motion, motionSelect.value || DEFAULTS.motion),
-        safeSet(STORAGE_KEYS.autoResume, autoResumeToggle.checked ? 'true' : 'false'),
-        safeSet(STORAGE_KEYS.animSpeed, animSpeedSelect.value || DEFAULTS.animSpeed),
-        safeSet(STORAGE_KEYS.shareSaves, shareSavesToggle.checked ? 'true' : 'false')
-      ].every(Boolean);
-      updatePreview();
-      saveStatus.textContent = ok
-        ? 'Saved. Preferences will apply on splash and studios.'
-        : 'Saved partially. Browser storage is restricted.';
-    };
-
-    function applyPreset(preset) {
-      if (preset === 'focus') {
-        themeSelect.value = 'forest';
-        fontScaleSelect.value = 'large';
-        motionSelect.value = 'reduced';
-        animSpeedSelect.value = 'fast';
-      } else if (preset === 'calm') {
-        themeSelect.value = 'ocean';
-        fontScaleSelect.value = 'normal';
-        motionSelect.value = 'reduced';
-        animSpeedSelect.value = 'slow';
-      } else {
-        animSpeedSelect.value = DEFAULTS.animSpeed;
-        themeSelect.value = DEFAULTS.theme;
-        fontScaleSelect.value = DEFAULTS.fontScale;
-        motionSelect.value = DEFAULTS.motion;
-      }
-      updatePreview();
-      saveStatus.textContent = `Preset applied: ${preset}. Click "Save All Settings" to persist.`;
+    // ---- data
+    function usage() {
+      let n = 0, bytes = 0;
+      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^toc|^fa|^mm|^pda|^tm/i.test(k)) { n++; bytes += (localStorage.getItem(k) || '').length + k.length; } } } catch {}
+      $('stUsage').textContent = `${n} saved item${n === 1 ? '' : 's'} · about ${(bytes * 2 / 1024).toFixed(1)} KB on this device`;
     }
-
-    saveEmailBtn.addEventListener('click', () => {
-      if (sessionGet(SESSION_KEYS.authLocked, '') === 'true') {
-        authStatus.textContent = 'Identity is locked for this session.';
-        updateAuthPreview();
-        return;
-      }
-      const parsed = parseIdentity(studentEmailInput.value);
-      if (!parsed) {
-        authStatus.textContent = 'Use valid format: 0902(CS|EC|IT|AI)XXXXXX@rjit.ac.in';
-        return;
-      }
-      safeSet(STORAGE_KEYS.authEmail, parsed.email);
-      safeSet(STORAGE_KEYS.authRoll, parsed.roll);
-      sessionSet(SESSION_KEYS.authLocked, 'true');
-      authStatus.textContent = 'Email registered successfully for this session.';
-      updateAuthPreview();
+    $('stExport').addEventListener('click', () => {
+      const data = Object.fromEntries(KEYS.map(k => [k, get(k, DEFAULTS[k])]));
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'toc-suite', version: '2.0.0', settings: data }, null, 2)], { type: 'application/json' }));
+      a.download = 'toc-suite-settings.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     });
-
-    clearEmailBtn.addEventListener('click', () => {
-      if (sessionGet(SESSION_KEYS.authLocked, '') === 'true') {
-        authStatus.textContent = 'Identity is locked for this session and cannot be changed right now.';
-        updateAuthPreview();
-        return;
-      }
-      safeRemove(STORAGE_KEYS.authEmail);
-      safeRemove(STORAGE_KEYS.authRoll);
-      studentEmailInput.value = '';
-      authStatus.textContent = 'Student email identity cleared.';
-      updateAuthPreview();
-    });
-
-    unlockSessionBtn.addEventListener('click', () => {
-      sessionRemove(SESSION_KEYS.authLocked);
-      authStatus.textContent = 'Session identity lock removed on this device.';
-      updateAuthPreview();
-    });
-
-    [studentInput, themeSelect, fontScaleSelect, motionSelect].forEach((el) => {
-      el.addEventListener('input', updatePreview);
-      el.addEventListener('change', updatePreview);
-    });
-    autoResumeToggle.addEventListener('change', updatePreview);
-    saveBtn.addEventListener('click', saveForm);
-
-    presetFocusBtn.addEventListener('click', () => applyPreset('focus'));
-    presetCalmBtn.addEventListener('click', () => applyPreset('calm'));
-    presetDefaultBtn.addEventListener('click', () => applyPreset('default'));
-
-    exportBtn.addEventListener('click', () => {
-      const payload = {
-        studentName: (studentInput.value || '').trim() || DEFAULTS.studentName,
-        theme: themeSelect.value || DEFAULTS.theme,
-        fontScale: fontScaleSelect.value || DEFAULTS.fontScale,
-        motion: motionSelect.value || DEFAULTS.motion,
-        animSpeed: animSpeedSelect.value || DEFAULTS.animSpeed,
-        shareSaves: shareSavesToggle.checked,
-        autoResume: autoResumeToggle.checked
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'toc-suite-settings.json';
-      link.click();
-      URL.revokeObjectURL(url);
-    });
-
-    importBtn.addEventListener('click', () => importInput.click());
-    importInput.addEventListener('change', async () => {
-      const file = importInput.files?.[0];
-      if (!file) return;
+    $('stImport').addEventListener('click', () => $('stImportFile').click());
+    $('stImportFile').addEventListener('change', async (e) => {
       try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (typeof data.studentName === 'string') studentInput.value = data.studentName;
-        if (typeof data.theme === 'string') themeSelect.value = data.theme;
-        if (typeof data.fontScale === 'string') fontScaleSelect.value = data.fontScale;
-        if (typeof data.motion === 'string') motionSelect.value = data.motion;
-        if (typeof data.autoResume === 'boolean') autoResumeToggle.checked = data.autoResume;
-        if (['slow', 'normal', 'fast', 'instant'].includes(data.animSpeed)) animSpeedSelect.value = data.animSpeed;
-        if (typeof data.shareSaves === 'boolean') shareSavesToggle.checked = data.shareSaves;
-        updatePreview();
-        saveStatus.textContent = 'Settings JSON loaded. Click "Save All Settings" to persist.';
-      } catch (_e) {
-        saveStatus.textContent = 'Import failed. Please choose a valid JSON file.';
-      } finally {
-        importInput.value = '';
-      }
+        const obj = JSON.parse(await e.target.files[0].text());
+        const s = obj.settings || obj;
+        let n = 0;
+        for (const k of KEYS) if (typeof s[k] === 'string') { set(k, s[k]); n++; }
+        applyPrefs(); render(); toast(`Imported ${n} settings`);
+      } catch { toast('That file is not a Toc-Suite settings file'); }
+      e.target.value = '';
+    });
+    $('stErase').addEventListener('click', () => {
+      if (!confirm('Erase every Toc-Suite autosave, practice progress, identity and setting on this device? This cannot be undone.')) return;
+      try {
+        const ks = []; for (let i = 0; i < localStorage.length; i++) ks.push(localStorage.key(i));
+        ks.filter(k => /^toc|^fa|^mm|^pda|^tm|^grammar/i.test(k)).forEach(del);
+        sessionStorage.clear();
+      } catch {}
+      applyPrefs(); render(); renderIdentity(); toast('All local data erased');
     });
 
-    resetBtn.addEventListener('click', () => {
-      [STORAGE_KEYS.studentName, STORAGE_KEYS.theme, STORAGE_KEYS.fontScale, STORAGE_KEYS.motion, STORAGE_KEYS.animSpeed, STORAGE_KEYS.shareSaves, STORAGE_KEYS.autoResume].forEach(safeRemove);
-      loadForm();
-      saveStatus.textContent = 'Reset complete. Defaults restored.';
-    });
-
-    clearAllDataBtn.addEventListener('click', async () => {
-      if (!confirm('Erase every Toc-Suite setting, saved snapshot and cached file on this device? Files you downloaded are not affected.')) return;
-      try { Object.keys(localStorage).filter(k => /^toc/i.test(k)).forEach(k => localStorage.removeItem(k)); } catch (_e) {}
-      try { Object.keys(sessionStorage).filter(k => /^toc/i.test(k)).forEach(k => sessionStorage.removeItem(k)); } catch (_e) {}
-      try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (_e) {}
-      loadForm();
-      saveStatus.textContent = 'All local Toc-Suite data was erased from this browser.';
-    });
-
-    const panels = ['panel-profile', 'panel-appearance', 'panel-data', 'panel-preview'];
-    const safeParse = (raw, fallback) => { try { return JSON.parse(raw); } catch (_e) { return fallback; } };
-    const panelState = safeParse(safeGet(STORAGE_KEYS.openPanels, '{}'), {});
-    panels.forEach((id) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (Object.prototype.hasOwnProperty.call(panelState, id)) el.open = Boolean(panelState[id]);
-      el.addEventListener('toggle', () => {
-        const next = safeParse(safeGet(STORAGE_KEYS.openPanels, '{}'), {});
-        next[id] = el.open;
-        safeSet(STORAGE_KEYS.openPanels, JSON.stringify(next));
-      });
-    });
-
-    loadForm();
-    if (safeGet(STORAGE_KEYS.authEmail, '') && safeGet(STORAGE_KEYS.authRoll, '')) {
-      sessionSet(SESSION_KEYS.authLocked, 'true');
-      updateAuthPreview();
+    // ---- render current values
+    function render() {
+      $('stName').value = document.activeElement === $('stName') ? $('stName').value : get('tocStudentName', 'Student');
+      document.querySelectorAll('#stThemes [data-theme]').forEach(b => b.setAttribute('aria-checked', b.dataset.theme === get('tocTheme', 'default')));
+      document.querySelectorAll('.st-seg').forEach(seg => seg.querySelectorAll('[data-v]').forEach(b => b.setAttribute('aria-checked', b.dataset.v === get(seg.dataset.key, DEFAULTS[seg.dataset.key]))));
+      $('stAutoResume').checked = get('tocAutoResume', 'false') === 'true';
+      $('stShare').checked = get('tocShareSaves', 'true') !== 'false';
+      usage();
     }
+    $('stPlatform').textContent = location.protocol === 'app:' ? 'Desktop app' : window.Capacitor ? 'Android app' : 'Web app · works offline after the first visit';
+    applyPrefs(); render(); renderIdentity(); refreshLucideIcons();
   </script>
 </body>
 </html>

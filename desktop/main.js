@@ -42,7 +42,7 @@ async function serve(request) {
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440, height: 900, minWidth: 360, minHeight: 560,
-    title: 'Toc-Suite', backgroundColor: '#f5f7fa', autoHideMenuBar: true,
+    title: 'Toc-Suite', backgroundColor: '#07071a', autoHideMenuBar: true,
     icon: path.join(__dirname, 'web', 'assets', 'icons', 'icon-512.png'),
     webPreferences: { contextIsolation: true, sandbox: true },
   });

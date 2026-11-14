@@ -1431,6 +1431,11 @@ function startUnifiedApp() {
     });
     
     const hash = (window.location.hash || '').toLowerCase();
+    if (hash === '#home') {
+        // explicit "go home" (e.g. from the Grammar Studio): forget the last route, stay on the splash
+        clearActiveRoute();
+        return;
+    }
     const hashRoute = hash === '#fa' ? 'fa' : hash.replace('#', '');
     const sessionRoute = (safeSessionGet(SESSION_KEYS.activeRoute, '') || '').toLowerCase();
     const persistedRoute = hashRoute || sessionRoute;
