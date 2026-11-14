@@ -48,24 +48,6 @@ test('automata.js convertNfaToDfa + minimizeDfa preserve the language', async ()
   }
 });
 
-test('regex-converter.js (Grammar studio) agrees with core regex on random expressions', async () => {
-  const { parseRegexAndBuildEnfa } = await import('../src/grammar/regex-converter.js');
-  const gen = (d) => {
-    const r = rnd();
-    if (d <= 0 || r < 0.3) return ['a', 'b'][ri(2)];
-    if (r < 0.5) return `(${gen(d - 1)}+${gen(d - 1)})`;
-    if (r < 0.8) return gen(d - 1) + gen(d - 1);
-    return `(${gen(d - 1)})*`;
-  };
-  for (let k = 0; k < 150; k++) {
-    const re = gen(3);
-    const out = parseRegexAndBuildEnfa(re);
-    const m = out.machine || out;
-    const mine = FA.toMinimalDfa({ ...m, type: 'ENFA' }, ['a', 'b']);
-    assert.equal(FA.compare(mine, regexToDfa(re, ['a', 'b'])).equivalent, true, `regex ${re}`);
-  }
-});
-
 test('equivalence.js areEquivalent handles alphabet differences', async () => {
   const { areEquivalent } = await import('../src/fa/equivalence.js');
   const onlyA = { type: 'DFA', states: [{ id: 'x', initial: true, accepting: true }], transitions: [{ from: 'x', to: 'x', symbol: 'a' }] };

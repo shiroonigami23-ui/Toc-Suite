@@ -1,1302 +1,430 @@
-import { parseRegexAndBuildEnfa } from './regex-converter.js';
+// grammar/grammar_main.js — the Grammar Studio page (UI over core/cfg.js).
+
+import * as C from '../core/cfg.js';
+import * as FA from '../core/fa.js';
+import { regexToEnfa, regexToDfa } from '../core/regex.js';
+import { readSpec, oracleFor } from '../core/build/lang.js';
 import { consumePendingImportedMachine, setPendingImportedMachine } from '../app/machine_router.js';
-import { bindGlobalDrawerHandlers } from '../shared/utils.js';
 import { appUrl } from '../shared/paths.js';
+import { refreshLucideIcons, initializeShortcuts } from '../shared/utils.js';
+import { initBuilder } from '../assistant/builder_ui.js';
 
-const EPSILON_SYMBOL = 'ε';
-const EPSILON_TOKENS = new Set(['eps', 'esp', 'epsilon', 'e', 'ε', 'îµ', 'lambda', 'lamda', 'λ']);
-const PENDING_PDA_KEY = 'tocPendingPdaMachine';
-const PENDING_MM_PROMPT_KEY = 'tocPendingMmPromptV1';
-const PENDING_TM_PROMPT_KEY = 'tocPendingTmPromptV1';
-const ACTIVE_ROUTE_KEY = 'tocActiveRoute';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const STORE = 'tocGrammarStudioV2';
+let G = null;            // current parsed grammar
+let parsed = null;       // parse result (errors / warnings)
+let analysis = null;
+let tab = 'overview';
 
-let latestGrammar = null;
-let latestNpda = null;
+// ------------------------------------------------------------------ helpers
 
-function byId(id) {
-  return document.getElementById(id);
+const show = (w) => (w === '' ? 'ε' : w);
+const word = (arr) => (arr.some(s => s.length > 1) ? arr.join(' ') : arr.join(''));
+const grammarPre = (g) => `<pre class="gs-pre">${esc(C.grammarText(g))}</pre>`;
+const setList = (set) => (set && set.size ? [...set].map(x => `<code>${esc(x)}</code>`).join(' ') : '<span class="gs-dim">none</span>');
+
+function openInStudio(route, machine) {
+  setPendingImportedMachine(route, machine);
+  window.location.href = appUrl(`index.html#${route}`);
 }
 
-function escHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function isNonTerminal(token) {
-  return /^[A-Z][A-Z0-9_]*$/.test(token);
-}
-
-function normalizeSymbolToken(token) {
-  const normalized = String(token || '')
-    .replaceAll('Îµ', EPSILON_SYMBOL)
-    .replaceAll('ϵ', EPSILON_SYMBOL)
-    .trim();
-  if (!normalized) return '';
-  const unquoted = normalized.replace(/^['"](.+)['"]$/, '$1').trim();
-  return unquoted || normalized;
-}
-
-function isEpsilonToken(token) {
-  return EPSILON_TOKENS.has(normalizeSymbolToken(token).toLowerCase());
-}
-
-function displaySymbol(symbol) {
-  if (symbol === '') return EPSILON_SYMBOL;
-  return isEpsilonToken(symbol) ? EPSILON_SYMBOL : normalizeSymbolToken(symbol);
-}
-
-function tokenizeAlternative(rhs) {
-  const raw = rhs.trim();
-  if (!raw) return [];
-  if (raw.includes(' ')) {
-    return raw.split(/\s+/).map(normalizeSymbolToken).filter(Boolean);
+function testWords(g, maxLen) {
+  const out = [];
+  let layer = [[]];
+  for (let L = 0; L <= maxLen; L++) {
+    if (L) layer = layer.flatMap(w => g.terminals.map(a => [...w, a]));
+    if (out.length + layer.length > 4000) break;
+    out.push(...layer);
   }
-
-  const compact = normalizeSymbolToken(raw);
-  if (isEpsilonToken(compact)) return [EPSILON_SYMBOL];
-
-  const tokens = [];
-  let idx = 0;
-  while (idx < compact.length) {
-    const chunk = compact.slice(idx);
-    const nt = chunk.match(/^[A-Z][A-Z0-9_]*/);
-    if (nt) {
-      tokens.push(nt[0]);
-      idx += nt[0].length;
-      continue;
-    }
-    const term = chunk.match(/^[a-z][a-z0-9_]*/);
-    if (term) {
-      tokens.push(normalizeSymbolToken(term[0]));
-      idx += term[0].length;
-      continue;
-    }
-    tokens.push(normalizeSymbolToken(chunk[0]));
-    idx += 1;
-  }
-  return tokens.filter(Boolean);
+  return out;
 }
 
-function parseGrammar(text, startSymbolRaw) {
-  const rules = [];
-  const lines = String(text || '').split(/\r?\n/);
+// ------------------------------------------------------------------ core refresh
 
-  for (const originalLine of lines) {
-    const line = originalLine.replace(/#.*/, '').replace(/\/\/.*/, '').trim();
-    if (!line) continue;
-
-    const match = line.match(/^([A-Z][A-Z0-9_]*)\s*->\s*(.+)$/);
-    if (!match) {
-      throw new Error(`Invalid rule format: ${originalLine}`);
-    }
-
-    const lhs = match[1].trim();
-    const rhsPart = match[2].trim();
-    const alternatives = rhsPart.split('|').map((a) => a.trim()).filter(Boolean);
-    if (!alternatives.length) {
-      throw new Error(`No alternatives found for ${lhs}`);
-    }
-
-    for (const alt of alternatives) {
-      const tokens = tokenizeAlternative(alt).map((t) => (isEpsilonToken(t) ? EPSILON_SYMBOL : t));
-      const isEps = tokens.length === 1 && isEpsilonToken(tokens[0]);
-      rules.push({ lhs, rhs: isEps ? [] : tokens.filter((t) => !isEpsilonToken(t)) });
-    }
+function refresh() {
+  const text = $('gsGrammar').value;
+  parsed = C.parseGrammar(text, $('gsStart').value.trim());
+  G = parsed.grammar;
+  try { localStorage.setItem(STORE, JSON.stringify({ text, start: $('gsStart').value, input: $('gsInput').value })); } catch { /* storage may be off */ }
+  const status = $('gsStatus');
+  if (!parsed.ok) {
+    analysis = null;
+    $('gsBadge').textContent = 'error';
+    $('gsBadge').className = 'gs-badge bad';
+    status.innerHTML = parsed.errors.map(e => `<div class="assist-error">${esc(e)}</div>`).join('');
+    renderTab();
+    return;
   }
-
-  if (!rules.length) throw new Error('Grammar is empty.');
-
-  const nonTerminals = new Set(rules.map((r) => r.lhs));
-  const terminals = new Set();
-
-  for (const rule of rules) {
-    for (const sym of rule.rhs) {
-      if (!isNonTerminal(sym)) terminals.add(sym);
-    }
-  }
-
-  const grouped = new Map();
-  for (const rule of rules) {
-    if (!grouped.has(rule.lhs)) grouped.set(rule.lhs, []);
-    grouped.get(rule.lhs).push(rule.rhs);
-  }
-
-  const startSymbol = String(startSymbolRaw || '').trim() || rules[0].lhs;
-  if (!nonTerminals.has(startSymbol)) {
-    throw new Error(`Start symbol ${startSymbol} is not defined in grammar.`);
-  }
-
-  return { rules, grouped, nonTerminals, terminals, startSymbol };
+  analysis = C.analyse(G);
+  const cls = analysis.classification;
+  $('gsBadge').textContent = `Type ${cls.type}`;
+  $('gsBadge').className = `gs-badge t${cls.type}`;
+  $('gsStart').placeholder = G.start;
+  status.innerHTML = parsed.warnings.map(w => `<div class="assist-warn">${esc(w)}</div>`).join('');
+  renderTab();
 }
 
-function sententialToString(sentential) {
-  return sentential.join('');
-}
-
-function firstNonTerminalIndex(sentential) {
-  return sentential.findIndex((s) => isNonTerminal(s));
-}
-
-function computeMinLen(grouped, nonTerminals) {
-  const minLen = {};
-  nonTerminals.forEach((nt) => { minLen[nt] = Infinity; });
-
-  for (let i = 0; i < 100; i += 1) {
-    let changed = false;
-    nonTerminals.forEach((nt) => {
-      const prods = grouped.get(nt) || [];
-      for (const rhs of prods) {
-        let total = 0;
-        let valid = true;
-        for (const sym of rhs) {
-          if (isNonTerminal(sym)) {
-            if (!Number.isFinite(minLen[sym])) {
-              valid = false;
-              break;
-            }
-            total += minLen[sym];
-          } else {
-            total += sym.length;
-          }
-        }
-        if (valid && total < minLen[nt]) {
-          minLen[nt] = total;
-          changed = true;
-        }
-      }
-    });
-    if (!changed) break;
+function renderTab() {
+  document.querySelectorAll('.gs-tabs [data-tab]').forEach(b => { b.classList.toggle('active', b.dataset.tab === tab); b.setAttribute('aria-selected', b.dataset.tab === tab); });
+  document.querySelectorAll('.gs-panel').forEach(p => { p.hidden = p.id !== `tab-${tab}`; });
+  const needCfg = ['parse', 'normal', 'cyk', 'll1', 'convert'].includes(tab);
+  if (needCfg && (!G || !parsed.ok || !G.isCfg)) {
+    const host = $(`tab-${tab}`);
+    const msg = !parsed?.ok ? 'Fix the grammar first (see the messages under the editor).' : 'This tool works on context-free grammars (one non-terminal on each left side). The Overview tab classifies the current grammar.';
+    if (tab === 'parse') $('gsParseOut').innerHTML = `<div class="assist-warn">${msg}</div>`;
+    else if (tab === 'cyk') $('gsCykOut').innerHTML = `<div class="assist-warn">${msg}</div>`;
+    else host.innerHTML = `<div class="assist-warn">${msg}</div>`;
+    return;
   }
-  return minLen;
+  ({ overview: renderOverview, parse: renderParse, normal: renderNormal, cyk: renderCyk, ll1: renderLl1, convert: renderConvert, pumping: () => {}, regex: () => {} })[tab]();
+  refreshLucideIcons();
 }
 
-function estimateMinLength(sentential, minLen) {
-  let total = 0;
-  for (const sym of sentential) {
-    if (isNonTerminal(sym)) {
-      const m = minLen[sym];
-      if (!Number.isFinite(m)) return Infinity;
-      total += m;
-    } else {
-      total += sym.length;
-    }
+// ------------------------------------------------------------------ overview
+
+function renderOverview() {
+  const host = $('tab-overview');
+  if (!G || !parsed.ok) { host.innerHTML = '<div class="assist-muted">Write a grammar on the left.</div>'; return; }
+  const a = analysis;
+  const cls = a.classification;
+  const samples = G.isCfg ? C.sampleStrings(G, 6, 24) : [];
+  const facts = [];
+  if (G.isCfg) {
+    if (a.emptyLanguage) facts.push(['bad', `The start symbol ${G.start} derives no terminal string: the language is empty.`]);
+    if (a.useless.length) facts.push(['warn', `Useless non-terminals: ${a.useless.join(', ')} (never reachable or never terminating). “Simplify & CNF” removes them.`]);
+    if (a.leftRecursive.length) facts.push(['warn', `Left-recursive: ${a.leftRecursive.join(', ')} — no LL(1) parser can use it as is.`]);
+    facts.push(a.ll1 ? ['ok', 'LL(1): one rule per (non-terminal, look-ahead) — predictive parsing works.'] : ['info', `Not LL(1): ${a.conflicts.length} table conflict${a.conflicts.length === 1 ? '' : 's'} (see FIRST / FOLLOW / LL(1)).`]);
+    if (C.isCnf(G)) facts.push(['ok', 'Already in Chomsky normal form.']);
+    const amb = findAmbiguity(G);
+    if (amb) facts.push(['warn', `Ambiguous: “${show(amb)}” has two different parse trees (Parse trees tab).`]);
+  } else facts.push(['info', 'Parse trees, normal forms and conversions need a context-free grammar.']);
+  host.innerHTML = `
+    <div class="gs-cls t${cls.type}"><b>${esc(cls.name)}</b><span>${esc(cls.detail)}</span></div>
+    <div class="gs-grid">
+      <div class="gs-stat"><b>${G.rules.length}</b><span>rules</span></div>
+      <div class="gs-stat"><b>${G.nonterminals.length}</b><span>non-terminals</span></div>
+      <div class="gs-stat"><b>${G.terminals.length}</b><span>terminals</span></div>
+      <div class="gs-stat"><b><code>${esc(G.start)}</code></b><span>start symbol</span></div>
+    </div>
+    ${facts.map(([k, t]) => `<div class="${k === 'ok' ? 'assist-ok' : k === 'bad' ? 'assist-error' : k === 'warn' ? 'assist-warn' : 'gs-info'}">${esc(t)}</div>`).join('')}
+    <table class="gs-table"><tbody>
+      <tr><th>Non-terminals V</th><td>${G.nonterminals.map(x => `<code>${esc(x)}</code>`).join(' ')}</td></tr>
+      <tr><th>Terminals Σ</th><td>${G.terminals.map(x => `<code>${esc(x)}</code>`).join(' ') || '<span class="gs-dim">none</span>'}</td></tr>
+      ${G.isCfg ? `<tr><th>Nullable (⇒* ε)</th><td>${setList(a.nullable)}</td></tr>
+      <tr><th>Generating</th><td>${setList(a.generating)}</td></tr>
+      <tr><th>Reachable from ${esc(G.start)}</th><td>${setList(a.reachable)}</td></tr>` : ''}
+    </tbody></table>
+    <h3>Rules</h3>
+    <ol class="gs-rules">${G.rules.map(r => `<li><code>${esc(C.ruleStr(r))}</code></li>`).join('')}</ol>
+    ${G.isCfg ? `<h3>Strings in the language (length ≤ 6)</h3><div class="gs-words">${samples.length ? samples.map(w => `<button type="button" class="assist-mini" data-try="${esc(w)}">${esc(show(w))}</button>`).join('') : '<span class="gs-dim">none up to length 6</span>'}</div>` : ''}`;
+}
+
+function findAmbiguity(g) {
+  for (const w of testWords(g, 5).filter(w => w.length <= 5)) {
+    const t = C.parseTrees(g, w, 2);
+    if (t.count >= 2) return word(w);
   }
-  return total;
+  return null;
 }
 
-function prefixAndSuffixCompatible(sentential, target) {
-  let prefix = '';
-  for (const sym of sentential) {
-    if (isNonTerminal(sym)) break;
-    prefix += sym;
+// ------------------------------------------------------------------ parse trees
+
+function renderParse() {
+  const out = $('gsParseOut');
+  const tokens = C.tokenize(G, $('gsInput').value);
+  if (tokens === null) { out.innerHTML = '<div class="assist-error">The string uses symbols that are not terminals of this grammar.</div>'; return; }
+  const res = C.parseTrees(G, tokens, 2);
+  const w = word(tokens);
+  if (!res.accepted) {
+    out.innerHTML = `<div class="assist-error"><b>“${esc(show(w))}” is not in the language.</b> No parse tree exists.</div>${nearMiss(tokens)}`;
+    return;
   }
-  if (!target.startsWith(prefix)) return false;
+  const amb = res.count >= 2;
+  const cyclic = amb && res.trees.length < 2;
+  const head = amb
+    ? `<div class="assist-warn"><b>Ambiguous:</b> “${esc(show(w))}” has ${cyclic ? 'infinitely many parse trees (the grammar has a derivation cycle such as A ⇒⁺ A)' : 'two different parse trees, shown below'}.</div>`
+    : `<div class="assist-ok"><b>“${esc(show(w))}” is in the language</b> and has exactly one parse tree.</div>`;
+  const blocks = res.trees.map((t, i) => {
+    const lm = C.derivation(G, t), rm = C.derivation(G, t, true);
+    return `<div class="gs-tree-card">
+      <h3>${res.trees.length > 1 ? `Tree ${i + 1}` : 'Parse tree'}</h3>
+      <div class="gs-tree">${treeSvg(t)}</div>
+      <details open><summary>Leftmost derivation (${lm.length - 1} steps)</summary>${derivList(lm)}</details>
+      <details><summary>Rightmost derivation</summary>${derivList(rm)}</details>
+    </div>`;
+  }).join('');
+  out.innerHTML = head + `<div class="gs-trees">${blocks}</div>`;
+}
 
-  let suffix = '';
-  for (let i = sentential.length - 1; i >= 0; i -= 1) {
-    const sym = sentential[i];
-    if (isNonTerminal(sym)) break;
-    suffix = sym + suffix;
+function nearMiss(tokens) {
+  const P = C.parseCounts(G, tokens);
+  let best = -1;
+  for (let j = tokens.length; j >= 0; j--) {
+    // longest prefix that is a prefix of some sentence: approximate by the longest prefix in the language
+    if (P.get(G.start, 0, j)) { best = j; break; }
   }
-  if (!target.endsWith(suffix)) return false;
-
-  return true;
+  return best >= 0 ? `<div class="gs-dim">The longest prefix that is itself in the language: “${esc(show(word(tokens.slice(0, best))))}”.</div>` : '';
 }
 
-function cloneState(state) {
-  return JSON.parse(JSON.stringify(state));
+function derivList(steps) {
+  return `<ol class="gs-deriv">${steps.map((s, i) => `<li>${i ? '⇒ ' : ''}<code>${esc(s.form.length ? word(s.form) : 'ε')}</code>${s.rule ? `<span class="gs-dim"> by ${esc(C.ruleStr(s.rule))}</span>` : ''}</li>`).join('')}</ol>`;
 }
 
-function deriveLeftmost(grammar, target) {
-  const minLen = computeMinLen(grammar.grouped, grammar.nonTerminals);
-  const rootId = 1;
-
-  const initial = {
-    sentential: [grammar.startSymbol],
-    frontier: [rootId],
-    nodes: {
-      [rootId]: { id: rootId, symbol: grammar.startSymbol, children: [] }
-    },
-    nextNodeId: 2,
-    steps: []
+function treeSvg(tree) {
+  // leaves get consecutive x positions, parents sit above the middle of their children
+  let leafX = 0;
+  const nodes = [];
+  const edges = [];
+  const place = (n, depth) => {
+    const me = { n, depth };
+    nodes.push(me);
+    if (!n.children?.length) { me.x = leafX++; return me; }
+    const kids = n.children.map(c => place(c, depth + 1));
+    me.x = (kids[0].x + kids[kids.length - 1].x) / 2;
+    for (const k of kids) edges.push([me, k]);
+    return me;
   };
+  place(tree, 0);
+  const DX = 46, DY = 58, R = 15;
+  const maxD = Math.max(...nodes.map(n => n.depth));
+  const W = Math.max(1, leafX) * DX + 30, H = (maxD + 1) * DY + 20;
+  const X = (n) => 15 + n.x * DX + DX / 2, Y = (n) => 25 + n.depth * DY;
+  const isNt = (n) => !n.n.leaf;
+  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Parse tree">
+    ${edges.map(([a, b]) => `<line x1="${X(a)}" y1="${Y(a) + R}" x2="${X(b)}" y2="${Y(b) - R}" class="gs-edge"/>`).join('')}
+    ${nodes.map(n => `<g class="gs-node ${isNt(n) ? 'nt' : n.n.sym === C.EPS ? 'eps' : 't'}"><circle cx="${X(n)}" cy="${Y(n)}" r="${R}"/><text x="${X(n)}" y="${Y(n) + 5}">${esc(n.n.sym)}</text></g>`).join('')}
+  </svg>`;
+}
 
-  const q = [initial];
-  const visited = new Set();
-  const maxNodes = 4500;
-  const maxDepth = 28;
-  let expanded = 0;
+// ------------------------------------------------------------------ simplify & CNF
 
-  while (q.length && expanded < maxNodes) {
-    const cur = q.shift();
-    expanded += 1;
+function renderNormal() {
+  const host = $('tab-normal');
+  const simp = C.simplify(G);
+  const cnf = C.toCnf(G);
+  const words = testWords(G, 6);
+  const sameS = words.every(w => C.accepts(G, w) === C.accepts(simp.grammar, w));
+  const sameC = words.every(w => C.accepts(G, w) === C.accepts(cnf.grammar, w));
+  const maxLen = Math.max(...words.map(w => w.length));
+  const stepHtml = (steps) => steps.map((s, i) => `<details ${i === steps.length - 1 ? 'open' : ''}><summary><b>${i + 1}.</b> ${esc(s.title)} <span class="gs-dim">(${s.grammar.rules.length} rules)</span></summary>${grammarPre(s.grammar)}</details>`).join('');
+  host.innerHTML = `
+    <h3>Simplified grammar</h3>
+    <p class="gs-lead">Useless symbols, ε-rules and unit rules removed (ε stays only as a rule of a fresh start symbol when ε is in the language).</p>
+    ${stepHtml(simp.steps)}
+    <div class="${sameS ? 'assist-ok' : 'assist-error'}">${sameS ? `Same language as the original on all ${words.length} strings up to length ${maxLen}.` : 'Check failed — please report this grammar.'}</div>
+    <div class="gs-row"><button type="button" class="assist-btn" data-use="simp">Use the simplified grammar</button></div>
+    <h3>Chomsky normal form</h3>
+    <p class="gs-lead">Every rule is <code>A → BC</code> or <code>A → a</code> (plus <code>S₀ → ε</code> if needed). Steps in Sipser’s order: START, DEL, UNIT, TERM, BIN.</p>
+    ${stepHtml(cnf.steps)}
+    <div class="${sameC && C.isCnf(cnf.grammar) ? 'assist-ok' : 'assist-error'}">${sameC && C.isCnf(cnf.grammar) ? `Valid CNF, and the same language on all ${words.length} strings up to length ${maxLen}.` : 'Check failed — please report this grammar.'}</div>
+    <div class="gs-row"><button type="button" class="assist-btn" data-use="cnf">Use the CNF grammar</button><button type="button" class="assist-btn" data-tab-go="cyk">Run CYK</button></div>`;
+  host.querySelector('[data-use="simp"]').onclick = () => useGrammar(simp.grammar);
+  host.querySelector('[data-use="cnf"]').onclick = () => useGrammar(cnf.grammar);
+}
 
-    const key = `${cur.sentential.join(' ')}|${cur.steps.length}`;
-    if (visited.has(key)) continue;
-    visited.add(key);
+function useGrammar(g) {
+  $('gsGrammar').value = C.grammarText(g).replace(/→/g, '->');
+  $('gsStart').value = g.start;
+  tab = 'overview';
+  refresh();
+}
 
-    const idx = firstNonTerminalIndex(cur.sentential);
-    if (idx === -1) {
-      if (sententialToString(cur.sentential) === target) {
-        return { success: true, result: cur };
-      }
-      continue;
-    }
+// ------------------------------------------------------------------ CYK
 
-    if (cur.steps.length >= maxDepth) continue;
-
-    if (!prefixAndSuffixCompatible(cur.sentential, target)) continue;
-
-    const minPossible = estimateMinLength(cur.sentential, minLen);
-    if (minPossible > target.length) continue;
-
-    const lhs = cur.sentential[idx];
-    const rules = grammar.grouped.get(lhs) || [];
-    const targetNodeId = cur.frontier[idx];
-
-    for (const rhs of rules) {
-      const next = cloneState(cur);
-      const newStep = `${lhs} -> ${rhs.length ? rhs.join(' ') : EPSILON_SYMBOL}`;
-      next.steps.push(newStep);
-
-      const newChildren = [];
-      if (rhs.length === 0) {
-        const epsId = next.nextNodeId;
-        next.nextNodeId += 1;
-        next.nodes[epsId] = { id: epsId, symbol: EPSILON_SYMBOL, children: [] };
-        newChildren.push(epsId);
-      } else {
-        for (const sym of rhs) {
-          const cid = next.nextNodeId;
-          next.nextNodeId += 1;
-          next.nodes[cid] = { id: cid, symbol: sym, children: [] };
-          newChildren.push(cid);
-        }
-      }
-
-      next.nodes[targetNodeId].children = newChildren;
-
-      const newSentential = [
-        ...next.sentential.slice(0, idx),
-        ...rhs,
-        ...next.sentential.slice(idx + 1)
-      ];
-
-      const newFrontier = [
-        ...next.frontier.slice(0, idx),
-        ...newChildren.filter((id) => isNonTerminal(next.nodes[id].symbol)),
-        ...next.frontier.slice(idx + 1)
-      ];
-
-      next.sentential = newSentential;
-      next.frontier = newFrontier;
-
-      if (estimateMinLength(newSentential, minLen) <= target.length + 2) {
-        q.push(next);
-      }
-    }
+function renderCyk() {
+  const out = $('gsCykOut');
+  const tokens = C.tokenize(G, $('gsInput').value);
+  if (tokens === null) { out.innerHTML = '<div class="assist-error">The string uses symbols that are not terminals of this grammar.</div>'; return; }
+  const cnf = C.isCnf(G) ? G : C.toCnf(G).grammar;
+  const r = C.cyk(cnf, tokens);
+  const n = tokens.length;
+  if (!n) { out.innerHTML = `<div class="${r.accepted ? 'assist-ok' : 'assist-error'}">ε is ${r.accepted ? '' : 'not '}in the language (CNF has ${r.accepted ? 'the' : 'no'} rule ${esc(cnf.start)} → ε).</div>`; return; }
+  let rows = '';
+  for (let len = n; len >= 1; len--) {
+    rows += `<tr><th>ℓ=${len}</th>${Array.from({ length: n }, (_, i) => (i + len <= n
+      ? `<td class="${r.table[len - 1][i].has(cnf.start) && len === n ? 'gs-hit' : ''}">${r.table[len - 1][i].size ? [...r.table[len - 1][i]].map(esc).join(', ') : '∅'}</td>`
+      : '<td class="gs-void"></td>')).join('')}</tr>`;
   }
-
-  return { success: false, reason: 'No parse found within bounded derivation depth.' };
+  rows += `<tr><th></th>${tokens.map(t => `<th><code>${esc(t)}</code></th>`).join('')}</tr>`;
+  out.innerHTML = `
+    <div class="${r.accepted ? 'assist-ok' : 'assist-error'}">${r.accepted ? `<b>Accepted:</b> ${esc(cnf.start)} is in the top cell.` : `<b>Rejected:</b> ${esc(cnf.start)} is not in the top cell.`}</div>
+    <div class="gs-scroll"><table class="gs-cyk">${rows}</table></div>
+    <details><summary>CNF grammar used (${cnf.rules.length} rules)</summary>${grammarPre(cnf)}</details>`;
 }
 
-function layoutTree(nodes, rootId) {
-  const pos = {};
-  let cursorX = 70;
-  const xGap = 70;
-  const yGap = 90;
+// ------------------------------------------------------------------ FIRST / FOLLOW / LL(1)
 
-  function visit(id, depth) {
-    const node = nodes[id];
-    if (!node || !node.children || !node.children.length) {
-      pos[id] = { x: cursorX, y: 50 + depth * yGap };
-      cursorX += xGap;
-      return;
-    }
-    const childXs = [];
-    for (const child of node.children) {
-      visit(child, depth + 1);
-      childXs.push(pos[child].x);
-    }
-    const x = childXs.reduce((a, b) => a + b, 0) / childXs.length;
-    pos[id] = { x, y: 50 + depth * yGap };
+function renderLl1() {
+  const host = $('tab-ll1');
+  const a = analysis;
+  const cols = [...G.terminals, '$'];
+  const conflict = new Set(a.conflicts.map(c => `${c.nt}|${c.terminal}`));
+  host.innerHTML = `
+    <div class="${a.ll1 ? 'assist-ok' : 'assist-warn'}">${a.ll1 ? 'The grammar is <b>LL(1)</b>: every table cell has at most one rule.' : `<b>Not LL(1):</b> ${a.conflicts.length} cell${a.conflicts.length === 1 ? ' has' : 's have'} more than one rule (highlighted).${a.leftRecursive.length ? ` Left recursion in ${a.leftRecursive.join(', ')} is one cause — rewrite A → Aα | β as A → βA', A' → αA' | ε.` : ''}`}</div>
+    <table class="gs-table"><thead><tr><th>Non-terminal</th><th>Nullable</th><th>FIRST</th><th>FOLLOW</th></tr></thead><tbody>
+      ${G.nonterminals.map(A => `<tr><th><code>${esc(A)}</code></th><td>${a.nullable.has(A) ? 'yes' : 'no'}</td><td>{ ${[...a.FIRST.get(A)].map(esc).join(', ')}${a.nullable.has(A) ? (a.FIRST.get(A).size ? ', ' : '') + 'ε' : ''} }</td><td>{ ${[...a.FOLLOW.get(A)].map(esc).join(', ')} }</td></tr>`).join('')}
+    </tbody></table>
+    <h3>LL(1) parsing table</h3>
+    <div class="gs-scroll"><table class="gs-table gs-ll1"><thead><tr><th></th>${cols.map(c => `<th><code>${esc(c)}</code></th>`).join('')}</tr></thead><tbody>
+      ${G.nonterminals.map(A => `<tr><th><code>${esc(A)}</code></th>${cols.map(c => { const cell = a.table.get(A).get(c) || []; return `<td class="${conflict.has(`${A}|${c}`) ? 'gs-conflict' : ''}">${cell.map(i => esc(C.ruleStr(G.rules[i]))).join('<br>')}</td>`; }).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ------------------------------------------------------------------ conversions
+
+function renderConvert() {
+  const host = $('tab-convert');
+  const pda = C.toPda(G);
+  const reg = C.regularToNfa(G);
+  const words = testWords(G, 5);
+  let regCheck = '';
+  if (reg.machine) {
+    const d = FA.toMinimalDfa(reg.machine, G.terminals);
+    const ok = words.every(w => FA.accepts(d, w.join('')) === C.accepts(G, w));
+    regCheck = `<div class="${ok ? 'assist-ok' : 'assist-error'}">${ok ? `Same language as the grammar on all ${words.length} strings up to length 5.` : 'Check failed.'}</div>`;
   }
-
-  visit(rootId, 0);
-  return pos;
+  host.innerHTML = `
+    <h3>CFG → PDA</h3>
+    ${pda.error ? `<div class="assist-warn">${esc(pda.error)}</div>` : `
+      <p class="gs-lead">One working state <code>q1</code>: replace the non-terminal on top of the stack by a right-hand side (ε-move), or match the input symbol with the terminal on top. Accept in <code>q2</code> when only <code>Z</code> is left.</p>
+      ${pda.renamed.length ? `<div class="gs-info">Stack symbols are single characters, so ${pda.renamed.map(([a, b]) => `${esc(a)} is written ${esc(b)}`).join(', ')}.</div>` : ''}
+      <div class="gs-scroll"><table class="gs-table"><thead><tr><th>#</th><th>From</th><th>Input</th><th>Pop</th><th>Push</th><th>To</th></tr></thead><tbody>
+        ${pda.machine.transitions.map((t, i) => `<tr><td>${i + 1}</td><td>${t.from}</td><td>${esc(t.symbol || 'ε')}</td><td>${esc(t.pop || 'ε')}</td><td>${esc(t.push || 'ε')}</td><td>${t.to}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="gs-row"><button type="button" class="assist-btn primary" id="cvPda"><i data-lucide="layers"></i> Open in the PDA studio</button><button type="button" class="assist-btn" id="cvPdaJson">Download JSON</button></div>`}
+    <h3>Regular grammar → finite automaton</h3>
+    ${reg.error ? `<div class="gs-info">${esc(reg.error)} This grammar is ${esc(analysis.classification.name)}.</div>` : `
+      <p class="gs-lead">${reg.reversed ? 'Left-linear: build the automaton for the reversed rules, then reverse it.' : 'Right-linear: one state per non-terminal; A → aB becomes an a-move from A to B, A → a goes to the final state, A → ε makes A accepting.'}</p>
+      ${regCheck}
+      <div class="gs-row"><button type="button" class="assist-btn primary" id="cvFa"><i data-lucide="network"></i> Open the ${esc(reg.machine.type === 'ENFA' ? 'ε-NFA' : 'NFA')} in the FA studio</button></div>`}`;
+  if (!pda.error) {
+    $('cvPda').onclick = () => openInStudio('pda', pda.machine);
+    $('cvPdaJson').onclick = () => {
+      const blob = new Blob([JSON.stringify(pda.machine, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'grammar_pda.json';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    };
+  }
+  if (!reg.error) $('cvFa').onclick = () => openInStudio('fa', reg.machine);
 }
 
-function renderParseTree(state) {
-  const svg = byId('parseTreeSvg');
-  svg.innerHTML = '';
+// ------------------------------------------------------------------ pumping lemma
 
-  const nodes = state.nodes;
-  const rootId = 1;
-  const positions = layoutTree(nodes, rootId);
-
-  let maxX = 0;
-  let maxY = 0;
-  Object.values(positions).forEach((p) => {
-    if (p.x > maxX) maxX = p.x;
-    if (p.y > maxY) maxY = p.y;
-  });
-
-  svg.setAttribute('width', String(Math.max(1200, maxX + 120)));
-  svg.setAttribute('height', String(Math.max(520, maxY + 120)));
-
-  Object.keys(nodes).forEach((id) => {
-    const node = nodes[id];
-    const p = positions[id];
-    if (!node || !p) return;
-    for (const childId of node.children) {
-      const c = positions[childId];
-      if (!c) continue;
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', String(p.x));
-      line.setAttribute('y1', String(p.y));
-      line.setAttribute('x2', String(c.x));
-      line.setAttribute('y2', String(c.y));
-      line.setAttribute('stroke', '#64748b');
-      line.setAttribute('stroke-width', '2');
-      svg.appendChild(line);
-    }
-  });
-
-  Object.keys(nodes).forEach((id) => {
-    const node = nodes[id];
-    const p = positions[id];
-    if (!node || !p) return;
-
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circle.setAttribute('cx', String(p.x));
-    circle.setAttribute('cy', String(p.y));
-    circle.setAttribute('r', '22');
-    circle.setAttribute('fill', '#ffffff');
-    circle.setAttribute('stroke', isNonTerminal(node.symbol) ? '#2563eb' : '#10b981');
-    circle.setAttribute('stroke-width', '3');
-
-    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    text.setAttribute('x', String(p.x));
-    text.setAttribute('y', String(p.y + 5));
-    text.setAttribute('text-anchor', 'middle');
-    text.setAttribute('font-size', '13');
-    text.setAttribute('font-weight', '700');
-    text.textContent = node.symbol;
-
-    g.appendChild(circle);
-    g.appendChild(text);
-    svg.appendChild(g);
-  });
-}
-
-function buildNpda(grammar) {
-  const stackStart = 'Z';
-  const states = [
-    { id: 'q_start', initial: true, accepting: false, x: 220, y: 230 },
-    { id: 'q_loop', initial: false, accepting: false, x: 520, y: 230 },
-    { id: 'q_accept', initial: false, accepting: true, x: 820, y: 230 }
-  ];
-
-  const transitions = [];
-  transitions.push({ from: 'q_start', to: 'q_loop', symbol: '', pop: stackStart, push: `${grammar.startSymbol}${stackStart}` });
-
-  grammar.rules.forEach((r) => {
-    transitions.push({
-      from: 'q_loop',
-      to: 'q_loop',
-      symbol: '',
-      pop: r.lhs,
-      push: r.rhs.length ? r.rhs.join('') : ''
-    });
-  });
-
-  grammar.terminals.forEach((t) => {
-    transitions.push({ from: 'q_loop', to: 'q_loop', symbol: t, pop: t, push: '' });
-  });
-
-  transitions.push({ from: 'q_loop', to: 'q_accept', symbol: '', pop: stackStart, push: stackStart });
-
-  return {
-    type: 'PDA',
-    states,
-    transitions,
-    alphabet: Array.from(grammar.terminals),
-    stackAlphabet: Array.from(new Set([stackStart, ...Array.from(grammar.nonTerminals), ...Array.from(grammar.terminals)])),
-    initialStackSymbol: stackStart,
-    acceptanceMode: 'FINAL_STATE'
-  };
-}
-
-function setStatus(html, isError = false) {
-  const el = byId('grammarStatus');
-  el.style.color = isError ? '#b91c1c' : '#0f766e';
-  el.innerHTML = html;
-}
-
-function setRlRelStatus(html, isError = false) {
-  const el = byId('rlRelStatus');
-  if (!el) return;
-  el.style.color = isError ? '#b91c1c' : '#0f766e';
-  el.innerHTML = html;
-}
-
-function renderNpdaJson(npda) {
-  byId('grammarNpdaJson').textContent = JSON.stringify(npda, null, 2);
-}
-
-function tabSwitch(tab) {
-  ['rl', 'rel', 'steps', 'npda', 'table', 'tree', 'derivation'].forEach((id) => {
-    const panel = byId(`grammarTab${id[0].toUpperCase()}${id.slice(1)}`);
-    if (panel) panel.style.display = id === tab ? 'block' : 'none';
-  });
-  document.querySelectorAll('.grammar-tab-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
-  });
-}
-
-function inferRlFallbackRows(rlInput, targetMachine) {
-  const rl = String(rlInput || '');
-  const symbols = Array.from(new Set((rl.match(/[a-z0-9]/gi) || []).map((s) => s.toLowerCase())));
-  const sigma = symbols.length ? symbols : ['a', 'b'];
-  const rows = [];
-  const target = String(targetMachine || 'FA').toUpperCase();
-  const hasUnion = rl.includes('|');
-  const hasStar = rl.includes('*');
-
-  if (hasUnion && sigma.length >= 2) {
-    rows.push({ from: 'q0', symbol: sigma[0], to: 'q1', role: 'union branch A' });
-    rows.push({ from: 'q0', symbol: sigma[1], to: 'q2', role: 'union branch B' });
-    rows.push({ from: 'q1', symbol: EPSILON_SYMBOL, to: 'qf', role: 'accept branch A' });
-    rows.push({ from: 'q2', symbol: EPSILON_SYMBOL, to: 'qf', role: 'accept branch B' });
+function runPumping() {
+  const out = $('pmOut');
+  const p = Math.max(1, Math.min(8, +$('pmP').value || 3));
+  const mode = $('pmMode').value;
+  const langText = $('pmLang').value.trim();
+  let member, label;
+  if (langText) {
+    const spec = readSpec(langText);
+    const oracle = spec && oracleFor(spec);
+    if (!oracle) { out.innerHTML = '<div class="assist-error">I could not read that language. Try notation like {aⁿbⁿcⁿ | n ≥ 0}, {ww | w ∈ {a,b}*} or “equal number of a’s and b’s”, or leave it empty to use the grammar.</div>'; return; }
+    member = oracle; label = spec.label;
   } else {
-    sigma.forEach((sym, idx) => {
-      rows.push({
-        from: `q${idx}`,
-        symbol: sym,
-        to: `q${idx + 1}`,
-        role: idx === sigma.length - 1 ? 'consume and reach accept frontier' : 'consume symbol'
-      });
-    });
+    if (!G?.isCfg) { out.innerHTML = '<div class="assist-error">Enter a language, or write a context-free grammar.</div>'; return; }
+    member = (s) => { const t = C.tokenize(G, s); return t !== null && C.accepts(G, t); };
+    label = 'the language of the grammar';
   }
-
-  if (hasStar) {
-    const loopState = rows.length ? rows[rows.length - 1].to : 'q0';
-    rows.push({ from: loopState, symbol: sigma[0], to: loopState, role: 'Kleene-star loop' });
-  }
-
-  if (target === 'MM') {
-    return rows.map((row, idx) => ({
-      ...row,
-      role: `${row.role}; output y${(idx % 3) + 1}`
-    }));
-  }
-  return rows;
+  const w = C.expandWitness($('pmWitness').value, p);
+  if (w === null) { out.innerHTML = '<div class="assist-error">Write the witness with powers of p, e.g. a^p b^p c^p or 0^(2p) 1^p.</div>'; return; }
+  if (w.length > 40) { out.innerHTML = '<div class="assist-error">That witness is longer than 40 symbols; use a smaller p.</div>'; return; }
+  const r = C.pumpingCheck(w, p, member, mode, 3);
+  const fmt = (parts) => (mode === 'cfl' ? ['u', 'v', 'x', 'y', 'z'] : ['x', 'y', 'z']).map((n, i) => `${n} = <code>${esc(show(parts[i]))}</code>`).join(', ');
+  let html = `<div class="gs-info">L = ${esc(label)}, p = ${p}, w = <code>${esc(show(w))}</code> (|w| = ${w.length}). ${r.total} legal decompositions (${mode === 'cfl' ? '|vxy| ≤ p, |vy| ≥ 1' : '|xy| ≤ p, |y| ≥ 1'}).</div>`;
+  if (!r.inLanguage) html += '<div class="assist-error">w itself is not in L — a witness must be in the language.</div>';
+  else if (w.length < p) html += '<div class="assist-error">The witness must be at least p symbols long.</div>';
+  else if (r.survivor) html += `<div class="assist-warn"><b>This witness does not work.</b> The split ${fmt(r.survivor)} stays in L for i = 0, 1, 2, 3, so the lemma is not contradicted. Choose a different w.</div>`;
+  else html += `<div class="assist-ok"><b>Every split fails.</b> For each of the ${r.total} decompositions some i ∈ {0, 2, 3} pumps w out of L. With the same argument for every p, this proves L is ${mode === 'cfl' ? 'not context-free' : 'not regular'}.</div>`;
+  if (r.examples.length) html += `<h3>How some splits fail</h3><ul class="gs-list">${r.examples.map(e => `<li>${fmt(e.split)} → i = ${e.i} gives <code>${esc(show(e.pumped))}</code> ∉ L</li>`).join('')}</ul>`;
+  out.innerHTML = html;
 }
 
-function buildRlTransitionRows(rlInput, targetMachine) {
-  const rl = String(rlInput || '').trim();
-  const target = String(targetMachine || 'FA').toUpperCase();
-  if (!rl) return [];
+// ------------------------------------------------------------------ regex → FA
 
+function regexOpen(kind) {
+  const src = $('rxInput').value.trim();
+  const out = $('rxOut');
   try {
-    const machine = parseRegexAndBuildEnfa(rl);
-    if (machine && Array.isArray(machine.transitions) && machine.transitions.length) {
-      const rows = machine.transitions.map((tr) => ({
-        from: tr.from,
-        symbol: displaySymbol(tr.symbol),
-        to: tr.to,
-        role: tr.symbol === '' ? 'epsilon transition' : 'symbol transition'
-      }));
-
-      const accepting = Array.isArray(machine.states)
-        ? machine.states.filter((s) => s.accepting).map((s) => s.id)
-        : [];
-      accepting.forEach((stateId) => {
-        rows.push({
-          from: stateId,
-          symbol: EPSILON_SYMBOL,
-          to: stateId,
-          role: 'accepting state'
-        });
-      });
-
-      if (target === 'MM') {
-        return rows.map((row, idx) => ({
-          ...row,
-          role: `${row.role}; output y${(idx % 3) + 1}`
-        }));
-      }
-      return rows;
-    }
-  } catch (_e) {
-    // fall through to heuristic rows for unsupported regex syntax
-  }
-
-  return inferRlFallbackRows(rl, target);
-}
-
-function buildRelTransitionRows(relInput) {
-  const rel = String(relInput || '').trim();
-  const symbols = Array.from(new Set((rel.match(/[a-z0-9]/gi) || []).map((s) => s.toLowerCase()))).slice(0, 4);
-  const sigma = symbols.length ? symbols : ['a', 'b'];
-  const blank = 'B';
-  const hasCompare = /ww|compare|match|equal/.test(rel.toLowerCase());
-  const hasEnumerate = /enumer|list|generate/.test(rel.toLowerCase());
-  const hasHalt = /halt|stop|accept|reject/.test(rel.toLowerCase());
-
-  const rows = [
-    { state: 'q_start', read: sigma[0], write: 'X', move: 'R', next: 'q_scan', role: 'mark next unprocessed symbol' },
-    { state: 'q_scan', read: sigma[0], write: sigma[0], move: 'R', next: 'q_scan', role: 'scan right over tape' },
-    { state: 'q_scan', read: sigma[1] || sigma[0], write: sigma[1] || sigma[0], move: 'R', next: 'q_scan', role: 'scan right over tape' },
-    { state: 'q_scan', read: blank, write: blank, move: 'L', next: hasCompare ? 'q_compare' : 'q_back', role: 'reach boundary and switch mode' },
-    { state: hasCompare ? 'q_compare' : 'q_back', read: sigma[0], write: sigma[0], move: 'L', next: 'q_back', role: hasCompare ? 'compare mirrored symbol' : 'rewind to marker' },
-    { state: 'q_back', read: 'X', write: 'X', move: 'R', next: hasEnumerate ? 'q_enum' : 'q_next', role: 'return to next cycle entry' },
-    { state: hasEnumerate ? 'q_enum' : 'q_next', read: sigma[0], write: sigma[0], move: 'R', next: 'q_next', role: hasEnumerate ? 'enumerate candidate string' : 'continue simulation' },
-    { state: 'q_next', read: blank, write: blank, move: 'S', next: hasHalt ? 'q_accept' : 'q_loop', role: hasHalt ? 'halt on satisfied condition' : 'keep exploring branches' }
-  ];
-
-  if (!hasHalt) {
-    rows.push({ state: 'q_loop', read: blank, write: blank, move: 'R', next: 'q_loop', role: 'non-halting exploration branch' });
-  }
-  rows.push({ state: 'q_accept', read: blank, write: blank, move: 'S', next: 'q_accept', role: 'accept configuration' });
-
-  return rows;
-}
-
-function buildFallbackFaMachineFromRl(rlInput) {
-  const rows = inferRlFallbackRows(rlInput, 'FA');
-  const statesInOrder = [];
-  const seen = new Set();
-  rows.forEach((row) => {
-    if (!seen.has(row.from)) {
-      seen.add(row.from);
-      statesInOrder.push(row.from);
-    }
-    if (!seen.has(row.to)) {
-      seen.add(row.to);
-      statesInOrder.push(row.to);
-    }
-  });
-
-  if (!seen.has('q0')) statesInOrder.unshift('q0');
-  const initialId = statesInOrder.includes('q0') ? 'q0' : statesInOrder[0];
-  const accepting = new Set();
-  if (statesInOrder.includes('qf')) accepting.add('qf');
-  if (rows.length) accepting.add(rows[rows.length - 1].to);
-  if (!accepting.size && statesInOrder.length) accepting.add(statesInOrder[statesInOrder.length - 1]);
-
-  return {
-    type: 'ENFA',
-    states: statesInOrder.map((id, idx) => ({
-      id,
-      initial: id === initialId,
-      accepting: accepting.has(id),
-      x: 170 + (idx * 150),
-      y: 250 + ((idx % 2) * 120)
-    })),
-    transitions: rows.map((row) => ({
-      from: row.from,
-      to: row.to,
-      symbol: row.symbol === EPSILON_SYMBOL ? '' : String(row.symbol || '')
-    })),
-    alphabet: Array.from(new Set(rows.map((row) => row.symbol).filter((s) => s && s !== EPSILON_SYMBOL)))
-  };
-}
-
-function buildFaMachineForImport(rlInput) {
-  const rl = String(rlInput || '').trim();
-  try {
-    return { machine: parseRegexAndBuildEnfa(rl), fallback: false };
-  } catch (_e) {
-    return { machine: buildFallbackFaMachineFromRl(rl), fallback: true };
+    const alphabet = [...new Set(src.replace(/[()|*+?ε\s]/g, '').split(''))].sort();
+    const machine = kind === 'enfa'
+      ? { ...regexToEnfa(src), type: 'ENFA', alphabet, title: src }
+      : FA.toAppMachine(regexToDfa(src, alphabet), { keepDead: true, title: src });
+    out.innerHTML = `<div class="assist-ok">Built ${kind === 'enfa' ? 'the ε-NFA' : 'the minimal DFA'} with ${machine.states.length} states — opening the FA studio…</div>`;
+    setTimeout(() => openInStudio('fa', machine), 300);
+  } catch (e) {
+    out.innerHTML = `<div class="assist-error">${esc(e.message)}</div>`;
   }
 }
 
-function buildTmMachineFromRel(relInput) {
-  const rel = String(relInput || '').trim();
-  const rows = buildRelTransitionRows(rel);
-  const stateIds = [];
-  const seen = new Set();
-  rows.forEach((row) => {
-    if (!seen.has(row.state)) {
-      seen.add(row.state);
-      stateIds.push(row.state);
-    }
-    if (!seen.has(row.next)) {
-      seen.add(row.next);
-      stateIds.push(row.next);
-    }
-  });
+// ------------------------------------------------------------------ test box
 
-  const initialId = stateIds.includes('q_start') ? 'q_start' : stateIds[0];
-  const accepting = new Set(stateIds.filter((id) => /accept/i.test(id)));
-
-  return {
-    type: rows.some((row) => row.move === 'S') ? 'STAY_OPTION' : 'STANDARD',
-    title: 'REL-derived machine from Grammar Studio',
-    numTapes: 1,
-    boundMode: 'UNBOUNDED',
-    blankSymbol: 'B',
-    alphabet: Array.from(new Set(rows.flatMap((row) => [row.read, row.write]).filter((s) => s && s !== 'B'))),
-    tapeAlphabet: Array.from(new Set(['B', ...rows.flatMap((row) => [row.read, row.write]).filter(Boolean)])),
-    states: stateIds.map((id, idx) => ({
-      id,
-      initial: id === initialId,
-      accepting: accepting.has(id),
-      x: 180 + (idx * 155),
-      y: 250 + ((idx % 2) * 120)
-    })),
-    transitions: rows.map((row) => ({
-      from: row.state,
-      to: row.next,
-      read: row.read,
-      write: row.write,
-      move: row.move
-    }))
-  };
+function runTest() {
+  if (!G || !parsed.ok || !G.isCfg) { $('gsTestOut').innerHTML = ''; return; }
+  const tokens = C.tokenize(G, $('gsInput').value);
+  if (tokens === null) { $('gsTestOut').innerHTML = '<span class="gs-no">✗ unknown symbols</span>'; return; }
+  const P = C.parseCounts(G, tokens);
+  const c = P.get(G.start, 0, tokens.length);
+  $('gsTestOut').innerHTML = c ? `<span class="gs-yes">✓ in the language</span>${c >= 2 ? ' <span class="gs-amb">· ambiguous</span>' : ''}` : '<span class="gs-no">✗ not in the language</span>';
 }
 
-function buildRlPlan(rlInput, targetMachine) {
-  const rl = String(rlInput || '').trim();
-  const normalized = rl.toLowerCase();
-  const hasUnion = normalized.includes('|') || normalized.includes(' or ');
-  const hasStar = normalized.includes('*');
-  const hasParen = normalized.includes('(') || normalized.includes(')');
-  const hasConcat = /[a-z0-9]\s*[a-z0-9]/i.test(rl.replaceAll('|', ' '));
-  const target = String(targetMachine || 'FA').toUpperCase();
-
-  const notes = [
-    `Input regex: ${rl}`,
-    hasUnion ? 'Union branch detected.' : 'No explicit union branch detected.',
-    hasStar ? 'Kleene closure branch detected.' : 'No Kleene closure branch detected.',
-    hasParen ? 'Grouped expression detected.' : 'No grouping tokens detected.',
-    hasConcat ? 'Concatenation pattern detected.' : 'Concatenation pattern not obvious in input.'
-  ];
-
-  const steps = [
-    'Normalize RL expression and tokenize operators.',
-    'Build e-NFA fragments for symbol, union, concatenation, and star constructs.',
-    'Merge fragments into one entry/exit automaton graph.',
-    'Resolve epsilon closures and validate accepting reachability.',
-    target === 'MM'
-      ? 'Project recognizer into Mealy/Moore workflow by attaching output behavior to accepted paths.'
-      : 'Open FA workspace with generated machine model for testing and minimization.'
-  ];
-
-  return {
-    headline: `RL conversion plan ready for ${target}.`,
-    inputClass: 'Regular Language (RL)',
-    targetMachine: target === 'MM' ? 'Mealy/Moore Studio' : 'FA Studio',
-    complexity: 'Finite-state construct. Determinization/minimization may expand states.',
-    notes,
-    steps,
-    transitions: buildRlTransitionRows(rl, target)
-  };
-}
-
-function buildRelPlan(relInput) {
-  const rel = String(relInput || '').trim();
-  const normalized = rel.toLowerCase();
-  const hasEnumerate = normalized.includes('enumer') || normalized.includes('list');
-  const hasHalting = normalized.includes('halt') || normalized.includes('stop');
-  const hasCopyOrCompare = normalized.includes('copy') || normalized.includes('compare') || normalized.includes('ww');
-
-  const notes = [
-    `REL description: ${rel}`,
-    hasEnumerate ? 'Enumeration intent detected.' : 'No explicit enumeration phrase detected.',
-    hasHalting ? 'Halting condition mention detected.' : 'Halting condition should be defined explicitly.',
-    hasCopyOrCompare ? 'Copy/compare behavior hint detected.' : 'Consider adding explicit compare/copy behavior in TM design.'
-  ];
-
-  const steps = [
-    'Formalize REL acceptance objective and tape alphabet.',
-    'Design TM state blocks for scan, write, move, and verify loops.',
-    'Define accept/reject/loop branches and guard conditions.',
-    'Validate transitions for every tape symbol in active states.',
-    'Open TM workspace and implement transition table with step testing.'
-  ];
-
-  return {
-    headline: 'REL conversion plan ready for TM.',
-    inputClass: 'Recursively Enumerable Language (REL)',
-    targetMachine: 'Turing Machine Studio',
-    complexity: 'General recursive behavior. Ensure halting and rejection paths are intentional.',
-    notes,
-    steps,
-    transitions: buildRelTransitionRows(rel)
-  };
-}
-
-function renderRlTransitionTable(rows) {
-  const body = byId('rlTransitionTableBody');
-  if (!body) return;
-  body.innerHTML = '';
-  rows.forEach((row, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${idx + 1}</td>
-      <td>${escHtml(row.from)}</td>
-      <td>${escHtml(displaySymbol(row.symbol))}</td>
-      <td>${escHtml(row.to)}</td>
-      <td>${escHtml(row.role)}</td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
-function renderRelTransitionTable(rows) {
-  const body = byId('relTransitionTableBody');
-  if (!body) return;
-  body.innerHTML = '';
-  rows.forEach((row, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${idx + 1}</td>
-      <td>${escHtml(row.state)}</td>
-      <td>${escHtml(displaySymbol(row.read))}</td>
-      <td>${escHtml(displaySymbol(row.write))}</td>
-      <td>${escHtml(row.move)}</td>
-      <td>${escHtml(row.next)}</td>
-      <td>${escHtml(row.role)}</td>
-    `;
-    body.appendChild(tr);
-  });
-}
-
-async function animatePlanSteps(lines, hostId) {
-  const host = byId(hostId);
-  if (!host) return;
-  host.innerHTML = '';
-  for (let i = 0; i < lines.length; i += 1) {
-    const card = document.createElement('div');
-    card.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
-    card.innerHTML = `<strong>Step ${i + 1}:</strong> ${escHtml(lines[i])}`;
-    host.appendChild(card);
-    card.style.background = '#eff6ff';
-    await new Promise((resolve) => setTimeout(resolve, 280));
-    card.style.background = '#ffffff';
-    host.scrollTop = host.scrollHeight;
-  }
-}
-
-async function renderRlPlan(plan) {
-  byId('rlConversionHeadline').textContent = plan.headline;
-  byId('rlInputClass').textContent = plan.inputClass;
-  byId('rlTargetMachine').textContent = plan.targetMachine;
-  byId('rlComplexityNote').textContent = plan.complexity;
-
-  const checklist = byId('rlConversionChecklist');
-  checklist.innerHTML = '';
-  plan.notes.forEach((note) => {
-    const li = document.createElement('li');
-    li.textContent = note;
-    checklist.appendChild(li);
-  });
-
-  renderRlTransitionTable(plan.transitions || []);
-  tabSwitch('rl');
-  await animatePlanSteps(plan.steps, 'rlConversionSteps');
-}
-
-async function renderRelPlan(plan) {
-  byId('relConversionHeadline').textContent = plan.headline;
-  byId('relInputClass').textContent = plan.inputClass;
-  byId('relTargetMachine').textContent = plan.targetMachine;
-  byId('relComplexityNote').textContent = plan.complexity;
-
-  const checklist = byId('relConversionChecklist');
-  checklist.innerHTML = '';
-  plan.notes.forEach((note) => {
-    const li = document.createElement('li');
-    li.textContent = note;
-    checklist.appendChild(li);
-  });
-
-  renderRelTransitionTable(plan.transitions || []);
-  tabSwitch('rel');
-  await animatePlanSteps(plan.steps, 'relConversionSteps');
-}
-
-function renderLogicTables(grammar, npda) {
-  const rulesBody = byId('grammarRulesTableBody');
-  const transitionsBody = byId('grammarTransitionTableBody');
-  if (!rulesBody || !transitionsBody) return;
-
-  rulesBody.innerHTML = '';
-  grammar.rules.forEach((rule, idx) => {
-    const row = document.createElement('tr');
-    const rhs = rule.rhs.length ? rule.rhs.map((s) => displaySymbol(s)).join(' ') : EPSILON_SYMBOL;
-    const kind = rule.rhs.length === 0 ? 'epsilon' : (rule.rhs.every((s) => isNonTerminal(s)) ? 'non-terminal expansion' : 'mixed/terminal');
-    row.innerHTML = `
-      <td>${idx + 1}</td>
-      <td>${escHtml(rule.lhs)} -> ${escHtml(rhs)}</td>
-      <td>${escHtml(kind)}</td>
-    `;
-    rulesBody.appendChild(row);
-  });
-
-  transitionsBody.innerHTML = '';
-  npda.transitions.forEach((tr, idx) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${idx + 1}</td>
-      <td>${escHtml(tr.from)}</td>
-      <td>${escHtml(displaySymbol(tr.symbol))}</td>
-      <td>${escHtml(displaySymbol(tr.pop))}</td>
-      <td>${escHtml(displaySymbol(tr.push))}</td>
-      <td>${escHtml(tr.to)}</td>
-    `;
-    transitionsBody.appendChild(row);
-  });
-}
-
-function buildConversionSteps(grammar, npda) {
-  const steps = [];
-  steps.push('Initialize NPDA states: q_start, q_loop, q_accept.');
-  steps.push(`Push start symbol ${grammar.startSymbol} above stack marker Z.`);
-  grammar.rules.forEach((r) => {
-    steps.push(`Add expansion transition: (${r.lhs} -> ${r.rhs.length ? r.rhs.map((s) => displaySymbol(s)).join(' ') : EPSILON_SYMBOL}).`);
-  });
-  grammar.terminals.forEach((t) => {
-    steps.push(`Add terminal match transition for '${t}'.`);
-  });
-  steps.push(`Finalize acceptance transition to q_accept. Total transitions: ${npda.transitions.length}.`);
-  return steps;
-}
-
-async function animateSteps(lines) {
-  const log = byId('grammarStepLog');
-  log.innerHTML = '';
-  for (let i = 0; i < lines.length; i += 1) {
-    const card = document.createElement('div');
-    card.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
-    card.innerHTML = `<strong>Step ${i + 1}:</strong> ${escHtml(lines[i])}`;
-    log.appendChild(card);
-    card.style.background = '#eff6ff';
-    await new Promise((resolve) => setTimeout(resolve, 380));
-    card.style.background = '#ffffff';
-    log.scrollTop = log.scrollHeight;
-  }
-}
-
-function validateGrammarFlow() {
-  const grammarText = byId('grammarInput').value;
-  const startSymbol = byId('grammarStart').value;
-  latestGrammar = parseGrammar(grammarText, startSymbol);
-  const terminalText = Array.from(latestGrammar.terminals).map((s) => displaySymbol(s)).join(', ') || '(none)';
-  setStatus(`Valid CFG. Non-terminals: <strong>${Array.from(latestGrammar.nonTerminals).join(', ')}</strong> | Terminals: <strong>${terminalText}</strong>`);
-  return latestGrammar;
-}
-
-function createNpdaFlow() {
-  const grammar = latestGrammar || validateGrammarFlow();
-  latestNpda = buildNpda(grammar);
-  renderLogicTables(grammar, latestNpda);
-  renderNpdaJson(latestNpda);
-  return { grammar, npda: latestNpda };
-}
-
-async function animateConversionFlow() {
-  const { grammar, npda } = createNpdaFlow();
-  tabSwitch('steps');
-  await animateSteps(buildConversionSteps(grammar, npda));
-  setStatus('Conversion animation complete. NPDA generated.');
-}
-
-function parseTreeFlow() {
-  const grammar = latestGrammar || validateGrammarFlow();
-  const rawTarget = byId('parseTarget').value.trim();
-  if (!rawTarget) throw new Error('Target string is required.');
-  const target = isEpsilonToken(rawTarget) ? '' : rawTarget;
-
-  const result = deriveLeftmost(grammar, target);
-  if (!result.success) throw new Error(result.reason || 'No parse tree could be generated.');
-
-  renderParseTree(result.result);
-  tabSwitch('tree');
-
-  const list = byId('grammarDerivationList');
-  const timeline = byId('grammarDerivationTimeline');
-  list.innerHTML = '';
-  if (timeline) timeline.innerHTML = '';
-  const first = document.createElement('li');
-  first.textContent = grammar.startSymbol;
-  list.appendChild(first);
-  if (timeline) {
-    const startCard = document.createElement('div');
-    startCard.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
-    startCard.innerHTML = `<strong>Step 0:</strong> Start with ${escHtml(grammar.startSymbol)}`;
-    timeline.appendChild(startCard);
-  }
-
-  let current = grammar.startSymbol;
-  result.result.steps.forEach((s) => {
-    const [lhs, rhsRaw] = s.split('->').map((v) => v.trim());
-    const rhsText = rhsRaw === EPSILON_SYMBOL ? '' : rhsRaw.replace(/\s+/g, '');
-    const idx = current.indexOf(lhs);
-    if (idx >= 0) {
-      current = `${current.slice(0, idx)}${rhsText}${current.slice(idx + lhs.length)}`;
-    }
-    const li = document.createElement('li');
-    li.textContent = `${s}    =>    ${current || EPSILON_SYMBOL}`;
-    list.appendChild(li);
-    if (timeline) {
-      const card = document.createElement('div');
-      card.style.cssText = 'padding:8px 10px;border-radius:10px;border:1px solid #e2e8f0;background:#ffffff;margin-bottom:8px;';
-      card.innerHTML = `<strong>Step ${list.children.length - 1}:</strong> ${escHtml(s)} <br/><span style="color:#0f766e;font-weight:600;">${escHtml(current || EPSILON_SYMBOL)}</span>`;
-      timeline.appendChild(card);
-    }
-  });
-
-  setStatus(`Parse tree generated for string: <strong>${escHtml(target || EPSILON_SYMBOL)}</strong>`);
-}
-
-function downloadNpdaFlow() {
-  if (!latestNpda) createNpdaFlow();
-  const blob = new Blob([JSON.stringify(latestNpda, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'grammar_generated_pda.json';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-function openRoute(route) {
-  const safeRoute = String(route || '').toLowerCase();
-  try {
-    sessionStorage.setItem(ACTIVE_ROUTE_KEY, safeRoute);
-  } catch (_e) {}
-  window.location.href = safeRoute === 'grammar' ? appUrl('pages/grammar_studio.html') : appUrl(`index.html#${safeRoute}`);
-}
-
-function stashCrossPrompt(key, text) {
-  const cleaned = String(text || '').trim();
-  if (!cleaned) return;
-  try {
-    localStorage.setItem(key, cleaned);
-  } catch (_e) {}
-}
-
-function openInPdaFlow() {
-  if (!latestNpda) createNpdaFlow();
-  localStorage.setItem(PENDING_PDA_KEY, JSON.stringify(latestNpda));
-  openRoute('pda');
-}
-
-function regexToFaFlow() {
-  const regex = byId('grammarRegexInput').value.trim();
-  if (!regex) throw new Error('Enter a regex first.');
-  const { machine } = buildFaMachineForImport(regex);
-  setPendingImportedMachine('fa', machine);
-  openRoute('fa');
-}
-
-function rlToFaFlow() {
-  const rl = byId('rlInput').value.trim();
-  if (!rl) throw new Error('Enter RL input first.');
-  const { machine, fallback } = buildFaMachineForImport(rl);
-  setPendingImportedMachine('fa', machine);
-  if (fallback) {
-    setRlRelStatus('Used fallback RL-to-FA conversion skeleton. You can refine transitions after opening FA.');
-  }
-  openRoute('fa');
-}
-
-async function previewRlToFaFlow() {
-  const rl = byId('rlInput').value.trim();
-  if (!rl) throw new Error('Enter RL input first.');
-  const plan = buildRlPlan(rl, 'FA');
-  await renderRlPlan(plan);
-  setRlRelStatus('RL to FA conversion plan generated. Review steps and open FA when ready.');
-}
-
-function rlToMmFlow() {
-  const rl = byId('rlInput').value.trim();
-  if (!rl) throw new Error('Enter RL input first.');
-  stashCrossPrompt(PENDING_MM_PROMPT_KEY, `RL input from Grammar: ${rl}`);
-  openRoute('mm');
-}
-
-async function previewRlToMmFlow() {
-  const rl = byId('rlInput').value.trim();
-  if (!rl) throw new Error('Enter RL input first.');
-  const plan = buildRlPlan(rl, 'MM');
-  await renderRlPlan(plan);
-  setRlRelStatus('RL to Mealy/Moore conversion plan generated. Review architecture before switching studio.');
-}
-
-function openFaFlow() {
-  openRoute('fa');
-}
-
-function openMmFlow() {
-  openRoute('mm');
-}
-
-function openTmFlow() {
-  openRoute('tm');
-}
-
-function relToTmFlow() {
-  const rel = byId('relInput').value.trim();
-  if (!rel) throw new Error('Enter REL input first.');
-  const tmMachine = buildTmMachineFromRel(rel);
-  setPendingImportedMachine('tm', tmMachine);
-  stashCrossPrompt(PENDING_TM_PROMPT_KEY, `REL input from Grammar: ${rel}`);
-  openRoute('tm');
-}
-
-async function previewRelToTmFlow() {
-  const rel = byId('relInput').value.trim();
-  if (!rel) throw new Error('Enter REL input first.');
-  const plan = buildRelPlan(rel);
-  await renderRelPlan(plan);
-  setRlRelStatus('REL to TM conversion plan generated. Validate the workflow and then open TM.');
-}
-
-function cfgLemmaGuideFlow() {
-  const lang = byId('cfgLanguageInput').value.trim() || 'L';
-  const witness = byId('cfgWitnessInput').value.trim() || 'w';
-  const split = byId('cfgSplitInput').value.trim() || 'w = uvxyz';
-  const output = byId('cfgLemmaOutput');
-  output.innerHTML = [
-    `Assume <strong>${escHtml(lang)}</strong> is context-free and pumping length is p.`,
-    `Pick witness <strong>${escHtml(witness)}</strong> with |w| >= p.`,
-    `For every split <strong>${escHtml(split)}</strong> with |vxy| <= p and |vy| > 0,`,
-    'choose i=0 or i=2 and show uv^i x y^i z is not in the language.',
-    'Contradiction implies language is not context-free (or refine witness if contradiction fails).'
-  ].join('<br/>');
-}
-
-function hydratePendingGrammarImport() {
-  const pendingGrammar = consumePendingImportedMachine('grammar');
-  if (!pendingGrammar) return;
-  if (Array.isArray(pendingGrammar.rules) && pendingGrammar.startSymbol) {
-    const lines = pendingGrammar.rules.map((r) => `${r.lhs} -> ${r.rhs && r.rhs.length ? r.rhs.map((s) => displaySymbol(s)).join(' ') : EPSILON_SYMBOL}`);
-    byId('grammarInput').value = lines.join('\n');
-    byId('grammarStart').value = pendingGrammar.startSymbol;
-    setStatus('Imported grammar JSON from cross-studio loader.');
-  }
-}
+// ------------------------------------------------------------------ init
 
 function init() {
-  const toggleBtn = byId('grammarPanelToggleBtn');
-  const controlPanel = byId('controlPanel');
-  const visualizationPanel = document.querySelector('.grammar-visual');
+  initializeShortcuts();
+  // Automata Builder on this page: drawing a machine means opening its studio
+  window.TocStudio = { route: () => null, mode: () => '', load: async (machine, route) => openInStudio(route, machine) };
+  initBuilder();
 
-  const ensureDrawerBackdrop = () => {
-    let backdrop = byId('drawerBackdrop');
-    if (!backdrop) {
-      backdrop = document.createElement('div');
-      backdrop.id = 'drawerBackdrop';
-      backdrop.className = 'drawer-backdrop';
-      document.body.appendChild(backdrop);
-    }
-    return backdrop;
-  };
+  const ex = $('gsExamples');
+  ex.innerHTML += C.EXAMPLES.map((e, i) => `<option value="${i}">${esc(e.name)}</option>`).join('');
+  ex.addEventListener('change', () => {
+    const e = C.EXAMPLES[+ex.value];
+    if (!e) return;
+    $('gsGrammar').value = e.text;
+    $('gsStart').value = '';
+    ex.value = '';
+    refresh();
+  });
 
-  const drawerBackdrop = ensureDrawerBackdrop();
-  const closePanel = () => {
-    controlPanel?.classList.remove('open');
-    drawerBackdrop?.classList.remove('open');
-    toggleBtn?.setAttribute('aria-expanded', 'false');
-  };
-  const togglePanel = () => {
-    if (!controlPanel) return;
-    const isOpen = controlPanel.classList.toggle('open');
-    drawerBackdrop?.classList.toggle('open', isOpen);
-    toggleBtn?.setAttribute('aria-expanded', String(isOpen));
-  };
-
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePanel();
-    });
+  // restore: a grammar sent from another studio wins, then the last session
+  const pending = consumePendingImportedMachine?.('grammar');
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(STORE) || 'null'); } catch { /* ignore */ }
+  if (pending?.grammarText) $('gsGrammar').value = pending.grammarText;
+  else if (Array.isArray(pending?.rules)) {
+    // grammar JSON files (rules: [{ lhs, rhs: [...] }], startSymbol)
+    $('gsGrammar').value = pending.rules.map(r => `${r.lhs} -> ${r.rhs?.length ? r.rhs.join(' ') : 'ε'}`).join('\n');
+    $('gsStart').value = pending.startSymbol || '';
   }
-  drawerBackdrop?.addEventListener('click', closePanel);
-  visualizationPanel?.addEventListener('click', closePanel);
-  bindGlobalDrawerHandlers(closePanel);
+  else if (saved?.text) { $('gsGrammar').value = saved.text; $('gsStart').value = saved.start || ''; $('gsInput').value = saved.input || ''; }
+  if (!$('gsInput').value) $('gsInput').value = 'aabb';
 
-  document.querySelectorAll('.grammar-tab-btn').forEach((btn) => {
-    btn.addEventListener('click', () => tabSwitch(btn.getAttribute('data-tab')));
+  let timer = null;
+  $('gsGrammar').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => { refresh(); runTest(); }, 250); });
+  $('gsStart').addEventListener('change', () => { refresh(); runTest(); });
+  $('gsInput').addEventListener('input', () => { runTest(); if (tab === 'parse' || tab === 'cyk') renderTab(); });
+  $('gsInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { tab = 'parse'; renderTab(); } });
+  $('gsTestBtn').addEventListener('click', () => { tab = 'parse'; renderTab(); });
+  document.querySelector('.gs-tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; renderTab(); } });
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-try]');
+    if (t) { $('gsInput').value = t.dataset.try; runTest(); tab = 'parse'; renderTab(); }
+    const go = e.target.closest('[data-tab-go]');
+    if (go) { tab = go.dataset.tabGo; renderTab(); }
   });
-
-  byId('grammarBackBtn').addEventListener('click', () => {
-    try {
-      sessionStorage.removeItem(ACTIVE_ROUTE_KEY);
-    } catch (_e) {}
-    window.location.href = appUrl('index.html');
-  });
-
-  byId('grammarValidateBtn').addEventListener('click', () => {
-    try {
-      validateGrammarFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarBuildBtn').addEventListener('click', () => {
-    try {
-      createNpdaFlow();
-      tabSwitch('npda');
-      setStatus('NPDA JSON generated.');
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarAnimateBtn').addEventListener('click', async () => {
-    try {
-      await animateConversionFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('parseGenerateBtn').addEventListener('click', () => {
-    try {
-      parseTreeFlow();
-      tabSwitch('tree');
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarDownloadBtn').addEventListener('click', () => {
-    try {
-      downloadNpdaFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarOpenPdaBtn').addEventListener('click', () => {
-    try {
-      openInPdaFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarRegexToFaBtn').addEventListener('click', () => {
-    try {
-      regexToFaFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('grammarOpenTmBtn').addEventListener('click', () => {
-    try {
-      openTmFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('rlOpenFaBtn')?.addEventListener('click', () => {
-    try {
-      rlToFaFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('rlOpenMmBtn')?.addEventListener('click', () => {
-    try {
-      rlToMmFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('relOpenTmBtn')?.addEventListener('click', () => {
-    try {
-      relToTmFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('rlPreviewFaBtn')?.addEventListener('click', async () => {
-    try {
-      await previewRlToFaFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('rlPreviewMmBtn')?.addEventListener('click', async () => {
-    try {
-      await previewRlToMmFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('relPreviewTmBtn')?.addEventListener('click', async () => {
-    try {
-      await previewRelToTmFlow();
-    } catch (err) {
-      setRlRelStatus(escHtml(err.message), true);
-    }
-  });
-
-  byId('switchToFaBtn')?.addEventListener('click', () => openFaFlow());
-  byId('switchToMmBtn')?.addEventListener('click', () => openMmFlow());
-  byId('switchToPdaBtn')?.addEventListener('click', () => openInPdaFlow());
-  byId('switchToTmBtn')?.addEventListener('click', () => openTmFlow());
-
-  byId('cfgLemmaGuideBtn').addEventListener('click', () => {
-    try {
-      cfgLemmaGuideFlow();
-    } catch (err) {
-      setStatus(escHtml(err.message), true);
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    const tag = e.target?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable) return;
-    if (!(e.ctrlKey && e.altKey)) return;
-    const key = e.key.toLowerCase();
-    if (!['1', '2', '3', '4', '5'].includes(key)) return;
-    e.preventDefault();
-    if (key === '1') openFaFlow();
-    if (key === '2') openMmFlow();
-    if (key === '3') openInPdaFlow();
-    if (key === '4') openTmFlow();
-    if (key === '5') tabSwitch('steps');
-  });
-
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
-
-  try {
-    hydratePendingGrammarImport();
-    validateGrammarFlow();
-    createNpdaFlow();
-    tabSwitch('steps');
-  } catch (_e) {
-    // keep UI interactive even with malformed default input
-  }
+  $('pmRun').addEventListener('click', runPumping);
+  $('rxEnfa').addEventListener('click', () => regexOpen('enfa'));
+  $('rxDfa').addEventListener('click', () => regexOpen('dfa'));
+  // deep links: grammar_studio.html#cyk
+  const h = location.hash.slice(1);
+  if (document.querySelector(`.gs-tabs [data-tab="${h}"]`)) tab = h;
+  refresh();
+  runTest();
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
-
-
+init();
