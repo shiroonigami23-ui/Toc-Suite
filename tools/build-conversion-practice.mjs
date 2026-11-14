@@ -43,6 +43,21 @@ function withEpsilon(machine) {
   });
   return m;
 }
+// A deterministic "NFA" makes subset construction trivial. Add a twin of some state q (same
+// accepting flag, same outgoing moves) and a second edge p -a-> q' next to p -a-> q: the language
+// is unchanged but the machine is now genuinely nondeterministic.
+function withNondeterminism(machine) {
+  const m = clone(machine);
+  const isNondet = FA.structuralIssues({ ...m, type: 'DFA' }).some(i => i.kind === 'nondeterministic' || i.kind === 'epsilon');
+  if (isNondet || !m.transitions.length) return m;
+  const t = m.transitions.find(x => x.from !== x.to) || m.transitions[0];
+  const q = m.states.find(s => s.id === t.to);
+  const twin = { ...q, id: `${q.id}'`, initial: false, x: q.x + 60, y: q.y + 120 };
+  m.states.push(twin);
+  for (const o of m.transitions.filter(x => x.from === q.id)) m.transitions.push({ ...o, from: twin.id, to: o.to === q.id ? twin.id : o.to });
+  m.transitions.push({ ...t, to: twin.id });
+  return m;
+}
 const dfaOf = (src, sigma, keepDead) => withLayout(FA.toAppMachine(FA.toMinimalDfa(src, sigma), { keepDead }));
 
 const out = { ENFA_TO_NFA: {}, NFA_TO_DFA: {}, DFA_TO_MIN_DFA: {}, NFA_TO_MIN_DFA: {} };
@@ -58,11 +73,12 @@ for (const lvl of LEVELS) {
   }
   for (const e of bank.NFA?.[lvl] || []) {
     const sigma = sigmaOf(e.q, e.machine);
+    const nsrc = withNondeterminism(e.machine);
     const full = dfaOf(e.machine, sigma, true);
     out.NFA_TO_DFA[lvl].push({ q: `Subset construction: convert the NFA on the canvas (${plain(e.q)}) into an equivalent DFA.`,
-      sol: `Any equivalent DFA is accepted; the smallest has ${full.states.length} states (including the trap state if needed).`, source: { ...clone(e.machine), type: 'NFA' }, machine: { ...full, type: 'DFA' } });
+      sol: `Any equivalent DFA is accepted; the smallest has ${full.states.length} states (including the trap state if needed).`, source: { ...nsrc, type: 'NFA' }, machine: { ...full, type: 'DFA' } });
     out.NFA_TO_MIN_DFA[lvl].push({ q: `Convert the NFA on the canvas (${plain(e.q)}) into the minimal DFA.`,
-      sol: `Subset construction, then minimisation: ${full.states.length} states (a missing trap state is also accepted).`, source: { ...clone(e.machine), type: 'NFA' }, machine: { ...full, type: 'DFA' } });
+      sol: `Subset construction, then minimisation: ${full.states.length} states (a missing trap state is also accepted).`, source: { ...nsrc, type: 'NFA' }, machine: { ...full, type: 'DFA' } });
   }
   for (const e of bank.DFA?.[lvl] || []) {
     const sigma = sigmaOf(e.q, e.machine);

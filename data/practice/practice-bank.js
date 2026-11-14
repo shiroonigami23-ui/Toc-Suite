@@ -5017,19 +5017,104 @@ window.PRACTICE_BANK = {
         }
       },
       {
-        "q": "NFA for language w mid |w| text is prime (Σ={a})",
-        "sol": "Cannot be done with NFA. Use this as a tricky prompt.",
+        "q": "NFA for strings of \"a\"s whose length is a prime number no larger than 7, i.e. 2, 3, 5 or 7 (Σ={a}). (Primes in general are not a regular language, so the bound matters.)",
+        "sol": "8 states counting the length up to 7; accepting at 2, 3, 5 and 7.",
         "machine": {
           "states": [
             {
               "id": "q0",
-              "x": 100,
-              "y": 300,
               "initial": true,
-              "accepting": false
+              "accepting": false,
+              "x": 110,
+              "y": 432
+            },
+            {
+              "id": "q1",
+              "initial": false,
+              "accepting": false,
+              "x": 279,
+              "y": 468
+            },
+            {
+              "id": "q2",
+              "initial": false,
+              "accepting": true,
+              "x": 447,
+              "y": 432
+            },
+            {
+              "id": "q3",
+              "initial": false,
+              "accepting": true,
+              "x": 616,
+              "y": 468
+            },
+            {
+              "id": "q4",
+              "initial": false,
+              "accepting": false,
+              "x": 784,
+              "y": 432
+            },
+            {
+              "id": "q5",
+              "initial": false,
+              "accepting": true,
+              "x": 953,
+              "y": 468
+            },
+            {
+              "id": "q6",
+              "initial": false,
+              "accepting": false,
+              "x": 1121,
+              "y": 432
+            },
+            {
+              "id": "q7",
+              "initial": false,
+              "accepting": true,
+              "x": 1290,
+              "y": 468
             }
           ],
-          "transitions": [],
+          "transitions": [
+            {
+              "from": "q0",
+              "to": "q1",
+              "symbol": "a"
+            },
+            {
+              "from": "q1",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q2",
+              "to": "q3",
+              "symbol": "a"
+            },
+            {
+              "from": "q3",
+              "to": "q4",
+              "symbol": "a"
+            },
+            {
+              "from": "q4",
+              "to": "q5",
+              "symbol": "a"
+            },
+            {
+              "from": "q5",
+              "to": "q6",
+              "symbol": "a"
+            },
+            {
+              "from": "q6",
+              "to": "q7",
+              "symbol": "a"
+            }
+          ],
           "alphabet": [
             "a"
           ]
@@ -15298,6 +15383,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -15310,6 +15402,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "1"
             }
           ],
           "alphabet": [
@@ -15562,6 +15664,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q0a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -15584,6 +15693,16 @@ window.PRACTICE_BANK = {
               "from": "q1a",
               "to": "q1b",
               "symbol": "1"
+            },
+            {
+              "from": "q0a'",
+              "to": "q0b",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q0a'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -15715,6 +15834,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "qA'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -15747,6 +15873,21 @@ window.PRACTICE_BANK = {
               "from": "qB",
               "to": "qB",
               "symbol": "b"
+            },
+            {
+              "from": "qA'",
+              "to": "qA'",
+              "symbol": "a"
+            },
+            {
+              "from": "qA'",
+              "to": "qA'",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "qA'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -15827,6 +15968,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -15859,6 +16007,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -15949,6 +16112,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -15965,6 +16135,16 @@ window.PRACTICE_BANK = {
             {
               "from": "q1",
               "to": "q1",
+              "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "b"
             }
           ],
@@ -16079,6 +16259,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q0a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -16111,6 +16298,16 @@ window.PRACTICE_BANK = {
               "from": "q1b",
               "to": "q1a",
               "symbol": "1"
+            },
+            {
+              "from": "q0a'",
+              "to": "q0b",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q0a'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -16259,6 +16456,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -16286,6 +16490,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "1"
             }
           ],
           "alphabet": [
@@ -16414,6 +16633,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -16456,6 +16682,16 @@ window.PRACTICE_BANK = {
               "from": "q2b",
               "to": "q1b",
               "symbol": "b"
+            },
+            {
+              "from": "q1a'",
+              "to": "q2a",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1a'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -16563,6 +16799,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -16580,6 +16823,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -16684,6 +16937,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1150,
               "y": 468
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 610,
+              "y": 588
             }
           ],
           "transitions": [
@@ -16715,6 +16975,21 @@ window.PRACTICE_BANK = {
             {
               "from": "q2",
               "to": "q3",
+              "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "1"
             }
           ],
@@ -16840,6 +17115,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -16851,6 +17133,11 @@ window.PRACTICE_BANK = {
             {
               "from": "q0",
               "to": "q1",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "b"
             }
           ],
@@ -16956,6 +17243,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -16998,6 +17292,21 @@ window.PRACTICE_BANK = {
               "from": "q3",
               "to": "q3",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -17112,6 +17421,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -17129,6 +17445,16 @@ window.PRACTICE_BANK = {
               "from": "q0",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -17243,6 +17569,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -17265,6 +17598,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -17379,6 +17727,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -17401,6 +17756,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -17750,6 +18120,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -17792,6 +18169,21 @@ window.PRACTICE_BANK = {
               "from": "q3",
               "to": "q0",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -18200,6 +18592,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 760,
+              "y": 455
             }
           ],
           "transitions": [
@@ -18232,6 +18631,16 @@ window.PRACTICE_BANK = {
               "from": "q4",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -18380,6 +18789,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 850,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 910,
+              "y": 455
             }
           ],
           "transitions": [
@@ -18397,6 +18813,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -18504,6 +18930,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -18526,6 +18959,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -18606,6 +19054,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -18622,6 +19077,21 @@ window.PRACTICE_BANK = {
             {
               "from": "q1",
               "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "1"
             }
           ],
@@ -18758,6 +19228,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "qA1'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -18810,6 +19287,21 @@ window.PRACTICE_BANK = {
               "from": "qF",
               "to": "qF",
               "symbol": "b"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA2",
+              "symbol": "a"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "qA1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -18975,6 +19467,13 @@ window.PRACTICE_BANK = {
               "accepting": false,
               "x": 1000,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -19002,6 +19501,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -19111,6 +19625,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -19133,6 +19654,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q1",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -19227,6 +19763,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "qA1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -19259,6 +19802,16 @@ window.PRACTICE_BANK = {
               "from": "qB0",
               "to": "qB1",
               "symbol": "b"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA0",
+              "symbol": "a"
+            },
+            {
+              "from": "qA0",
+              "to": "qA1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -19383,19 +19936,121 @@ window.PRACTICE_BANK = {
         }
       },
       {
-        "q": "Subset construction: convert the NFA on the canvas (language w mid |w| text is prime) into an equivalent DFA.",
-        "sol": "Any equivalent DFA is accepted; the smallest has 1 states (including the trap state if needed).",
+        "q": "Subset construction: convert the NFA on the canvas (strings of \"a\"s whose length is a prime number no larger than 7, i.e. 2, 3, 5 or 7 (Σ={a}). (Primes in general are not a regular language, so the bound matters.)) into an equivalent DFA.",
+        "sol": "Any equivalent DFA is accepted; the smallest has 9 states (including the trap state if needed).",
         "source": {
           "states": [
             {
               "id": "q0",
-              "x": 100,
-              "y": 300,
               "initial": true,
-              "accepting": false
+              "accepting": false,
+              "x": 110,
+              "y": 432
+            },
+            {
+              "id": "q1",
+              "initial": false,
+              "accepting": false,
+              "x": 279,
+              "y": 468
+            },
+            {
+              "id": "q2",
+              "initial": false,
+              "accepting": true,
+              "x": 447,
+              "y": 432
+            },
+            {
+              "id": "q3",
+              "initial": false,
+              "accepting": true,
+              "x": 616,
+              "y": 468
+            },
+            {
+              "id": "q4",
+              "initial": false,
+              "accepting": false,
+              "x": 784,
+              "y": 432
+            },
+            {
+              "id": "q5",
+              "initial": false,
+              "accepting": true,
+              "x": 953,
+              "y": 468
+            },
+            {
+              "id": "q6",
+              "initial": false,
+              "accepting": false,
+              "x": 1121,
+              "y": 432
+            },
+            {
+              "id": "q7",
+              "initial": false,
+              "accepting": true,
+              "x": 1290,
+              "y": 468
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 339,
+              "y": 588
             }
           ],
-          "transitions": [],
+          "transitions": [
+            {
+              "from": "q0",
+              "to": "q1",
+              "symbol": "a"
+            },
+            {
+              "from": "q1",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q2",
+              "to": "q3",
+              "symbol": "a"
+            },
+            {
+              "from": "q3",
+              "to": "q4",
+              "symbol": "a"
+            },
+            {
+              "from": "q4",
+              "to": "q5",
+              "symbol": "a"
+            },
+            {
+              "from": "q5",
+              "to": "q6",
+              "symbol": "a"
+            },
+            {
+              "from": "q6",
+              "to": "q7",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
+            }
+          ],
           "alphabet": [
             "a"
           ],
@@ -19412,14 +20067,110 @@ window.PRACTICE_BANK = {
               "id": "q0",
               "initial": true,
               "accepting": false,
-              "x": 700,
-              "y": 450
+              "x": 110,
+              "y": 432
+            },
+            {
+              "id": "q1",
+              "initial": false,
+              "accepting": false,
+              "x": 259,
+              "y": 468
+            },
+            {
+              "id": "q2",
+              "initial": false,
+              "accepting": true,
+              "x": 407,
+              "y": 432
+            },
+            {
+              "id": "q3",
+              "initial": false,
+              "accepting": true,
+              "x": 556,
+              "y": 468
+            },
+            {
+              "id": "q4",
+              "initial": false,
+              "accepting": false,
+              "x": 704,
+              "y": 432
+            },
+            {
+              "id": "q5",
+              "initial": false,
+              "accepting": true,
+              "x": 853,
+              "y": 468
+            },
+            {
+              "id": "q6",
+              "initial": false,
+              "accepting": false,
+              "x": 1001,
+              "y": 432
+            },
+            {
+              "id": "q7",
+              "initial": false,
+              "accepting": true,
+              "x": 1150,
+              "y": 468
+            },
+            {
+              "id": "q8",
+              "initial": false,
+              "accepting": false,
+              "x": 1290,
+              "y": 790
             }
           ],
           "transitions": [
             {
               "from": "q0",
-              "to": "q0",
+              "to": "q1",
+              "symbol": "a"
+            },
+            {
+              "from": "q1",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q2",
+              "to": "q3",
+              "symbol": "a"
+            },
+            {
+              "from": "q3",
+              "to": "q4",
+              "symbol": "a"
+            },
+            {
+              "from": "q4",
+              "to": "q5",
+              "symbol": "a"
+            },
+            {
+              "from": "q5",
+              "to": "q6",
+              "symbol": "a"
+            },
+            {
+              "from": "q6",
+              "to": "q7",
+              "symbol": "a"
+            },
+            {
+              "from": "q7",
+              "to": "q8",
+              "symbol": "a"
+            },
+            {
+              "from": "q8",
+              "to": "q8",
               "symbol": "a"
             }
           ]
@@ -19617,6 +20368,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1290,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 465,
+              "y": 455
             }
           ],
           "transitions": [
@@ -19663,6 +20421,16 @@ window.PRACTICE_BANK = {
             {
               "from": "q5",
               "to": "q6",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "0"
             }
           ],
@@ -20228,6 +20996,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1290,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 406,
+              "y": 455
             }
           ],
           "transitions": [
@@ -20330,6 +21105,16 @@ window.PRACTICE_BANK = {
               "from": "q10",
               "to": "q10",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -20785,6 +21570,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q01'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -20827,6 +21619,16 @@ window.PRACTICE_BANK = {
               "from": "qF",
               "to": "qF",
               "symbol": "1"
+            },
+            {
+              "from": "q01'",
+              "to": "q02",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q01'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -28755,6 +29557,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -28767,6 +29576,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "1"
             }
           ],
           "alphabet": [
@@ -29019,6 +29838,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q0a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -29041,6 +29867,16 @@ window.PRACTICE_BANK = {
               "from": "q1a",
               "to": "q1b",
               "symbol": "1"
+            },
+            {
+              "from": "q0a'",
+              "to": "q0b",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q0a'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -29172,6 +30008,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "qA'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -29204,6 +30047,21 @@ window.PRACTICE_BANK = {
               "from": "qB",
               "to": "qB",
               "symbol": "b"
+            },
+            {
+              "from": "qA'",
+              "to": "qA'",
+              "symbol": "a"
+            },
+            {
+              "from": "qA'",
+              "to": "qA'",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "qA'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -29284,6 +30142,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -29316,6 +30181,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -29406,6 +30286,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -29422,6 +30309,16 @@ window.PRACTICE_BANK = {
             {
               "from": "q1",
               "to": "q1",
+              "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "b"
             }
           ],
@@ -29536,6 +30433,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q0a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -29568,6 +30472,16 @@ window.PRACTICE_BANK = {
               "from": "q1b",
               "to": "q1a",
               "symbol": "1"
+            },
+            {
+              "from": "q0a'",
+              "to": "q0b",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q0a'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -29716,6 +30630,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -29743,6 +30664,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "1"
             }
           ],
           "alphabet": [
@@ -29871,6 +30807,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1a'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -29913,6 +30856,16 @@ window.PRACTICE_BANK = {
               "from": "q2b",
               "to": "q1b",
               "symbol": "b"
+            },
+            {
+              "from": "q1a'",
+              "to": "q2a",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1a'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -30020,6 +30973,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -30037,6 +30997,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -30141,6 +31111,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1150,
               "y": 468
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 610,
+              "y": 588
             }
           ],
           "transitions": [
@@ -30172,6 +31149,21 @@ window.PRACTICE_BANK = {
             {
               "from": "q2",
               "to": "q3",
+              "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "1"
             }
           ],
@@ -30297,6 +31289,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -30308,6 +31307,11 @@ window.PRACTICE_BANK = {
             {
               "from": "q0",
               "to": "q1",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "b"
             }
           ],
@@ -30413,6 +31417,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -30455,6 +31466,21 @@ window.PRACTICE_BANK = {
               "from": "q3",
               "to": "q3",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -30569,6 +31595,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -30586,6 +31619,16 @@ window.PRACTICE_BANK = {
               "from": "q0",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -30700,6 +31743,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -30722,6 +31772,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -30836,6 +31901,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -30858,6 +31930,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -31207,6 +32294,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -31249,6 +32343,21 @@ window.PRACTICE_BANK = {
               "from": "q3",
               "to": "q0",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -31657,6 +32766,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1000,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 760,
+              "y": 455
             }
           ],
           "transitions": [
@@ -31689,6 +32805,16 @@ window.PRACTICE_BANK = {
               "from": "q4",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -31837,6 +32963,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 850,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 910,
+              "y": 455
             }
           ],
           "transitions": [
@@ -31854,6 +32987,16 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q2",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -31961,6 +33104,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -31983,6 +33133,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q0",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q0",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -32063,6 +33228,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -32079,6 +33251,21 @@ window.PRACTICE_BANK = {
             {
               "from": "q1",
               "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "1"
             }
           ],
@@ -32215,6 +33402,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "qA1'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -32267,6 +33461,21 @@ window.PRACTICE_BANK = {
               "from": "qF",
               "to": "qF",
               "symbol": "b"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA2",
+              "symbol": "a"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "qA1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -32432,6 +33641,13 @@ window.PRACTICE_BANK = {
               "accepting": false,
               "x": 1000,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": true,
+              "x": 760,
+              "y": 588
             }
           ],
           "transitions": [
@@ -32459,6 +33675,21 @@ window.PRACTICE_BANK = {
               "from": "q2",
               "to": "q2",
               "symbol": "b"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "b"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -32568,6 +33799,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": true
             }
           ],
           "transitions": [
@@ -32590,6 +33828,21 @@ window.PRACTICE_BANK = {
               "from": "q1",
               "to": "q1",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q1'",
+              "symbol": "1"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -32684,6 +33937,13 @@ window.PRACTICE_BANK = {
               "y": 400,
               "initial": false,
               "accepting": false
+            },
+            {
+              "id": "qA1'",
+              "x": 360,
+              "y": 420,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -32716,6 +33976,16 @@ window.PRACTICE_BANK = {
               "from": "qB0",
               "to": "qB1",
               "symbol": "b"
+            },
+            {
+              "from": "qA1'",
+              "to": "qA0",
+              "symbol": "a"
+            },
+            {
+              "from": "qA0",
+              "to": "qA1'",
+              "symbol": "a"
             }
           ],
           "alphabet": [
@@ -32840,19 +34110,121 @@ window.PRACTICE_BANK = {
         }
       },
       {
-        "q": "Convert the NFA on the canvas (language w mid |w| text is prime) into the minimal DFA.",
-        "sol": "Subset construction, then minimisation: 1 states (a missing trap state is also accepted).",
+        "q": "Convert the NFA on the canvas (strings of \"a\"s whose length is a prime number no larger than 7, i.e. 2, 3, 5 or 7 (Σ={a}). (Primes in general are not a regular language, so the bound matters.)) into the minimal DFA.",
+        "sol": "Subset construction, then minimisation: 9 states (a missing trap state is also accepted).",
         "source": {
           "states": [
             {
               "id": "q0",
-              "x": 100,
-              "y": 300,
               "initial": true,
-              "accepting": false
+              "accepting": false,
+              "x": 110,
+              "y": 432
+            },
+            {
+              "id": "q1",
+              "initial": false,
+              "accepting": false,
+              "x": 279,
+              "y": 468
+            },
+            {
+              "id": "q2",
+              "initial": false,
+              "accepting": true,
+              "x": 447,
+              "y": 432
+            },
+            {
+              "id": "q3",
+              "initial": false,
+              "accepting": true,
+              "x": 616,
+              "y": 468
+            },
+            {
+              "id": "q4",
+              "initial": false,
+              "accepting": false,
+              "x": 784,
+              "y": 432
+            },
+            {
+              "id": "q5",
+              "initial": false,
+              "accepting": true,
+              "x": 953,
+              "y": 468
+            },
+            {
+              "id": "q6",
+              "initial": false,
+              "accepting": false,
+              "x": 1121,
+              "y": 432
+            },
+            {
+              "id": "q7",
+              "initial": false,
+              "accepting": true,
+              "x": 1290,
+              "y": 468
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 339,
+              "y": 588
             }
           ],
-          "transitions": [],
+          "transitions": [
+            {
+              "from": "q0",
+              "to": "q1",
+              "symbol": "a"
+            },
+            {
+              "from": "q1",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q2",
+              "to": "q3",
+              "symbol": "a"
+            },
+            {
+              "from": "q3",
+              "to": "q4",
+              "symbol": "a"
+            },
+            {
+              "from": "q4",
+              "to": "q5",
+              "symbol": "a"
+            },
+            {
+              "from": "q5",
+              "to": "q6",
+              "symbol": "a"
+            },
+            {
+              "from": "q6",
+              "to": "q7",
+              "symbol": "a"
+            },
+            {
+              "from": "q1'",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "a"
+            }
+          ],
           "alphabet": [
             "a"
           ],
@@ -32869,14 +34241,110 @@ window.PRACTICE_BANK = {
               "id": "q0",
               "initial": true,
               "accepting": false,
-              "x": 700,
-              "y": 450
+              "x": 110,
+              "y": 432
+            },
+            {
+              "id": "q1",
+              "initial": false,
+              "accepting": false,
+              "x": 259,
+              "y": 468
+            },
+            {
+              "id": "q2",
+              "initial": false,
+              "accepting": true,
+              "x": 407,
+              "y": 432
+            },
+            {
+              "id": "q3",
+              "initial": false,
+              "accepting": true,
+              "x": 556,
+              "y": 468
+            },
+            {
+              "id": "q4",
+              "initial": false,
+              "accepting": false,
+              "x": 704,
+              "y": 432
+            },
+            {
+              "id": "q5",
+              "initial": false,
+              "accepting": true,
+              "x": 853,
+              "y": 468
+            },
+            {
+              "id": "q6",
+              "initial": false,
+              "accepting": false,
+              "x": 1001,
+              "y": 432
+            },
+            {
+              "id": "q7",
+              "initial": false,
+              "accepting": true,
+              "x": 1150,
+              "y": 468
+            },
+            {
+              "id": "q8",
+              "initial": false,
+              "accepting": false,
+              "x": 1290,
+              "y": 790
             }
           ],
           "transitions": [
             {
               "from": "q0",
-              "to": "q0",
+              "to": "q1",
+              "symbol": "a"
+            },
+            {
+              "from": "q1",
+              "to": "q2",
+              "symbol": "a"
+            },
+            {
+              "from": "q2",
+              "to": "q3",
+              "symbol": "a"
+            },
+            {
+              "from": "q3",
+              "to": "q4",
+              "symbol": "a"
+            },
+            {
+              "from": "q4",
+              "to": "q5",
+              "symbol": "a"
+            },
+            {
+              "from": "q5",
+              "to": "q6",
+              "symbol": "a"
+            },
+            {
+              "from": "q6",
+              "to": "q7",
+              "symbol": "a"
+            },
+            {
+              "from": "q7",
+              "to": "q8",
+              "symbol": "a"
+            },
+            {
+              "from": "q8",
+              "to": "q8",
               "symbol": "a"
             }
           ]
@@ -33074,6 +34542,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1290,
               "y": 432
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 465,
+              "y": 455
             }
           ],
           "transitions": [
@@ -33120,6 +34595,16 @@ window.PRACTICE_BANK = {
             {
               "from": "q5",
               "to": "q6",
+              "symbol": "0"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
               "symbol": "0"
             }
           ],
@@ -33685,6 +35170,13 @@ window.PRACTICE_BANK = {
               "accepting": true,
               "x": 1290,
               "y": 565
+            },
+            {
+              "id": "q1'",
+              "initial": false,
+              "accepting": false,
+              "x": 406,
+              "y": 455
             }
           ],
           "transitions": [
@@ -33787,6 +35279,16 @@ window.PRACTICE_BANK = {
               "from": "q10",
               "to": "q10",
               "symbol": "1"
+            },
+            {
+              "from": "q1'",
+              "to": "q3",
+              "symbol": "0"
+            },
+            {
+              "from": "q0",
+              "to": "q1'",
+              "symbol": "0"
             }
           ],
           "alphabet": [
@@ -34242,6 +35744,13 @@ window.PRACTICE_BANK = {
               "y": 300,
               "initial": false,
               "accepting": true
+            },
+            {
+              "id": "q01'",
+              "x": 360,
+              "y": 320,
+              "initial": false,
+              "accepting": false
             }
           ],
           "transitions": [
@@ -34284,6 +35793,16 @@ window.PRACTICE_BANK = {
               "from": "qF",
               "to": "qF",
               "symbol": "1"
+            },
+            {
+              "from": "q01'",
+              "to": "q02",
+              "symbol": "0"
+            },
+            {
+              "from": "qS",
+              "to": "q01'",
+              "symbol": "0"
             }
           ],
           "alphabet": [

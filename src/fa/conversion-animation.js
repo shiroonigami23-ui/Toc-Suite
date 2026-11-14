@@ -1,9 +1,9 @@
 import { setMachine, pushUndo } from './state.js';
 import { renderAll, layoutStatesCircular } from './renderer.js';
-import { sleep, addLogMessage } from '../shared/utils.js';
+import { sleep, addLogMessage, stepDelay } from '../shared/utils.js';
 import { convertEnfaToNfa, convertNfaToDfa, minimizeDfa } from './automata.js';
 
-const ANIMATION_DELAY = 1500;
+
 
 async function animateConversion(conversionFn, initialMachine, successMessage, updateUIFn) {
     document.getElementById('stepLog').innerHTML = '';
@@ -15,7 +15,7 @@ async function animateConversion(conversionFn, initialMachine, successMessage, u
         setMachine(machineState);
         renderAll();
         addLogMessage(message, 'git-branch');
-        await sleep(ANIMATION_DELAY);
+        await sleep(stepDelay());
     };
 
     const finalMachine = await conversionFn(initialMachine, stepCallback);
@@ -43,7 +43,7 @@ export async function animateNfaToMinDfa(machine, updateUIFn) {
     pushUndo(updateUIFn);
 
     addLogMessage("Starting NFA to Minimal DFA conversion...", 'zap');
-    await sleep(ANIMATION_DELAY);
+    await sleep(stepDelay());
     
     addLogMessage("Part 1: Converting NFA to DFA...", 'loader');
     const dfa = await convertNfaToDfa(machine, async (machineState, message) => {
@@ -52,14 +52,14 @@ export async function animateNfaToMinDfa(machine, updateUIFn) {
         setMachine(machineState);
         renderAll();
         addLogMessage(message, 'git-branch');
-        await sleep(ANIMATION_DELAY);
+        await sleep(stepDelay());
     });
     
     layoutStatesCircular(dfa.states);
     setMachine(dfa);
     renderAll();
     addLogMessage("NFA to DFA conversion complete. Now minimizing.", 'check');
-    await sleep(ANIMATION_DELAY * 2);
+    await sleep(stepDelay() * 2);
 
     addLogMessage("Part 2: Minimizing the DFA...", 'loader');
     const minDfa = await minimizeDfa(dfa, async (machineState, message) => {
@@ -68,7 +68,7 @@ export async function animateNfaToMinDfa(machine, updateUIFn) {
         setMachine(machineState);
         renderAll();
         addLogMessage(message, 'git-branch');
-        await sleep(ANIMATION_DELAY);
+        await sleep(stepDelay());
     });
 
     layoutStatesCircular(minDfa.states);

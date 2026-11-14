@@ -31,7 +31,8 @@ export function saveTmMachine() {
         modal.style.display = 'flex';
 
         document.getElementById('tmSaveConfirmBtn').onclick = async () => {
-            const fileName = prefix + (input.value.trim() || defaultName);
+            const raw = (input.value.trim() || defaultName).replace(/^tm_/, '');
+            const fileName = prefix + raw;
             modal.style.display = 'none';
 
             // 1. LOCAL DOWNLOAD

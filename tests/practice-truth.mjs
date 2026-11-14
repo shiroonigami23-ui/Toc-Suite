@@ -16,6 +16,7 @@ export const TRUTH = {
   'NFA/medium/9': { sigma: 'ab', pred: w => w[0] === 'a' && w.endsWith('a'), regex: 'a|a(a|b)*a' },
   'NFA/hard/4':   { sigma: '01', pred: w => /^(00)*(11)*(00|11)$/.test(w), regex: '(00)*(11)*(00|11)' },
   'NFA/hard/7':   { sigma: '01', pred: w => w[1] === '0' && len(w) >= 3 && w[len(w) - 3] === '1', text: 'the second symbol is 0 and the third symbol from the end is 1 over {0,1}' },
+  'NFA/hard/2':   { sigma: 'a', pred: w => [2, 3, 5, 7].includes(w.length), regex: 'aa|aaa|aaaaa|aaaaaaa' },
   'ENFA/easy/4':  { sigma: '01', pred: w => /^0?1$/.test(w), regex: '(0|ε)1' },
   'ENFA/easy/7':  { sigma: 'a', pred: w => len(w) === 2 || len(w) === 4, regex: 'aa|aaaa' },
   'ENFA/basic/1': { sigma: '01', pred: w => /^[01]*01*$/.test(w), regex: '(0|1)*01*' },

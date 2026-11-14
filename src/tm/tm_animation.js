@@ -4,9 +4,10 @@
  */
 
 import { setMachine } from './tm_state.js';
-import { addLogMessage } from '../shared/utils.js';
+import { addLogMessage, constructionDelay } from '../shared/utils.js';
 
-export async function animateTmDrawing(machineToDraw, delay = 800) {
+export async function animateTmDrawing(machineToDraw, delay = null) {
+    if (delay == null) delay = constructionDelay((machineToDraw.states || []).length + (machineToDraw.transitions || []).length);
     let tempMachine = {
         type: machineToDraw.type || 'STANDARD',
         numTapes: machineToDraw.numTapes || 1,

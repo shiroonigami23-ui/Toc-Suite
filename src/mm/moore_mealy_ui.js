@@ -2,7 +2,7 @@ import { MACHINE, CURRENT_MODE, TRANS_FROM, UNDO_STACK, REDO_STACK, pushUndo, do
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
 import { runSimulation } from './moore_mealy_simulation.js';
 import { validateAutomaton, convertMooreToMealy } from './moore_mealy_automata.js';
-import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from '../shared/utils.js';
+import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons, resetSharedDialogButtons } from '../shared/utils.js';
 import { areEquivalent } from './moore_mealy_equivalence.js';
 import { animateMachineDrawing } from '../shared/animation.js'; 
 import { initializeLibrary } from './moore_mealy_library_loader.js';
@@ -337,6 +337,7 @@ function enforceInitialStateRule() {
 async function handleConversionMode(updateUIFunction) {
     const modeSelect = document.getElementById('modeSelect');
     if (!modeSelect) return;
+    if (window.__tocDrawing) { modeSelect.disabled = true; try { await window.__tocDrawing; } finally { modeSelect.disabled = false; } }   // finish drawing a loaded machine first
     
     const newMode = modeSelect.value;
     const oldMode = MACHINE.type;
@@ -572,6 +573,7 @@ function addStateInternal(x, y, isInitial, output) {
 // --- Main Initialization ---
 
 export function initializeUI() {
+    resetSharedDialogButtons();
     hideModals();
     
     // UI Elements 
@@ -827,6 +829,14 @@ export function initializeUI() {
         const exportModal = document.getElementById('exportPngModal');
         if (pngNameInput) pngNameInput.value = defaultName;
         if (exportModal) exportModal.style.display = 'flex';
+    });
+    document.getElementById('pngExportConfirm')?.addEventListener('click', () => {
+        const name = document.getElementById('pngNameInput')?.value.trim();
+        document.getElementById('exportPngModal').style.display = 'none';
+        if (name) exportPng(name);
+    });
+    document.getElementById('pngExportCancel')?.addEventListener('click', () => {
+        document.getElementById('exportPngModal').style.display = 'none';
     });
     if (importImageBtn) importImageBtn.addEventListener('click', () => {
         if (importImageInput) importImageInput.click();

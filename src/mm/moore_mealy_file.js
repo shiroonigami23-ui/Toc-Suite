@@ -2,10 +2,10 @@
 
 import { MACHINE, setMachine, pushUndo } from './moore_mealy_state.js';
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
-import { setValidationMessage, addLogMessage, fetchWithRetry } from '../shared/utils.js';
+import { setValidationMessage, addLogMessage, fetchWithRetry, safeFileName } from '../shared/utils.js';
 import { animateMachineDrawing } from '../shared/animation.js';
 import { runSimulation } from './moore_mealy_simulation.js';
-import { authenticateAiAccess } from '../shared/ai-auth.js';
+import { authenticateAiAccess, generateWithAi } from '../shared/ai-auth.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from '../shared/assignment-client.js';
 import { routeMachineImport } from '../app/machine_router.js';
 // --- Machine Analysis Helpers (Used for smart save metadata) ---
@@ -122,9 +122,8 @@ export function handleSaveMachine() {
     const descInput = document.getElementById('libDescInput');
     const alphaDisplay = document.getElementById('libAlphabetDisplay');
     const typeInput = document.getElementById('libTypeInput');
-    const confirmBtn = document.getElementById('saveLibraryConfirmBtn');
 
-    if (!modal || !titleInput || !descInput || !alphaDisplay || !typeInput || !confirmBtn) return;
+    if (!modal || !titleInput || !descInput || !alphaDisplay || !typeInput) return;
     
     if (!MACHINE.states || MACHINE.states.length === 0) {
         window.customAlert("Save Failed", "Please draw a machine before saving.");
@@ -154,36 +153,6 @@ export function handleSaveMachine() {
 
     modal.style.display = 'flex';
 
-    // --- ARCHITECT'S STAGING INTEGRATION ---
-    confirmBtn.onclick = async () => {
-        const prefix = "mm_"; // Unified prefix for Moore/Mealy
-        const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
-        const fileName = prefix + userProvidedPart.toLowerCase().replace(/\s+/g, '-');
-        
-        modal.style.display = 'none';
-
-        // 1. LOCAL DOWNLOAD
-        const blob = new Blob([JSON.stringify({ type: MACHINE.type, machine: MACHINE }, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${fileName}.json`;
-        link.click();
-        addLogMessage(`MM Saved Locally: ${fileName}.json`, 'check-circle');
-
-        // 2. SILENT STAGING (Silent during Netlify pause)
-        const assignment = await decideSubmissionMode('MM');
-        await stageToDb({
-            name: userProvidedPart,
-            type: 'MM',
-            data: MACHINE,
-            author: getStudentProfile().name || 'Student',
-            submissionMode: assignment.submissionMode,
-            assignmentId: assignment.assignmentId,
-            assignmentTitle: assignment.assignmentTitle,
-            studentProfile: getStudentProfile()
-        }).catch(() => console.error("MM staging silent failure."));
-    };
 }
 
 /**
@@ -304,7 +273,7 @@ export function handleSaveWithMetadata() {
 
     // --- ARCHITECT'S DATA CONTRACT: mm_ prefix ---
     const prefix = "mm_";
-    const fileName = `${prefix}${title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50) || 'automaton'}.json`;
+    const fileName = `${prefix}${safeFileName(title)}.json`;
 
     // 1. LOCAL DOWNLOAD (User Action)
     const blob = new Blob([JSON.stringify(libraryEntry, null, 2)], { type: "application/json" });
@@ -316,17 +285,15 @@ export function handleSaveWithMetadata() {
     URL.revokeObjectURL(url);
     addLogMessage(`Local save complete: ${fileName}`, 'check-circle');
 
-    // 2. SILENT STAGING (Architect Action)
-    // Note: This will fail until your Netlify build minutes reset
-    fetch('/.netlify/functions/save-to-db', {
-        method: 'POST',
-        body: JSON.stringify({
-            name: title, 
-            type: 'MM', 
-            data: libraryEntry,
-            author: 'Shiro'
-        })
-    }).catch(err => console.log("Silent staging bypassed: Netlify builds currently paused."));
+    // 2. Copy to the class review queue in the background (never blocks the download)
+    decideSubmissionMode('MM').then(assignment => stageToDb({
+        name: title, type: 'MM', data: libraryEntry,
+        author: getStudentProfile().name || 'Student',
+        submissionMode: assignment.submissionMode,
+        assignmentId: assignment.assignmentId,
+        assignmentTitle: assignment.assignmentTitle,
+        studentProfile: getStudentProfile()
+    })).catch(() => {});
 
     const modal = document.getElementById('saveLibraryModal');
     if (modal) modal.style.display = 'none';
@@ -527,9 +494,6 @@ export async function handleImageUpload(e, updateUIFunction, showLoading, hideLo
 
                 Your output must ONLY be a single JSON object inside a \`\`\`json ... \`\`\` block.
             `;
-
-            const apiKey = process.env.FIREBASE_KEY_AUTO_1; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
             const payload = {
                 contents: [{
@@ -540,18 +504,7 @@ export async function handleImageUpload(e, updateUIFunction, showLoading, hideLo
                 }]
             };
 
-            const response = await fetchWithRetry(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-
-            const result = await response.json();
-            const text = result.candidates[0].content.parts[0].text;
+            const text = await generateWithAi(payload);
             
             const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
             if (!jsonMatch || !jsonMatch[1]) {
@@ -628,26 +581,12 @@ You are an expert in sequential circuits and automata theory. Your task is to de
 
 Your output must ONLY be a single JSON object inside a \`\`\`json ... \`\`\` block. Do not include any extra text or explanations.
 `;
-        
-        const apiKey = process.env.FIREBASE_KEY_AUTO_1;
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const payload = {
             contents: [{ parts: [{ text: prompt }] }]
         };
 
-        const response = await fetchWithRetry(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-        const text = result.candidates[0].content.parts[0].text;
+        const text = await generateWithAi(payload);
         
         const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
         if (!jsonMatch || !jsonMatch[1]) {

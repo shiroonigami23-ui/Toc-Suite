@@ -1,9 +1,9 @@
 import { setMachine, pushUndo } from './moore_mealy_state.js';
 import { renderAll, layoutStatesCircular } from './moore_mealy_renderer.js';
-import { sleep, addLogMessage } from '../shared/utils.js';
+import { sleep, addLogMessage, stepDelay } from '../shared/utils.js';
 import { convertMooreToMealy, convertMealyToMoore } from './moore_mealy_automata.js';
 
-const ANIMATION_DELAY = 1500;
+
 
 /**
  * Animates the conversion from Moore to Mealy, showing steps.
@@ -22,11 +22,11 @@ export async function animateMooreToMealy(machine, updateUIFn) {
         setMachine(machineState);
         renderAll();
         addLogMessage(message, 'git-branch');
-        await sleep(ANIMATION_DELAY);
+        await sleep(stepDelay());
     };
 
     addLogMessage("Starting Moore to Mealy conversion...", 'zap');
-    await sleep(ANIMATION_DELAY);
+    await sleep(stepDelay());
     
     // Perform the conversion algorithmically, leveraging the stepCallback
     const finalMachine = await convertMooreToMealy(machine, stepCallback);
@@ -43,7 +43,7 @@ export async function animateMealyToMoore(machine, updateUIFn) {
     pushUndo(updateUIFn);
 
     addLogMessage("Analyzing Mealy Machine for (State, Output) pairs...", 'zap');
-    await sleep(ANIMATION_DELAY);
+    await sleep(stepDelay());
 
     // Step Callback to show progress
     const stepCallback = async (machineState, message) => {
@@ -51,7 +51,7 @@ export async function animateMealyToMoore(machine, updateUIFn) {
         layoutStatesCircular(machineState.states); 
         renderAll();
         addLogMessage(message, 'git-branch');
-        await sleep(ANIMATION_DELAY);
+        await sleep(stepDelay());
     };
 
     // Execute the algorithm with visual steps

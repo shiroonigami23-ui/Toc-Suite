@@ -1,10 +1,10 @@
 import { MACHINE, setMachine, pushUndo } from './state.js';
 import { renderAll, layoutStatesCircular } from './renderer.js';
-import { setValidationMessage, addLogMessage, fetchWithRetry } from '../shared/utils.js';
+import { setValidationMessage, addLogMessage, fetchWithRetry, safeFileName } from '../shared/utils.js';
 import { animateMachineDrawing } from '../shared/animation.js';
 // NEW: Import the conversion functions we will now use locally
 import { convertNfaToDfa, minimizeDfa } from './automata.js';
-import { authenticateAiAccess } from '../shared/ai-auth.js';
+import { authenticateAiAccess, generateWithAi } from '../shared/ai-auth.js';
 import { decideSubmissionMode, getStudentProfile, stageToDb } from '../shared/assignment-client.js';
 import { routeMachineImport } from '../app/machine_router.js';
 // --- Machine Analysis Helpers for Smart Save ---
@@ -234,41 +234,25 @@ export function saveMachine() {
     document.getElementById('libTypeInput').value = machineType;
     modal.style.display = 'flex';
 
-    // --- ARCHITECT'S STAGING INTEGRATION ---
-    document.getElementById('saveLibraryConfirmBtn').onclick = async () => {
-        // We use the 'fa_' prefix to ensure correct library sorting
-        const prefix = "fa_";
-        const userProvidedPart = titleInput.value.trim() || "unnamed-logic";
-        const fileName = prefix + userProvidedPart.toLowerCase().replace(/\s+/g, '-');
-        
-        modal.style.display = 'none';
+}
 
-        // 1. LOCAL DOWNLOAD (User Priority)
-        const blob = new Blob([JSON.stringify({ type: machineType, machine: MACHINE }, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${fileName}.json`;
-        link.click();
-        addLogMessage(`FA Saved Locally: ${fileName}.json`, 'check-circle');
-
-        // 2. SILENT STAGING (Architect Priority)
+/** Copies the saved machine to the class review queue in the background (never blocks the download). */
+async function stageSilently(name) {
+    try {
         const assignment = await decideSubmissionMode('FA');
         await stageToDb({
-            name: userProvidedPart,
-            type: 'FA',
-            data: MACHINE,
+            name, type: 'FA', data: MACHINE,
             author: getStudentProfile().name || 'Student',
             submissionMode: assignment.submissionMode,
             assignmentId: assignment.assignmentId,
             assignmentTitle: assignment.assignmentTitle,
             studentProfile: getStudentProfile()
-        }).catch(() => console.error('Staging silent failure.'));
-    };
+        });
+    } catch (_e) { /* offline or functions unavailable: the local file is what matters */ }
 }
 
-export function handleSaveWithMetadata() {
-     if (event) event.stopImmediatePropagation();
+export function handleSaveWithMetadata(event) {
+    if (event && typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
     const title = document.getElementById('libTitleInput').value.trim();
     const userDescription = document.getElementById('libDescInput').value.trim();
     const type = document.getElementById('libTypeInput').value;
@@ -295,7 +279,7 @@ export function handleSaveWithMetadata() {
 
     const blob = new Blob([JSON.stringify(libraryEntry, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
-    const fileName = `${title.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50) || 'automaton'}.json`;
+    const fileName = `${safeFileName(title)}.json`;
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.click();
@@ -303,6 +287,8 @@ export function handleSaveWithMetadata() {
 
     const modal = document.getElementById('saveLibraryModal');
     if (modal) modal.style.display = 'none';
+    addLogMessage(`Saved ${fileName}`, 'check-circle');
+    stageSilently(title);
 }
 
 
@@ -452,9 +438,6 @@ export async function handleImageUpload(e, updateUIFunction, showLoading, hideLo
 
                 Your output must ONLY be a single JSON object inside a \`\`\`json ... \`\`\` block. Do not include any extra text, explanations, or apologies.
             `;
-
-            const apiKey = process.env.FIREBASE_KEY_AUTO_1; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             
             const payload = {
                 contents: [{
@@ -465,18 +448,7 @@ export async function handleImageUpload(e, updateUIFunction, showLoading, hideLo
                 }]
             };
 
-            const response = await fetchWithRetry(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-
-            const result = await response.json();
-            const text = result.candidates[0].content.parts[0].text;
+            const text = await generateWithAi(payload);
             
             const jsonString = text.match(/```json\n([\s\S]*?)\n```/)[1];
             const parsedJson = JSON.parse(jsonString);
@@ -558,26 +530,12 @@ Your response MUST be ONLY a single JSON object wrapped in \`\`\`json ... \`\`\`
 -   **"states"**: Array of objects with "id", "initial" (boolean), "accepting" (boolean).
 -   **"transitions"**: Array of objects with "from", "to", "symbol". Use "" for ε-transitions.
 `;
-        
-        const apiKey = process.env.FIREBASE_KEY_AUTO_2;
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const payload = {
             contents: [{ parts: [{ text: prompt }] }]
         };
 
-        const response = await fetchWithRetry(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const result = await response.json();
-        const text = result.candidates[0].content.parts[0].text;
+        const text = await generateWithAi(payload);
         
         const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
         if (!jsonMatch || !jsonMatch[1]) {

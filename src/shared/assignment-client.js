@@ -153,6 +153,10 @@ export async function decideSubmissionMode(machineType) {
 }
 
 export async function stageToDb(payload) {
+    // Ordinary saves are shared with the class review queue only if the student allows it
+    // (Settings → Data and Privacy). Assignment/quiz submissions are always sent: that is the point.
+    const isAssignment = Boolean(payload?.assignmentId);
+    if (!isAssignment && safeGet('tocShareSaves', 'true') === 'false') return;
     const authEmail = safeGet(AUTH_KEYS.email, '');
     const clientFingerprint = getClientFingerprint();
     const res = await fetch('/.netlify/functions/save-to-db', {

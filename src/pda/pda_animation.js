@@ -5,9 +5,9 @@
 
 import { setMachine } from './pda_state.js';
 import { renderAll } from './pda_renderer.js';
-import { sleep, addLogMessage } from '../shared/utils.js';
+import { sleep, addLogMessage, constructionDelay } from '../shared/utils.js';
 
-const ANIMATION_DELAY = 1500;
+
 
 /**
  * Animates the drawing of a PDA, adding states and transitions one by one.
@@ -29,7 +29,7 @@ export async function animatePdaDrawing(machineToDraw) {
 
     setMachine({ ...tempMachine });
     renderAll();
-    await sleep(500);
+    await sleep(constructionDelay(8));
 
     // --- State Animation Loop ---
     for (const state of machineToDraw.states) {
@@ -46,7 +46,7 @@ export async function animatePdaDrawing(machineToDraw) {
         const stateG = document.querySelector(`g[data-id="${state.id}"] circle`);
         if (stateG) stateG.classList.add('state-drawing');
 
-        await sleep(ANIMATION_DELAY);
+        await sleep(constructionDelay(machineToDraw.states.length + machineToDraw.transitions.length));
     }
 
     // --- Transition Animation Loop ---
@@ -68,10 +68,10 @@ export async function animatePdaDrawing(machineToDraw) {
             path.classList.add('transition-drawing');
         }
 
-        await sleep(ANIMATION_DELAY);
+        await sleep(constructionDelay(machineToDraw.states.length + machineToDraw.transitions.length));
     }
 
-    await sleep(1500);
+    await sleep(constructionDelay(4));
     setMachine(machineToDraw);
     renderAll();
     addLogMessage('Construction complete!', 'check-circle');

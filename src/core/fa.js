@@ -274,7 +274,7 @@ export function deadStates(dfa) {
     changed = false;
     for (let q = 0; q < n; q++) if (!canAccept[q] && dfa.delta[q].some(r => canAccept[r])) { canAccept[q] = true; changed = true; }
   }
-  return canAccept.map(x => !x);
+  return canAccept.map(x => !x);   // boolean per state: true = can never reach acceptance
 }
 
 /**

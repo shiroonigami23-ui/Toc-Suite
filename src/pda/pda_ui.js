@@ -612,25 +612,10 @@ function setupPracticeUI() {
  * setupFileUI (Architect Upgrade)
  */
 export function setupFileUI() {
-    // 1. Open Save Modal
-    document.getElementById('savePdaBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('pdaSaveModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            // Wire the internal confirm button to the actual logic
-            document.getElementById('pdaSaveConfirmBtn').onclick = savePdaMachine;
-        }
-    });
-
-    // 2. Open PNG Modal
-    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('pdaExportPngModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            // Wire the internal confirm button to the actual logic
-            document.getElementById('pdaPngExportConfirm').onclick = exportPng;
-        }
-    });
+    // Save / Export: these functions open their own dialog and wire its confirm button.
+    // (Previously the confirm button was wired to re-open the dialog, so it needed two clicks.)
+    document.getElementById('savePdaBtn')?.addEventListener('click', () => savePdaMachine());
+    document.getElementById('pdaExportPngBtn')?.addEventListener('click', () => exportPng());
 
     // 3. Load Logic (Standard)
     const loadBtn = document.getElementById('loadPdaBtn');

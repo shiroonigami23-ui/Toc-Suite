@@ -10,7 +10,7 @@
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
   <link rel="icon" href="data:;base64,iVBORw0KGgo=">
-  <script src="https://unpkg.com/lucide@1.73.0/dist/umd/lucide.js"></script>
+  <script src="assets/vendor/lucide-icons.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
@@ -36,6 +36,7 @@
         <a href="pages/splash_help.html" class="splash-utility-btn">Help Guide</a>
         <a href="pages/splash_settings.html" class="splash-utility-btn">Settings</a>
       </div>
+      <p class="splash-legal"><a href="pages/policies.html#privacy">Privacy</a> · <a href="pages/policies.html#terms">Terms</a> · <a href="pages/policies.html#accessibility">Accessibility</a> · press <kbd>?</kbd> in a studio for shortcuts</p>
     </div>
   </div>
   <div id="mainApp" style="display:none">
@@ -260,7 +261,7 @@
         { title: 'Step 2: Build on Canvas', content: 'Use toolbar tools to add/move/delete states and transitions.' },
         { title: 'Step 3: Test + Practice', content: 'Run tests, bulk checks, and practice questions before submission.' },
         { title: 'Step 4: Save + Export', content: 'Use Save JSON and Export PNG for submission and revision.' },
-        { title: 'Step 5: Shortcuts', content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export, V/S/T/D tools.' }
+        { title: 'Step 5: Shortcuts', content: 'Press ? in any studio for the full list. Ctrl/Cmd+S save, Ctrl/Cmd+O open, Ctrl/Cmd+E export PNG, S/V/T/R/P/D tools, +/- zoom.' }
       ];
       let helpIndex = 0;
       const renderStep = () => {

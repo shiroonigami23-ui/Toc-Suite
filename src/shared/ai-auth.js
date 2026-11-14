@@ -1,6 +1,7 @@
 // ai-auth.js
 
 let isAuthenticated = false;
+let sessionPassword = '';
 let currentResolver = null; // Stores the promise resolver function
 
 /**
@@ -54,6 +55,7 @@ async function handleUnlockAttempt() {
         }
 
         isAuthenticated = true;
+        sessionPassword = password;
         
         if (window.customAlert) {
             window.customAlert("Success!", "AI Generator Unlocked for this session!");
@@ -111,3 +113,19 @@ export function authenticateAiAccess() {
 
 // Global initialization to attach listeners once the DOM is ready
 document.addEventListener("DOMContentLoaded", setupAiAuthModalListeners);
+
+
+/**
+ * Sends a Gemini request through the Netlify proxy (netlify/functions/ai-generate.js) and
+ * returns the model's text. The API key lives only on the server.
+ */
+export async function generateWithAi(payload) {
+    const res = await fetch('/.netlify/functions/ai-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: sessionPassword, payload })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `AI request failed with status ${res.status}`);
+    return data.text || '';
+}

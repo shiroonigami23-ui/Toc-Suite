@@ -169,6 +169,7 @@ test('conversion practice: every source converts to its answer, and the checker 
       if (probs.length) bad.push(`${key}: reference answer rejected: ${probs[0]}`);
       if (kind === 'ENFA_TO_NFA' && !e.source.transitions.some(t => FA.isEpsilon(t.symbol))) bad.push(`${key}: source has no ε-moves`);
       if (kind === 'DFA_TO_MIN_DFA' && !conversionProblems(kind, e.source, e.machine).length) bad.push(`${key}: source is already minimal`);
+      if ((kind === 'NFA_TO_DFA' || kind === 'NFA_TO_MIN_DFA') && !FA.structuralIssues({ ...e.source, type: 'DFA' }).some(x => x.kind === 'nondeterministic' || x.kind === 'epsilon')) bad.push(`${key}: source NFA is already deterministic`);
     });
   }
   assert.ok(n >= 150, `only ${n} conversion questions`);

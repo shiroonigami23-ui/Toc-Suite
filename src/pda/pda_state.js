@@ -33,9 +33,18 @@ export function setMachine(newMachine) {
  * Pushes the current state into the undo stack.
  * @param {function} updateUIFn - Optional callback to update UI elements like buttons.
  */
+/** Keeps the Undo/Redo buttons enabled exactly when there is something to undo/redo. */
+function syncHistoryButtons() {
+    if (typeof document === 'undefined') return;
+    const u = document.getElementById('undoBtn'), r = document.getElementById('redoBtn');
+    if (u) u.disabled = UNDO_STACK.length === 0;
+    if (r) r.disabled = REDO_STACK.length === 0;
+}
+
 export function pushUndo(updateUIFn) {
-    UNDO_STACK.push(JSON.stringify(MACHINE)); // Changed to UNDO_STACK
-    REDO_STACK = []; // Changed to REDO_STACK
+    UNDO_STACK.push(JSON.stringify(MACHINE));
+    REDO_STACK = [];
+    syncHistoryButtons();
     if (updateUIFn) updateUIFn();
 }
 
@@ -44,6 +53,7 @@ export function undo(updateUIFn) {
     REDO_STACK.push(JSON.stringify(MACHINE)); // Changed to REDO_STACK
     MACHINE = JSON.parse(UNDO_STACK.pop()); // Changed to UNDO_STACK
     renderCallback();
+    syncHistoryButtons();
     if (updateUIFn) updateUIFn();
 }
 
@@ -52,6 +62,7 @@ export function redo(updateUIFn) {
     UNDO_STACK.push(JSON.stringify(MACHINE)); // Changed to UNDO_STACK
     MACHINE = JSON.parse(REDO_STACK.pop()); // Changed to REDO_STACK
     renderCallback();
+    syncHistoryButtons();
     if (updateUIFn) updateUIFn();
 }
 

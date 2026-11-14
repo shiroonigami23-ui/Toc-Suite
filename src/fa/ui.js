@@ -4,7 +4,7 @@ import { runSimulation, showStep } from './simulation.js';
 import { validateAutomaton } from './automata.js';
 import { saveMachine, loadMachine, exportPng, handleSaveWithMetadata, handleImageUpload, handleAiGeneration } from './file.js';
 import { generatePractice, showSolution, resetPractice, checkAnswer } from './practice.js';
-import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons } from '../shared/utils.js';
+import { setValidationMessage, addLogMessage, bindGlobalDrawerHandlers, refreshLucideIcons, resetSharedDialogButtons } from '../shared/utils.js';
 import { areEquivalent } from './equivalence.js';
 import { animateEnfaToNfa, animateNfaToDfa, animateDfaToMinDfa, animateNfaToMinDfa } from './conversion-animation.js';
 import { updateFaLogicDisplay, exportFaTableToExcel } from './fa_logic_table.js';
@@ -34,6 +34,7 @@ function hideAllModals() {
 }
 
 export function initializeUI() {
+    resetSharedDialogButtons();
     // FIX: Hide all modals immediately to prevent unwanted pop-ups
     hideAllModals(); 
     
@@ -429,6 +430,7 @@ export function initializeUI() {
     if (modeSelect) {
         modeSelect.addEventListener('change', async () => {
             const newMode = modeSelect.value;
+            if (window.__tocDrawing) { modeSelect.disabled = true; try { await window.__tocDrawing; } finally { modeSelect.disabled = false; } }   // finish drawing a loaded machine first
 
             if (newMode.includes('_TO_')) {
                 const validationResult = validateAutomaton();

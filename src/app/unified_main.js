@@ -308,7 +308,7 @@ export const StudioContext = {
                 </div>
               </div>
     
-              <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
+              <div class="zoom-controls">
     <input id="zoomSlider" type="range" min="50" max="200" value="100" />
     <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
 </div>
@@ -596,7 +596,7 @@ export const StudioContext = {
                 </div>
               </div>
     
-              <div class="zoom-controls" style="position: absolute; right: 30px; top: 150px; z-index: 50;">
+              <div class="zoom-controls">
     <input id="zoomSlider" type="range" min="50" max="200" value="100" />
     <button id="zoomResetBtn" class="toolbar-icon" title="Reset Zoom" type="button"><i data-lucide="refresh-ccw"></i></button>
 </div>
@@ -1092,7 +1092,7 @@ function setupSplashUtility() {
         },
         {
             title: 'Step 5: Keyboard Shortcuts',
-            content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export PNG, Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, V move, S add state, T transition, D delete, Enter run/validate, Esc clear, Ctrl+Alt+1..5 switch FA/MM/PDA/TM/Grammar.'
+            content: 'Ctrl/Cmd+S save, Ctrl/Cmd+O load, Ctrl/Cmd+E export PNG, Ctrl/Cmd+Z undo, Ctrl/Cmd+Y redo, V move, S add state, T transition, D delete, Enter run test, R rename, P state properties, +/-/0 zoom, Shift+Delete clear canvas, Esc close dialogs, Ctrl+Alt+1..5 switch FA/MM/PDA/TM/Grammar. Press ? anywhere for the full list.'
         }
     ];
 

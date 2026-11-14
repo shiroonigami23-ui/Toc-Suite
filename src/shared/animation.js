@@ -4,9 +4,9 @@
 
 import { setMachine } from '../fa/state.js'; // Assuming this is for FA context by default
 import { renderAll } from '../fa/renderer.js';
-import { sleep, addLogMessage } from './utils.js';
+import { sleep, addLogMessage, constructionDelay } from './utils.js';
 
-const ANIMATION_DELAY = 1500; 
+ 
 
 /**
  * Animates the drawing of a finite automaton, logging each step.
@@ -15,7 +15,18 @@ const ANIMATION_DELAY = 1500;
  * the moore_mealy_renderer/state dependencies must handle their own context.
  * * @param {object} machineToDraw The machine object to animate.
  */
-export async function animateMachineDrawing(machineToDraw) {
+/**
+ * Draws machines one at a time: a new drawing (or a conversion that awaits window.__tocDrawing)
+ * waits for the current one, so two animations can never interleave on the canvas.
+ */
+export function animateMachineDrawing(machineToDraw) {
+    const run = (window.__tocDrawing || Promise.resolve()).catch(() => {}).then(() => drawMachine(machineToDraw));
+    window.__tocDrawing = run;
+    run.finally(() => { if (window.__tocDrawing === run) window.__tocDrawing = null; });
+    return run;
+}
+
+async function drawMachine(machineToDraw) {
     // Determine which setMachine function to use based on the context/type
     // We will use the globally available setter if possible, otherwise default to FA state.
     const machineSetter = (machineToDraw.type === 'MEALY' || machineToDraw.type === 'MOORE') 
@@ -36,7 +47,7 @@ export async function animateMachineDrawing(machineToDraw) {
     };
     machineSetter({...tempMachine});
     renderAll();
-    await sleep(500);
+    await sleep(constructionDelay(8));
 
     const isOutputMachine = originalType === 'MEALY' || originalType === 'MOORE';
 
@@ -59,7 +70,7 @@ export async function animateMachineDrawing(machineToDraw) {
         const stateG = document.querySelector(`g[data-id="${state.id}"] circle`);
         if (stateG) stateG.classList.add('state-drawing');
         
-        await sleep(ANIMATION_DELAY);
+        await sleep(constructionDelay(machineToDraw.states.length + machineToDraw.transitions.length));
     }
     
     // --- Transition Animation Loop ---
@@ -84,10 +95,10 @@ export async function animateMachineDrawing(machineToDraw) {
             path.classList.add('transition-drawing');
         }
         
-        await sleep(ANIMATION_DELAY);
+        await sleep(constructionDelay(machineToDraw.states.length + machineToDraw.transitions.length));
     }
     
-    await sleep(1500);
+    await sleep(constructionDelay(4));
 
     machineSetter(machineToDraw);
     renderAll(); 

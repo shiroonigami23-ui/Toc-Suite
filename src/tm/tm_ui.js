@@ -386,23 +386,9 @@ function deleteTransition(from, to, index) {
  * Orchestrates Save, Load, and PNG Export logic.
  */
 export function setupFileUI() {
-    // 1. Open Save Modal
-    document.getElementById('saveTmBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('tmSaveModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.getElementById('tmSaveConfirmBtn').onclick = saveTmMachine;
-        }
-    });
-
-    // 2. Open PNG Modal
-    document.getElementById('tmExportPngBtn')?.addEventListener('click', () => {
-        const modal = document.getElementById('tmExportPngModal');
-        if (modal) {
-            modal.style.display = 'flex';
-            document.getElementById('tmPngExportConfirm').onclick = exportTmPng;
-        }
-    });
+    // Save / Export open their own dialog and wire its confirm button (one click, not two).
+    document.getElementById('saveTmBtn')?.addEventListener('click', () => saveTmMachine());
+    document.getElementById('tmExportPngBtn')?.addEventListener('click', () => exportTmPng());
 
     // 3. Load Logic
     const loadBtn = document.getElementById('loadTmBtn');

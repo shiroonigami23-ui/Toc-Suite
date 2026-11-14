@@ -404,12 +404,16 @@ details.control-section {
 .state-selected { stroke: gold !important; stroke-width: 6 !important; filter: drop-shadow(0 0 6px gold); }
 .initial-arrow { stroke: black !important; stroke-width: 3 !important; marker-end: url(#arrowhead); }
 
-#zoomSlider {
+/* Zoom: a vertical slider floating at the canvas edge on wide screens, a compact horizontal pill on phones. */
+.zoom-controls input[type="range"] {
   writing-mode: vertical-lr;
   direction: rtl;
-  width: 8px;
+  width: 10px;
   height: 120px;
+  cursor: pointer;
+  accent-color: var(--primary, #4a90e2);
 }
+.zoom-controls .zoom-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted, #64748b); }
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -667,12 +671,28 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
       right: 12px;
       top: auto;
       bottom: 12px;
+      height: auto;
       flex-direction: row;
-      background: rgba(255, 255, 255, 0.92);
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.94);
       border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 6px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, .12);
   }
+  .zoom-controls input[type="range"] {
+      writing-mode: horizontal-tb;
+      direction: ltr;
+      width: 96px;
+      height: 24px;
+  }
+  .zoom-controls .zoom-label { display: none; }
+  /* Phones: keep the 1400×900 drawing legible (states ~18px instead of ~7px) and let the canvas
+     scroll instead of shrinking everything into the width of the screen. */
+  .canvas-area { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .canvas-area > .svg-canvas { flex: none; min-width: 860px; min-height: 553px; }
+  .canvas-area > #dfaSVG { flex: none; min-width: 860px; height: auto; aspect-ratio: 1400 / 900; }
+  .zoom-controls .toolbar-icon { width: 34px; height: 34px; }
   .canvas-wrapper {
       padding: 8px;
   }
@@ -1230,3 +1250,35 @@ g.assist-bad circle { stroke: #ef4444 !important; stroke-width: 4px !important; 
 .assist-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-color: transparent; }
 .assist-btn.primary:hover { filter: brightness(1.08); }
 #assistLearnBtn { width: 100%; }
+
+/* ---- Responsive fixes (2026-11) ---- */
+.validation-box:empty { display: none !important; }
+@media (min-width: 1025px) {
+  .grammar-panel { position: relative; top: auto; max-height: none; }
+}
+@media (max-width: 768px) {
+  #pda-studio-container .zoom-controls,
+  #tm-studio-container .zoom-controls { bottom: 84px; }
+  .grammar-header { flex-wrap: wrap; row-gap: 6px; }
+  .grammar-subtitle { display: none; }
+  .grammar-back-btn { padding: 6px 12px; font-size: .8rem; white-space: nowrap; border-radius: 999px; }
+}
+#pda-studio-container .visualization-panel, #tm-studio-container .visualization-panel { position: relative; }
+
+/* Keyboard shortcut sheet (press ?) */
+.shortcut-sheet { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; background: rgba(15, 23, 42, .55); backdrop-filter: blur(3px); padding: 16px; animation: tocFade .15s ease-out; }
+.shortcut-card { background: #fff; color: #0f172a; border-radius: 16px; width: min(560px, 100%); max-height: 85dvh; overflow: auto; padding: 18px 20px; box-shadow: 0 24px 60px rgba(15, 23, 42, .35); }
+.shortcut-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.shortcut-head h3 { margin: 0; font-size: 1.05rem; }
+.shortcut-head button { border: 0; background: #f1f5f9; border-radius: 8px; width: 32px; height: 32px; cursor: pointer; }
+.shortcut-card dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; font-size: .9rem; }
+.shortcut-card dt { white-space: nowrap; }
+.shortcut-card dd { margin: 0; color: #475569; }
+.shortcut-card kbd { font: 600 .78rem ui-monospace, Consolas, monospace; background: #f8fafc; border: 1px solid #cbd5e1; border-bottom-width: 2px; border-radius: 6px; padding: 2px 6px; }
+@keyframes tocFade { from { opacity: 0 } to { opacity: 1 } }
+@media (max-width: 520px) { .shortcut-card dl { grid-template-columns: 1fr; } .shortcut-card dd { margin-bottom: 6px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+.splash-legal { margin: 14px 0 0; text-align: center; font-size: .78rem; color: rgba(255,255,255,.78); }
+.splash-legal a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.splash-legal kbd { font: 600 .72rem ui-monospace, monospace; border: 1px solid rgba(255,255,255,.5); border-radius: 4px; padding: 0 4px; }

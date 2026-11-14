@@ -102,7 +102,7 @@ export function conversionProblems(kind, userMachine, solutionMachine) {
     if (kind === 'DFA_TO_MIN_DFA' || kind === 'NFA_TO_MIN_DFA') {
         const min = FA.toMinimalDfa(solutionMachine, sigma);
         const minStates = min.delta.length;
-        const minNoTrap = minStates - FA.deadStates(min).length;
+        const minNoTrap = minStates - FA.deadStates(min).filter(Boolean).length;
         const start = (userMachine.states || []).find(st => st.initial)?.id;
         const seen = new Set(start ? [start] : []); const queue = [...seen];
         while (queue.length) { const q = queue.shift(); for (const t of userMachine.transitions || []) if (t.from === q && !seen.has(t.to)) { seen.add(t.to); queue.push(t.to); } }

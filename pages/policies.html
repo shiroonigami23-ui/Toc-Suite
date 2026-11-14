@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4a90e2" />
+  <title>Privacy, Terms and Accessibility · Toc-Suite</title>
+  <link rel="icon" href="../assets/icons/icon-192.png" />
+  <style>
+    :root { --ink: #0f172a; --muted: #475569; --line: #e2e8f0; --brand: #4f46e5; --bg: #f8fafc; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+    header { background: linear-gradient(120deg, #4f46e5, #0ea5e9); color: #fff; padding: 28px 20px 22px; }
+    header .wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+    header h1 { margin: 0; font-size: clamp(1.3rem, 3vw, 1.8rem); }
+    header p { margin: 4px 0 0; opacity: .9; }
+    header a.back { color: #fff; border: 1px solid rgba(255,255,255,.6); border-radius: 999px; padding: 6px 14px; text-decoration: none; white-space: nowrap; }
+    .wrap { max-width: 860px; margin: 0 auto; }
+    nav.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px auto 0; padding: 0 20px; }
+    nav.toc a { background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--brand); text-decoration: none; font-weight: 600; font-size: .92rem; }
+    main { padding: 8px 20px 60px; }
+    section { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; margin-top: 18px; scroll-margin-top: 16px; }
+    h2 { margin: 0 0 6px; font-size: 1.3rem; }
+    h3 { margin: 18px 0 6px; font-size: 1.02rem; }
+    p, li { color: #1e293b; }
+    .muted { color: var(--muted); font-size: .92rem; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; margin-top: 8px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: #f1f5f9; }
+    code { background: #f1f5f9; border-radius: 6px; padding: 1px 6px; font-size: .88em; }
+    @media (max-width: 560px) { section { padding: 18px 16px; } table, thead, tbody, tr, th, td { display: block; } thead { display: none; } td { border: 0; padding: 4px 0; } tr { border-bottom: 1px solid var(--line); padding: 8px 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div>
+        <h1>Privacy, Terms and Accessibility</h1>
+        <p>Toc-Suite · last updated 14 November 2026</p>
+      </div>
+      <a class="back" href="../index.html">Back to Toc-Suite</a>
+    </div>
+  </header>
+  <nav class="toc wrap" aria-label="On this page">
+    <a href="#privacy">Privacy</a><a href="#terms">Terms of use</a><a href="#accessibility">Accessibility</a><a href="#contact">Contact</a>
+  </nav>
+  <main class="wrap">
+    <section id="privacy">
+      <h2>Privacy policy</h2>
+      <p>Toc-Suite is a study tool. It has no advertising, no analytics, no tracking pixels and no cookies. Almost everything you do stays in your own browser.</p>
+
+      <h3>What stays on your device</h3>
+      <table>
+        <thead><tr><th>Data</th><th>Where</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Display name, theme, text size, motion and animation preferences</td><td>Browser <code>localStorage</code> (keys starting with <code>toc</code>)</td><td>To remember your settings</td></tr>
+          <tr><td>The machine on each studio's canvas</td><td>Browser <code>localStorage</code></td><td>So a refresh does not lose your work</td></tr>
+          <tr><td>Files you save or export (JSON, PNG, CSV)</td><td>Your downloads folder</td><td>They are created in the browser and never uploaded</td></tr>
+          <tr><td>The English → DFA model, practice banks and libraries</td><td>Downloaded with the app</td><td>They run entirely in your browser</td></tr>
+        </tbody>
+      </table>
+
+      <h3>What is sent to a server, and when</h3>
+      <ul>
+        <li><strong>Assignment and quiz submissions.</strong> When you choose to submit a save to an open assignment, the app sends your name, your college email and roll number, the machine, the assignment id and a coarse device signature (browser, language, time zone, screen size) to the course server (Netlify Functions with a Postgres database) so the instructor can review it and detect duplicate submissions.</li>
+        <li><strong>Sharing ordinary saves (optional).</strong> By default, a normal save is also copied to the class review queue with your name (and roll number if you logged in). You can turn this off in <a href="splash_settings.html">Settings → Data and Privacy</a>.</li>
+        <li><strong>AI generator (optional, password protected).</strong> If you unlock it, the text or image you give it is sent through the course server to Google's Gemini API to draw a machine. Do not upload images with personal information.</li>
+      </ul>
+
+      <h3>Retention and your choices</h3>
+      <ul>
+        <li>Local data stays until you erase it: <a href="splash_settings.html">Settings → Data and Privacy → Erase All Local Data</a>, or clear site data in your browser.</li>
+        <li>Submitted work is kept for the duration of the course. To have a submission removed, contact the maintainer (below).</li>
+        <li>The app does not sell, rent or share data with anyone other than the services named above.</li>
+      </ul>
+    </section>
+
+    <section id="terms">
+      <h2>Terms of use</h2>
+      <ul>
+        <li>Toc-Suite is open-source software under the <a href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/LICENSE">MIT License</a>. It is provided "as is", without warranty of any kind.</li>
+        <li>It is a learning aid. Solutions, hints and automatically generated machines are checked carefully but can still be wrong; if your instructor's answer differs, ask them, and please report the problem.</li>
+        <li>For quizzes and graded assignments, follow your instructor's academic-integrity rules. Using the Automata Assistant or "Show Solution" during a graded task may not be allowed.</li>
+        <li>Do not use the submission system to send content that is not your own work, or anything offensive or unrelated to the course.</li>
+        <li>Do not try to overload or break the course server (for example by scripting thousands of submissions).</li>
+      </ul>
+    </section>
+
+    <section id="accessibility">
+      <h2>Accessibility</h2>
+      <p>Toc-Suite aims to be usable on phones, tablets and desktops, with a keyboard, a mouse or touch.</p>
+      <ul>
+        <li><strong>Keyboard:</strong> press <code>?</code> in any studio for the full list of shortcuts (tools, undo/redo, save, open, export, zoom, run).</li>
+        <li><strong>Motion:</strong> choose <em>Reduced Motion</em> or an animation speed in Settings; the app also follows your operating system's "reduce motion" setting.</li>
+        <li><strong>Text size:</strong> Normal, Large and Extra Large in Settings.</li>
+        <li><strong>Small screens:</strong> the side panel becomes a drawer and the canvas scrolls instead of shrinking.</li>
+      </ul>
+      <p class="muted">Known limitation: drawing on the canvas needs a pointer (mouse, pen or touch). The English → DFA box, the examples learner and the practice checker work fully from the keyboard and produce the machine for you.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>Report a bug, a wrong answer or a privacy request on <a href="https://github.com/shiroonigami23-ui/Toc-Suite/issues">GitHub Issues</a>. Maintainer: Aryan Singh Chandel (B.Tech CSE, RJIT Gwalior).</p>
+    </section>
+  </main>
+</body>
+</html>

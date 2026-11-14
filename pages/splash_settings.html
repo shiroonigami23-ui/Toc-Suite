@@ -122,6 +122,13 @@
           <option value="normal">Normal</option>
           <option value="reduced">Reduced Motion</option>
         </select>
+        <label for="animSpeedSelect" style="font-weight:600;">Animation Speed</label>
+        <select id="animSpeedSelect" class="modal-input">
+          <option value="slow">Slow (step-by-step teaching)</option>
+          <option value="normal">Normal</option>
+          <option value="fast">Fast</option>
+          <option value="instant">Instant (no animation)</option>
+        </select>
         <label style="display:flex;gap:8px;align-items:center; margin-top:4px;">
           <input id="autoResumeToggle" type="checkbox" />
           Auto-open last used studio on startup
@@ -136,8 +143,14 @@
           <button id="exportSettingsBtn" class="icon-btn" type="button">Export Settings JSON</button>
           <button id="importSettingsBtn" class="icon-btn" type="button">Import Settings JSON</button>
           <button id="resetSettingsBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Reset to Defaults</button>
+          <button id="clearAllDataBtn" class="icon-btn" type="button" style="background:#fee2e2;color:#b91c1c;">Erase All Local Data</button>
         </div>
         <input id="importSettingsInput" type="file" accept=".json,application/json" style="display:none;" />
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;">
+          <input id="shareSavesToggle" type="checkbox" style="margin-top:3px;" />
+          <span>Share my saved machines with the class review queue (name, roll number if logged in, and the machine). Assignment and quiz submissions are always sent.</span>
+        </label>
+        <p style="margin:10px 0 0;font-size:.9rem;color:#475569;">Everything else stays in this browser. Read the <a href="policies.html#privacy">privacy policy</a>, <a href="policies.html#terms">terms of use</a> and <a href="policies.html#accessibility">accessibility statement</a>.</p>
       </div>
     </details>
 
@@ -165,6 +178,8 @@
       theme: 'tocTheme',
       fontScale: 'tocFontScale',
       motion: 'tocMotion',
+      animSpeed: 'tocAnimSpeed',
+      shareSaves: 'tocShareSaves',
       autoResume: 'tocAutoResume',
       authEmail: 'tocAuthEmail',
       authRoll: 'tocAuthRoll',
@@ -178,6 +193,8 @@
       theme: 'default',
       fontScale: 'normal',
       motion: 'normal',
+      animSpeed: 'normal',
+      shareSaves: 'true',
       autoResume: 'false'
     };
     const THEME_COLORS = {
@@ -241,6 +258,9 @@
     const fontScaleSelect = document.getElementById('fontScaleSelect');
     const motionSelect = document.getElementById('motionSelect');
     const autoResumeToggle = document.getElementById('autoResumeToggle');
+    const animSpeedSelect = document.getElementById('animSpeedSelect');
+    const shareSavesToggle = document.getElementById('shareSavesToggle');
+    const clearAllDataBtn = document.getElementById('clearAllDataBtn');
     const saveBtn = document.getElementById('saveSettingsBtn');
     const exportBtn = document.getElementById('exportSettingsBtn');
     const importBtn = document.getElementById('importSettingsBtn');
@@ -306,6 +326,8 @@
       fontScaleSelect.value = safeGet(STORAGE_KEYS.fontScale, DEFAULTS.fontScale);
       motionSelect.value = safeGet(STORAGE_KEYS.motion, DEFAULTS.motion);
       autoResumeToggle.checked = safeGet(STORAGE_KEYS.autoResume, DEFAULTS.autoResume) === 'true';
+      animSpeedSelect.value = safeGet(STORAGE_KEYS.animSpeed, DEFAULTS.animSpeed);
+      shareSavesToggle.checked = safeGet(STORAGE_KEYS.shareSaves, DEFAULTS.shareSaves) !== 'false';
       updatePreview();
     };
 
@@ -316,7 +338,9 @@
         safeSet(STORAGE_KEYS.theme, themeSelect.value || DEFAULTS.theme),
         safeSet(STORAGE_KEYS.fontScale, fontScaleSelect.value || DEFAULTS.fontScale),
         safeSet(STORAGE_KEYS.motion, motionSelect.value || DEFAULTS.motion),
-        safeSet(STORAGE_KEYS.autoResume, autoResumeToggle.checked ? 'true' : 'false')
+        safeSet(STORAGE_KEYS.autoResume, autoResumeToggle.checked ? 'true' : 'false'),
+        safeSet(STORAGE_KEYS.animSpeed, animSpeedSelect.value || DEFAULTS.animSpeed),
+        safeSet(STORAGE_KEYS.shareSaves, shareSavesToggle.checked ? 'true' : 'false')
       ].every(Boolean);
       updatePreview();
       saveStatus.textContent = ok
@@ -329,11 +353,14 @@
         themeSelect.value = 'forest';
         fontScaleSelect.value = 'large';
         motionSelect.value = 'reduced';
+        animSpeedSelect.value = 'fast';
       } else if (preset === 'calm') {
         themeSelect.value = 'ocean';
         fontScaleSelect.value = 'normal';
         motionSelect.value = 'reduced';
+        animSpeedSelect.value = 'slow';
       } else {
+        animSpeedSelect.value = DEFAULTS.animSpeed;
         themeSelect.value = DEFAULTS.theme;
         fontScaleSelect.value = DEFAULTS.fontScale;
         motionSelect.value = DEFAULTS.motion;
@@ -396,6 +423,8 @@
         theme: themeSelect.value || DEFAULTS.theme,
         fontScale: fontScaleSelect.value || DEFAULTS.fontScale,
         motion: motionSelect.value || DEFAULTS.motion,
+        animSpeed: animSpeedSelect.value || DEFAULTS.animSpeed,
+        shareSaves: shareSavesToggle.checked,
         autoResume: autoResumeToggle.checked
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -419,6 +448,8 @@
         if (typeof data.fontScale === 'string') fontScaleSelect.value = data.fontScale;
         if (typeof data.motion === 'string') motionSelect.value = data.motion;
         if (typeof data.autoResume === 'boolean') autoResumeToggle.checked = data.autoResume;
+        if (['slow', 'normal', 'fast', 'instant'].includes(data.animSpeed)) animSpeedSelect.value = data.animSpeed;
+        if (typeof data.shareSaves === 'boolean') shareSavesToggle.checked = data.shareSaves;
         updatePreview();
         saveStatus.textContent = 'Settings JSON loaded. Click "Save All Settings" to persist.';
       } catch (_e) {
@@ -429,9 +460,18 @@
     });
 
     resetBtn.addEventListener('click', () => {
-      [STORAGE_KEYS.studentName, STORAGE_KEYS.theme, STORAGE_KEYS.fontScale, STORAGE_KEYS.motion, STORAGE_KEYS.autoResume].forEach(safeRemove);
+      [STORAGE_KEYS.studentName, STORAGE_KEYS.theme, STORAGE_KEYS.fontScale, STORAGE_KEYS.motion, STORAGE_KEYS.animSpeed, STORAGE_KEYS.shareSaves, STORAGE_KEYS.autoResume].forEach(safeRemove);
       loadForm();
       saveStatus.textContent = 'Reset complete. Defaults restored.';
+    });
+
+    clearAllDataBtn.addEventListener('click', async () => {
+      if (!confirm('Erase every Toc-Suite setting, saved snapshot and cached file on this device? Files you downloaded are not affected.')) return;
+      try { Object.keys(localStorage).filter(k => /^toc/i.test(k)).forEach(k => localStorage.removeItem(k)); } catch (_e) {}
+      try { Object.keys(sessionStorage).filter(k => /^toc/i.test(k)).forEach(k => sessionStorage.removeItem(k)); } catch (_e) {}
+      try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch (_e) {}
+      loadForm();
+      saveStatus.textContent = 'All local Toc-Suite data was erased from this browser.';
     });
 
     const panels = ['panel-profile', 'panel-appearance', 'panel-data', 'panel-preview'];
