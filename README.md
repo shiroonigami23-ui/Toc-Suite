@@ -22,6 +22,10 @@ Draw, simulate and convert DFAs, NFAs, ε-NFAs, Mealy and Moore machines, PDAs a
 [Roadmap](ROADMAP.md) ·
 [Changelog](CHANGELOG.md)
 
+<a href="docs/media/trailer.mp4"><img src="docs/media/trailer.gif" alt="Toc-Suite concept trailer" width="440"></a>
+
+<sub>Concept trailer · <a href="docs/media/trailer.mp4">watch with sound (MP4)</a></sub>
+
 <img src="docs/media/demo-assistant.gif" alt="Typing a description and getting the minimal DFA" width="860">
 
 <sub>Type <i>“binary strings where the second symbol from the end is 1”</i> → the exact minimal DFA, laid out and explained.</sub>
