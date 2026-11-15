@@ -1,7 +1,7 @@
 // Copies the deployable web app (no tests, tools, docs or server code) into a folder, for the
 // desktop (Electron), Android (Capacitor) and container builds.  node tools/stage-web.mjs <dir> [--app]
 // --app adds the animated launch intro (src/app/app_intro.js) — used for the APK and EXE only.
-import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,5 +19,8 @@ if (forApp) {
   const idx = join(out, 'index.html');
   const html = readFileSync(idx, 'utf8').replace(/<body([^>]*)>/, '<body$1>\n  <script src="src/app/app_intro.js"></script>');
   writeFileSync(idx, html);
+  // the study papers ship inside the apps so they open offline
+  mkdirSync(join(out, 'docs', 'papers'), { recursive: true });
+  for (const f of readdirSync(join(root, 'docs', 'papers'))) if (f.endsWith('.pdf')) cpSync(join(root, 'docs', 'papers', f), join(out, 'docs', 'papers', f));
 }
 console.log(`staged ${ENTRIES.length} entries into ${out}${forApp ? ' (with app intro)' : ''}`);

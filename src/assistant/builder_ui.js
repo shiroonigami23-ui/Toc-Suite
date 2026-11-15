@@ -68,7 +68,7 @@ function ensureUi() {
       <button type="button" class="tb-x" id="tbClose" data-close aria-label="Close builder"><i data-lucide="x"></i></button>
     </header>
     <div class="tb-body">
-      <p class="tb-sub">Describe a <b>DFA, NFA, ε-NFA, Moore or Mealy machine, PDA or Turing machine</b>, in words or notation. It picks the right studio, builds the machine, tests it on every short input, then draws it.</p>
+      <p class="tb-sub">Describe a <b>DFA, NFA, ε-NFA, Moore or Mealy machine, PDA or Turing machine</b> in words or notation. It is built in the right studio and checked before it is drawn.</p>
       <div class="tb-target"><i data-lucide="target"></i> Building: <span id="tbTarget"></span></div>
       <textarea id="tbInput" rows="3" spellcheck="false" placeholder="e.g. a PDA for {aⁿb²ⁿ | n ≥ 1}  ·  Mealy machine for 2's complement  ·  TM for ww"></textarea>
       <div class="assist-row">

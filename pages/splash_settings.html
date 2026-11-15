@@ -14,7 +14,7 @@
     <header class="gs-header hc-header">
       <div class="gs-brand">
         <a class="gs-home" href="../index.html#home" aria-label="Toc-Suite home"><img src="../assets/icons/icon-192.png" alt="" width="34" height="34"></a>
-        <div><h1>Settings</h1><p>Profile, appearance, studio behaviour and your data — saved on this device as you change them.</p></div>
+        <div><h1>Settings</h1><p>Profile, appearance, studio behaviour and your data.</p></div>
       </div>
       <nav class="gs-nav" aria-label="Pages">
         <a href="../index.html#home"><i data-lucide="house"></i><span>Home</span></a>
@@ -31,7 +31,7 @@
         <label class="st-field">Your name <input id="stName" maxlength="40" placeholder="Student" autocomplete="name" /></label>
         <p class="st-note">Shown on the home screen and on exported work.</p>
         <h3>Assignment identity</h3>
-        <p class="st-note">Your college email is used only when you submit an assignment or quiz. Format: <code>0902CS231028@rjit.ac.in</code>.</p>
+        <p class="st-note">Your college email, used when you submit assignments and quizzes.</p>
         <div class="st-row"><input id="stEmail" type="email" placeholder="0902CS231028@rjit.ac.in" autocomplete="email" /><button id="stEmailSave" class="assist-btn primary" type="button">Use</button></div>
         <div id="stIdentity" class="st-identity"></div>
         <div class="st-row"><button id="stEmailClear" class="assist-btn" type="button">Sign out</button><button id="stUnlock" class="assist-btn" type="button" title="After registering, the identity is locked for this browser session">Unlock this session</button></div>
@@ -61,7 +61,7 @@
       <section class="gs-card st-card">
         <h2><i data-lucide="sliders-horizontal"></i> Studio behaviour</h2>
         <label class="st-switch"><input type="checkbox" id="stAutoResume" data-key="tocAutoResume"><span></span><div><b>Open my last studio on start</b><p class="st-note">Skip the home screen and continue where you left off.</p></div></label>
-        <label class="st-switch"><input type="checkbox" id="stShare" data-key="tocShareSaves"><span></span><div><b>Share saved machines with my instructor</b><p class="st-note">When on, “Save” also sends the machine to the class database (only with a registered identity).</p></div></label>
+        <label class="st-switch"><input type="checkbox" id="stShare" data-key="tocShareSaves"><span></span><div><b>Share saved machines with my instructor</b><p class="st-note">Saved machines are also sent to your class when you are signed in.</p></div></label>
         <div class="st-label">Presets</div>
         <div class="st-row st-presets">
           <button class="assist-btn" data-preset="focus" type="button">Focus</button>
@@ -69,13 +69,13 @@
           <button class="assist-btn" data-preset="present" type="button">Presenting</button>
           <button class="assist-btn" data-preset="default" type="button">Defaults</button>
         </div>
-        <p class="st-note">Focus: forest theme, larger text, fast drawing. Calm: ocean, reduced motion. Presenting: largest text, slow drawing.</p>
+        
       </section>
 
       <!-- Data -->
       <section class="gs-card st-card">
         <h2><i data-lucide="database"></i> Your data</h2>
-        <p class="st-note">Everything — studio autosaves, practice progress, the Grammar Studio session and these settings — lives in this browser only.</p>
+        <p class="st-note">Your autosaves, practice progress and settings are stored on this device only.</p>
         <div class="st-row">
           <button id="stExport" class="assist-btn" type="button"><i data-lucide="download"></i> Export settings</button>
           <button id="stImport" class="assist-btn" type="button"><i data-lucide="upload"></i> Import</button>
@@ -89,12 +89,12 @@
       <section class="gs-card st-card st-about">
         <h2><i data-lucide="info"></i> About</h2>
         <div class="st-about-row"><img src="../assets/icons/icon-192.png" alt="" width="48" height="48"><div><b>Toc-Suite v2.0.0</b><div class="st-note" id="stPlatform"></div></div></div>
-        <ul class="st-links">
-          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest" target="_blank" rel="noopener">Download the Windows, Android and Linux apps</a></li>
-          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite" target="_blank" rel="noopener">Source code (MIT licence)</a></li>
-          <li><a href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/CHANGELOG.md" target="_blank" rel="noopener">What's new</a></li>
-          <li><a href="policies.html#privacy">Privacy</a> · <a href="policies.html#terms">Terms</a> · <a href="policies.html#accessibility">Accessibility</a></li>
-        </ul>
+        <div class="hp-dl web-only">
+          <a class="hp-dl-btn" data-dl="windows"><i data-lucide="monitor"></i><span><b>Windows</b><small>.exe</small></span></a>
+          <a class="hp-dl-btn" data-dl="android"><i data-lucide="smartphone"></i><span><b>Android</b><small>.apk</small></span></a>
+          <a class="hp-dl-btn" data-dl="linux"><i data-lucide="hard-drive-download"></i><span><b>Linux</b><small>AppImage</small></span></a>
+        </div>
+        <p class="st-note st-policy"><a href="policies.html#privacy">Privacy</a> · <a href="policies.html#terms">Terms</a> · <a href="policies.html#accessibility">Accessibility</a></p>
       </section>
     </div>
   </div>
@@ -103,6 +103,8 @@
   <script type="module">
     import { applyPrefs, THEME_COLORS } from '../src/shared/page_prefs.js';
     import { refreshLucideIcons } from '../src/shared/utils.js';
+    import { IS_APP, wireAppDownloads } from '../src/shared/downloads.js';
+    if (IS_APP) document.querySelectorAll('.web-only').forEach(el => el.remove()); else wireAppDownloads();
     const $ = (id) => document.getElementById(id);
     const get = (k, d = '') => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
     const set = (k, v) => { try { localStorage.setItem(k, v); return true; } catch { return false; } };
@@ -142,9 +144,10 @@
       const email = get('tocAuthEmail'), roll = get('tocAuthRoll'), locked = sget('tocAuthSessionLocked') === 'true';
       $('stIdentity').innerHTML = email && roll
         ? `<span class="st-badge ok">Signed in</span> <b>${roll}</b> · ${email}${locked ? ' <span class="st-badge">locked for this session</span>' : ''}`
-        : '<span class="st-badge">Not signed in</span> Practice and saving work without it.';
+        : '<span class="st-badge">Not signed in</span>';
       $('stEmail').disabled = locked; $('stEmailSave').disabled = locked; $('stEmailClear').disabled = locked;
       $('stUnlock').hidden = !locked;
+      $('stEmailClear').hidden = !(email && roll);
     }
     $('stEmailSave').addEventListener('click', () => {
       const email = $('stEmail').value.trim().toLowerCase();
@@ -160,7 +163,7 @@
     function usage() {
       let n = 0, bytes = 0;
       try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^toc|^fa|^mm|^pda|^tm/i.test(k)) { n++; bytes += (localStorage.getItem(k) || '').length + k.length; } } } catch {}
-      $('stUsage').textContent = `${n} saved item${n === 1 ? '' : 's'} · about ${(bytes * 2 / 1024).toFixed(1)} KB on this device`;
+      $('stUsage').textContent = `${n} saved item${n === 1 ? '' : 's'} · ${(bytes * 2 / 1024).toFixed(1)} KB`;
     }
     $('stExport').addEventListener('click', () => {
       const data = Object.fromEntries(KEYS.map(k => [k, get(k, DEFAULTS[k])]));
@@ -198,7 +201,7 @@
       $('stShare').checked = get('tocShareSaves', 'true') !== 'false';
       usage();
     }
-    $('stPlatform').textContent = location.protocol === 'app:' ? 'Desktop app' : window.Capacitor ? 'Android app' : 'Web app · works offline after the first visit';
+    $('stPlatform').textContent = location.protocol === 'app:' ? 'Desktop app' : window.Capacitor ? 'Android app' : 'Web app';
     applyPrefs(); render(); renderIdentity(); refreshLucideIcons();
   </script>
 </body>

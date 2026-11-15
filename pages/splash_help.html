@@ -143,7 +143,7 @@
     </header>
 
     <nav class="hp-toc" aria-label="On this page">
-      <a href="#hp-start">Quick start</a><a href="#hp-builder">Builder &amp; Assistant</a><a href="#hp-studios">Studios</a><a href="#hp-keys">Shortcuts</a><a href="#hp-papers">Study papers</a><a href="#hp-labs">Theory labs</a><a href="#hp-apps">Apps</a>
+      <a href="#hp-start">Quick start</a><a href="#hp-builder">Builder &amp; Assistant</a><a href="#hp-studios">Studios</a><a href="#hp-keys">Shortcuts</a><a href="#hp-papers">Study papers</a><a href="#hp-labs">Theory labs</a><a href="#hp-apps" class="web-only">Get the app</a>
     </nav>
 
     <section id="hp-start" class="hp-section">
@@ -169,7 +169,7 @@
             <li><code>Mealy machine that outputs 1 after 101</code></li>
             <li><code>binary numbers divisible by 3</code></li>
           </ul>
-          <p class="gs-hint">Naming a machine type wins (“NFA for…”, “PDA for…”); otherwise the current studio's type is used when it can recognise the language. DFAs/NFAs are proven equivalent to the language; PDAs, TMs and transducers are tested on every short input.</p>
+          <p class="gs-hint">Name the machine (“NFA for…”, “PDA for…”) to choose its type; otherwise the current studio is used. Every machine is checked before it is drawn.</p>
         </div>
         <div class="gs-card">
           <h3>Assistant panel — inside every studio</h3>
@@ -248,8 +248,8 @@
 
     <section id="hp-papers" class="hp-section">
       <h2><i data-lucide="book-open"></i> Study papers</h2>
-      <p class="gs-hint">Ten printable chapters (about 85 pages) covering the whole course, with figures, worked examples and exercises with answers.</p>
-      <div class="hp-papers"><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/01-preliminaries.pdf" target="_blank" rel="noopener"><span class="hp-num">01</span><b>Preliminaries</b><small>Sets, strings, languages, proofs by induction</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/02-finite-automata.pdf" target="_blank" rel="noopener"><span class="hp-num">02</span><b>Finite Automata</b><small>DFA, NFA, ε-NFA, subset construction, minimisation</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/03-regular-languages.pdf" target="_blank" rel="noopener"><span class="hp-num">03</span><b>Regular Languages</b><small>Regex, Arden, closure, pumping, Myhill–Nerode</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/04-transducers.pdf" target="_blank" rel="noopener"><span class="hp-num">04</span><b>Transducers</b><small>Mealy and Moore machines, conversions</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/05-context-free-grammars.pdf" target="_blank" rel="noopener"><span class="hp-num">05</span><b>Context-Free Grammars</b><small>Derivations, ambiguity, CNF, GNF, CYK</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/06-pushdown-automata.pdf" target="_blank" rel="noopener"><span class="hp-num">06</span><b>Pushdown Automata</b><small>PDA ↔ CFG, acceptance modes, DPDA</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/07-turing-machines.pdf" target="_blank" rel="noopener"><span class="hp-num">07</span><b>Turing Machines</b><small>Design patterns, variants, LBA</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/08-decidability.pdf" target="_blank" rel="noopener"><span class="hp-num">08</span><b>Decidability</b><small>Halting, reductions, Rice, PCP</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/09-complexity.pdf" target="_blank" rel="noopener"><span class="hp-num">09</span><b>Complexity</b><small>P, NP, reductions, NP-completeness</small></a><a class="hp-paper" href="https://github.com/shiroonigami23-ui/Toc-Suite/blob/main/docs/papers/10-solved-problems.pdf" target="_blank" rel="noopener"><span class="hp-num">10</span><b>Solved Problems</b><small>Exam-style worked problems with answers</small></a></div>
+      <p class="gs-hint">Notes for the whole course, with worked examples and exercises with answers. Tap a chapter to read it, or the arrow to download it.</p>
+      <div class="hp-papers"><div class="hp-paper-wrap"><a class="hp-paper" data-paper="01-preliminaries"><span class="hp-num">01</span><b>Preliminaries</b><small>Sets, strings, languages, proofs by induction</small></a><a class="hp-paper-dl" data-paper="01-preliminaries" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="02-finite-automata"><span class="hp-num">02</span><b>Finite Automata</b><small>DFA, NFA, ε-NFA, subset construction, minimisation</small></a><a class="hp-paper-dl" data-paper="02-finite-automata" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="03-regular-languages"><span class="hp-num">03</span><b>Regular Languages</b><small>Regex, Arden, closure, pumping, Myhill–Nerode</small></a><a class="hp-paper-dl" data-paper="03-regular-languages" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="04-transducers"><span class="hp-num">04</span><b>Transducers</b><small>Mealy and Moore machines, conversions</small></a><a class="hp-paper-dl" data-paper="04-transducers" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="05-context-free-grammars"><span class="hp-num">05</span><b>Context-Free Grammars</b><small>Derivations, ambiguity, CNF, GNF, CYK</small></a><a class="hp-paper-dl" data-paper="05-context-free-grammars" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="06-pushdown-automata"><span class="hp-num">06</span><b>Pushdown Automata</b><small>PDA ↔ CFG, acceptance modes, DPDA</small></a><a class="hp-paper-dl" data-paper="06-pushdown-automata" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="07-turing-machines"><span class="hp-num">07</span><b>Turing Machines</b><small>Design patterns, variants, LBA</small></a><a class="hp-paper-dl" data-paper="07-turing-machines" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="08-decidability"><span class="hp-num">08</span><b>Decidability</b><small>Halting, reductions, Rice, PCP</small></a><a class="hp-paper-dl" data-paper="08-decidability" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="09-complexity"><span class="hp-num">09</span><b>Complexity</b><small>P, NP, reductions, NP-completeness</small></a><a class="hp-paper-dl" data-paper="09-complexity" download aria-label="Download"><i data-lucide="download"></i></a></div><div class="hp-paper-wrap"><a class="hp-paper" data-paper="10-solved-problems"><span class="hp-num">10</span><b>Solved Problems</b><small>Exam-style worked problems with answers</small></a><a class="hp-paper-dl" data-paper="10-solved-problems" download aria-label="Download"><i data-lucide="download"></i></a></div></div>
     </section>
 
     <section id="hp-labs" class="hp-section">
@@ -402,15 +402,15 @@
     </details>
     </section>
 
-    <section id="hp-apps" class="hp-section">
-      <h2><i data-lucide="download"></i> Desktop &amp; Android apps</h2>
+    <section id="hp-apps" class="hp-section web-only">
+      <h2><i data-lucide="download"></i> Get the app</h2>
       <div class="gs-card hp-apps">
-        <p>Toc-Suite also runs as an installable app — the same studios, offline, with an animated intro.</p>
-        <div class="st-row">
-          <a class="assist-btn primary" href="https://github.com/shiroonigami23-ui/Toc-Suite/releases/latest" target="_blank" rel="noopener">Windows · Android · Linux downloads</a>
-          <a class="assist-btn" href="https://github.com/shiroonigami23-ui/Toc-Suite" target="_blank" rel="noopener">Source on GitHub</a>
+        <p>Install Toc-Suite on your computer or phone and use it offline.</p>
+        <div class="hp-dl">
+          <a class="hp-dl-btn" data-dl="windows"><i data-lucide="monitor"></i><span><b>Windows</b><small>Installer (.exe)</small></span></a>
+          <a class="hp-dl-btn" data-dl="android"><i data-lucide="smartphone"></i><span><b>Android</b><small>App (.apk)</small></span></a>
+          <a class="hp-dl-btn" data-dl="linux"><i data-lucide="hard-drive-download"></i><span><b>Linux</b><small>AppImage</small></span></a>
         </div>
-        <p class="gs-hint">In the browser you can also “Install app” from the address bar menu — it works offline after the first visit.</p>
       </div>
     </section>
   </div>
@@ -864,6 +864,9 @@
   <script type="module">
     import { applyPrefs } from '../src/shared/page_prefs.js';
     import { refreshLucideIcons } from '../src/shared/utils.js';
+    import { IS_APP, wireAppDownloads, wirePapers } from '../src/shared/downloads.js';
+    if (IS_APP) document.querySelectorAll('.web-only').forEach(el => el.remove()); else wireAppDownloads();
+    wirePapers();
     applyPrefs(); refreshLucideIcons();
   </script>
 </body>

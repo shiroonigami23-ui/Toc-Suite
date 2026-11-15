@@ -159,7 +159,7 @@ export function blockProgram(spec, conj, { tm = false } = {}) {
     const v = units.find(u => Object.keys(diff.k).every(x => x === u || Math.sign(diff.k[x]) !== Math.sign(diff.k[u]))) || units[0];
     if (!v) {
       if (!Object.keys(diff.k).length) { if (diff.c !== 0) return { error: 'The conditions contradict each other.' }; continue; }
-      return { error: `I can't solve “${atomStr(atom)}” for one variable.` };
+      return { error: `Cannot solve “${atomStr(atom)}” for one variable.` };
     }
     // v = -(diff - c_v v)/c_v
     const cv = diff.k[v];
@@ -176,7 +176,7 @@ export function blockProgram(spec, conj, { tm = false } = {}) {
   // An eliminated variable's lower bound must follow from the free variables' bounds.
   for (const e of extraMins) {
     const lowest = e.lin.c + Object.entries(e.lin.k).reduce((s, [u, x]) => s + (x >= 0 ? x * (mins[u] ?? 0) : -Infinity), 0);
-    if (lowest < e.min) return { error: 'This mix of conditions needs an extra inequality that I cannot track with one stack.' };
+    if (lowest < e.min) return { error: 'This mix of conditions needs an extra inequality that one stack cannot track.' };
   }
   const B = blocks.length;
   const A = blocks.map(b => vars.map(v => b.exp.k[v] || 0));
@@ -202,7 +202,7 @@ export function blockProgram(spec, conj, { tm = false } = {}) {
     let K = q.lin.c;
     for (const [v, c] of Object.entries(q.lin.k)) {
       const bi = blocks.findIndex(b => b.exp.k[v] === 1 && Object.keys(b.exp.k).filter(u => b.exp.k[u]).length === 1);
-      if (bi < 0) return { error: `I can't express “${atomStr(q.atom)}” through block lengths.` };
+      if (bi < 0) return { error: `Cannot express “${atomStr(q.atom)}” through block lengths.` };
       w[bi] += c;
       K -= c * blocks[bi].exp.c;
     }

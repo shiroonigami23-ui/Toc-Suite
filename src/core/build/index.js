@@ -145,7 +145,7 @@ export function buildFromText(text, ctx = {}) {
 
   // ---- non-regular families ----
   const spec = readSpec(body);
-  if (spec && spec.type === 'unsupported') return fail(wanted, `I can't build a correct machine for ${spec.reason} yet (it is not context-free, and the Turing machine for it is not in my library).`);
+  if (spec && spec.type === 'unsupported') return fail(wanted, `Not supported yet: ${spec.reason} is not context-free, and a Turing machine for it is not available.`);
   if (spec && spec.type !== 'op') {
     const regular = regularFromSpec(spec);
     if (regular) return buildRegular(regular, wanted, explicit, notes, ctx, raw);
@@ -184,14 +184,14 @@ function buildRegular(reg, wanted, explicit, notes, ctx, raw) {
     const reading = reg.reading || { dfa, alphabet, clauses: [], regex: reg.regex?.replace(/[()]/g, (c) => c), alternatives: [] };
     const { machine, how } = buildFinite(reading, wanted, { keepDead: ctx.keepDead ?? true, title });
     const v = verifyFinite(machine, dfa);
-    if (!v.equivalent) return fail(wanted, `Internal check failed on “${v.counterexample || 'ε'}”, so nothing was drawn. Please rephrase.`);
+    if (!v.equivalent) return fail(wanted, `The machine failed its check on “${v.counterexample || 'ε'}”, so nothing was drawn. Try rephrasing.`);
     return done(wanted, machine, { title, language: label, how, notes, samples, verified: { exact: true }, reading: reg.reading });
   }
   if (wanted === 'MOORE' || wanted === 'MEALY') {
     const m = MMB.fromDfa(dfa, wanted);
     const f = MMB.prefixOracle(dfa, wanted, '1', '0');
     const v = verifyTransducer(alphabet, (w) => MMBrun(m, w), f);
-    if (!v.ok) return fail(wanted, `Internal check failed on “${v.counterexample}”.`);
+    if (!v.ok) return fail(wanted, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
     notes.push(`No output rule was given, so the ${KIND_NAME[wanted]} outputs 1 when the input read so far is in the language and 0 otherwise.`);
     return done(wanted, m, { title, language: label, how: 'one state per state of the minimal DFA, then minimised as a transducer', notes, io: ioSamples(alphabet, f), verified: v });
   }
@@ -200,14 +200,14 @@ function buildRegular(reg, wanted, explicit, notes, ctx, raw) {
     let m = dfaToPda(app);
     if (/\bempty[- ]stack\b/i.test(raw)) m = toEmptyStack(m);
     const v = verifyAcceptor(alphabet, (w) => pdaAccepts(m, w), oracle);
-    if (!v.ok) return fail(wanted, `Internal check failed on “${v.counterexample}”.`);
+    if (!v.ok) return fail(wanted, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
     notes.push('This language is regular, so the PDA is its minimal DFA and never needs the stack.');
     return done(wanted, m, { title, language: label, how: 'minimal DFA, every move leaves the stack unchanged (Z/Z)', notes, samples, verified: v });
   }
   // TM
   const m = TMB.dfaToTm(dfa, title);
   const v = verifyAcceptor(alphabet, (w) => { const r = tmRun(m, w); return r.accepted; }, oracle);
-  if (!v.ok) return fail(wanted, `Internal check failed on “${v.counterexample}”.`);
+  if (!v.ok) return fail(wanted, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
   notes.push('This language is regular: the Turing machine only scans right, like a DFA, and accepts at the blank.');
   return done(wanted, m, { title, language: label, how: 'one TM state per DFA state, moving right; accept on the blank in an accepting state', notes, samples, verified: v });
 }
@@ -240,11 +240,11 @@ function buildNonRegular(spec, wanted, explicit, det, notes, raw) {
     else { pdaWhy = r.error; nonCF = !!r.nonCF; }
   }
   if (pda) {
-    if (finiteWanted && explicit) notes.push(`${spec.label} is not regular — a finite automaton would need unboundedly many states to count — so I built a pushdown automaton and opened the PDA studio.`);
+    if (finiteWanted && explicit) notes.push(`${spec.label} is not regular — a finite automaton would need unboundedly many states to count — so this is a pushdown automaton (PDA studio).`);
     else if (finiteWanted) notes.push(`${spec.label} is not regular, so this is a pushdown automaton (PDA studio).`);
     if (det.emptyStack) { pda = toEmptyStack(pda); how += '; converted to acceptance by empty stack'; }
     const v = verifyAcceptor(spec.alphabet, (w) => pdaAccepts(pda, w), oracle);
-    if (!v.ok) return fail('PDA', `I built a PDA but it failed my check on “${v.counterexample}”, so it is not shown. Please rephrase or simplify.`);
+    if (!v.ok) return fail('PDA', `The PDA failed its check on “${v.counterexample}”, so nothing was drawn. Try rephrasing or simplifying.`);
     return done('PDA', pda, { title, language: spec.label, how, notes, samples: samplesFromOracle(spec.alphabet, oracle, v.maxLen), verified: v });
   }
   // Turing machine
@@ -253,12 +253,12 @@ function buildNonRegular(spec, wanted, explicit, det, notes, raw) {
     return fail(wanted === 'TM' ? 'TM' : 'PDA', [pdaWhy, r.error].filter(Boolean).join(' '));
   }
   if (wanted !== 'TM') {
-    if (nonCF) notes.push(`${spec.label} is not context-free: ${pdaWhy}. No PDA can accept it, so I built a Turing machine${wanted === 'PDA' ? '' : ` instead of a ${KIND_NAME[wanted]}`}.`);
-    else if (pdaWhy) notes.push(`${pdaWhy} I built a Turing machine instead.`);
+    if (nonCF) notes.push(`${spec.label} is not context-free: ${pdaWhy}. No PDA can accept it, so this is a Turing machine${wanted === 'PDA' ? '' : ` instead of a ${KIND_NAME[wanted]}`}.`);
+    else if (pdaWhy) notes.push(`${pdaWhy} A Turing machine is used instead.`);
   }
   const tm = r.machine;
   const v = verifyAcceptor(spec.alphabet, (w) => { const x = tmRun(tm, w); return x.accepted; }, oracle, 1500);
-  if (!v.ok) return fail('TM', `I built a Turing machine but it failed my check on “${v.counterexample}”, so it is not shown.`);
+  if (!v.ok) return fail('TM', `The Turing machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
   return done('TM', tm, { title, language: spec.label, how: r.how, notes, samples: samplesFromOracle(spec.alphabet, oracle, v.maxLen), verified: v });
 }
 
@@ -383,27 +383,27 @@ function buildOp(op, wanted, explicit, notes, raw) {
   let kind;
   if (wantMM) {
     kind = MM_OPS.has(op.op) ? wanted : 'TM';
-    if (kind === 'TM') notes.push(`A ${KIND_NAME[wanted]} reads each symbol once and writes one output per step, so it cannot do a ${op.label}; I built a Turing machine instead.`);
+    if (kind === 'TM') notes.push(`A ${KIND_NAME[wanted]} reads each symbol once and writes one output per step, so it cannot do a ${op.label}; a Turing machine is used instead.`);
   } else if (wanted === 'TM') {
     kind = TM_OPS.has(op.op) ? 'TM' : 'MEALY';
-    if (kind === 'MEALY') notes.push(`This task is a one-pass transducer, so I built it as a Mealy machine.`);
+    if (kind === 'MEALY') notes.push(`This task is a one-pass transducer, so it is built as a Mealy machine.`);
   } else {
     kind = TM_OPS.has(op.op) ? 'TM' : 'MEALY';
-    if (explicit) notes.push(`${KIND_NAME[wanted]}s only accept or reject strings; a ${op.label} produces output, so I built a ${KIND_NAME[kind]}.`);
+    if (explicit) notes.push(`${KIND_NAME[wanted]}s only accept or reject strings; a ${op.label} produces output, so this is a ${KIND_NAME[kind]}.`);
   }
   if (kind === 'TM') {
     const m = TMB.opTm(op);
     const f = opFunction(op);
     const sigma = m.inputAlphabet;
     const v = verifyTransducer(sigma, (w) => { const r = tmRun(m, w); return r.accepted ? r.tape : null; }, (w) => { const x = f(w); return x === null ? null : x; });
-    if (!v.ok) return fail('TM', `Internal check failed on “${v.counterexample}”.`);
+    if (!v.ok) return fail('TM', `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
     const io = [];
     for (const w of allWords(sigma, 5)) { const s = w.join(''); const x = f(s); if (x !== null && s) io.push([s, x]); if (io.length >= 6) break; }
     return done('TM', m, { title: op.label, language: op.label, how: tmHow(op), notes, io, verified: v, ioKind: 'tape' });
   }
   const { machine, oracle } = MMB.opMachine(op.op, kind);
   const v = verifyTransducer(machine.alphabet, (w) => transduce(machine, w), oracle);
-  if (!v.ok) return fail(kind, `Internal check failed on “${v.counterexample}”.`);
+  if (!v.ok) return fail(kind, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
   if (['twos', 'inc'].includes(op.op)) notes.push('Bits are read least significant first (right to left of the written number), as a one-pass transducer must.');
   if (op.op === 'serialadd') notes.push('Each input symbol is a pair of bits (xᵢyᵢ), least significant pair first; the output is the sum bit.');
   return done(kind, machine, { title: op.label, language: op.label, how: mmHow(op.op), notes, io: ioSamples(machine.alphabet, (w) => oracle(w)), verified: v });
@@ -443,7 +443,7 @@ function buildTransducer(body, kind, ctx, notes, raw) {
     const m = MMB.minimizeTransducer(MMB.remainderMachine(rem, kind, alphabet));
     const f = MMB.remainderOracle(rem, kind, alphabet);
     const v = verifyTransducer(alphabet, (w) => transduce(m, w), f);
-    if (!v.ok) return fail(kind, `Internal check failed on “${v.counterexample}”.`);
+    if (!v.ok) return fail(kind, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
     return done(kind, m, { title, language: rem.kind === 'value' ? `remainder of the base-${rem.base} number read so far, mod ${rem.k}` : `number of ${rem.sym}'s read so far, mod ${rem.k}`, how: rem.kind === 'value' ? `state = remainder r; reading digit d goes to (${rem.base}r + d) mod ${rem.k}` : `state = count mod ${rem.k}`, notes, io: ioSamples(alphabet, f), verified: v });
   }
   const outs = MMB.readOutputs(t);
@@ -464,16 +464,16 @@ function buildTransducer(body, kind, ctx, notes, raw) {
     const m = MMB.fromDfa(dfa, kind, outs.yes, outs.no);
     const f = MMB.nonOverlapOracle(cond.pattern, kind, outs.yes, outs.no);
     const v = verifyTransducer(alphabet, (w) => transduce(m, w), f);
-    if (!v.ok) return fail(kind, `Internal check failed on “${v.counterexample}”.`);
+    if (!v.ok) return fail(kind, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
     return done(kind, m, { title, language: `non-overlapping detector for ${cond.pattern}: output ${outs.yes} when it completes, ${outs.no} otherwise`, how: 'pattern automaton (KMP) that restarts after every match', notes, io: ioSamples(alphabet, f), verified: v, outputs: outs });
   }
   if (!ctx.model) return fail(kind, 'The language model is still loading; try again in a moment.');
   const r = parseDescription(`strings over {${alphabet.join(',')}} ${cond.cond}`, ctx.model);
-  if (!r.ok) return { ok: false, kind, route: ROUTE[kind], problems: [`I couldn't read the output condition “${cond.cond}”.`, ...r.problems] };
+  if (!r.ok) return { ok: false, kind, route: ROUTE[kind], problems: [`Could not read the output condition “${cond.cond}”.`, ...r.problems] };
   const m = MMB.fromDfa(r.dfa, kind, outs.yes, outs.no);
   const f = MMB.prefixOracle(r.dfa, kind, outs.yes, outs.no);
   const v = verifyTransducer(r.alphabet, (w) => transduce(m, w), f);
-  if (!v.ok) return fail(kind, `Internal check failed on “${v.counterexample}”.`);
+  if (!v.ok) return fail(kind, `The machine failed its check on “${v.counterexample}”, so nothing was drawn.`);
   if (cond.pattern) notes.push('Overlapping matches count (say “non-overlapping” for the other kind).');
   return done(kind, m, { title, language: `output ${outs.yes} when the input read so far ${r.explanation.replace(/^Σ = \{[^}]*\}; accept a string iff it /, '').replace(/\.$/, '')}, otherwise ${outs.no}`, how: `minimal DFA for the condition, outputs on ${kind === 'MOORE' ? 'states' : 'transitions'}, then minimised as a ${kind === 'MOORE' ? 'Moore' : 'Mealy'} machine`, notes, io: ioSamples(r.alphabet, f), verified: v, reading: r, outputs: outs });
 }

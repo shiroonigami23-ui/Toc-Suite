@@ -11,6 +11,7 @@
 - **Help page rebuilt**: quick start, Builder and Assistant guide with examples, studio playbooks, a keyboard-shortcut sheet, the ten study papers, app downloads, and the existing theory labs, practice and quiz under a searchable section.
 - **Settings page rebuilt**: changes save instantly (no floating save bar), theme cards, text-size, motion and drawing-speed toggles with a live preview, presets including Presenting, sign-in and sign-out of the assignment identity, settings export and import, storage usage, and an About card with the version and download links.
 - **Journey book updated for v2.0.0** (75 → 90 pages): new Part V on the Automata Builder, the rebuilt Grammar Studio, the assistant in every studio, the study papers and shipping the apps; rewritten help and settings sections; new screenshots, Builder-generated PDA/TM figures, pipeline diagrams, refreshed charts, numbers, timeline and repository map.
+- Study papers open directly from the Help page (view in a new tab or download; bundled in the apps for offline reading, opened in the system PDF viewer on Windows). App downloads on Help and Settings start the Windows, Android or Linux file directly; inside the apps, download and repository links are hidden. Wording across Help, Settings and the Builder tightened.
 - Concept trailer in the README.
 - Tests: `builder.test.mjs` (phrasings run on the studios' own simulators) and `cfg.test.mjs`.
 ### Fixed

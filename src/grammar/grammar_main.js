@@ -323,7 +323,7 @@ function runPumping() {
   if (langText) {
     const spec = readSpec(langText);
     const oracle = spec && oracleFor(spec);
-    if (!oracle) { out.innerHTML = '<div class="assist-error">I could not read that language. Try notation like {aⁿbⁿcⁿ | n ≥ 0}, {ww | w ∈ {a,b}*} or “equal number of a’s and b’s”, or leave it empty to use the grammar.</div>'; return; }
+    if (!oracle) { out.innerHTML = '<div class="assist-error">Could not read that language. Try notation like {aⁿbⁿcⁿ | n ≥ 0}, {ww | w ∈ {a,b}*} or “equal number of a’s and b’s”, or leave it empty to use the grammar.</div>'; return; }
     member = oracle; label = spec.label;
   } else {
     if (!G?.isCfg) { out.innerHTML = '<div class="assist-error">Enter a language, or write a context-free grammar.</div>'; return; }

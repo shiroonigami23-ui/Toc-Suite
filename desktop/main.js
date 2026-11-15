@@ -39,6 +39,16 @@ async function serve(request) {
   return new Response(res.body, { status: 200, headers: { 'content-type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream' } });
 }
 
+// copy the bundled PDF out of the app archive and hand it to the system viewer
+function openPdf(url) {
+  const file = path.normalize(path.join(ROOT, decodeURIComponent(new URL(url).pathname)));
+  if (!file.startsWith(ROOT) || !fs.existsSync(file)) return;
+  const dest = path.join(app.getPath('temp'), 'toc-suite-papers', path.basename(file));
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  fs.writeFileSync(dest, fs.readFileSync(file));
+  shell.openPath(dest);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440, height: 900, minWidth: 360, minHeight: 560,
@@ -46,8 +56,9 @@ function createWindow() {
     icon: path.join(__dirname, 'web', 'assets', 'icons', 'icon-512.png'),
     webPreferences: { contextIsolation: true, sandbox: true },
   });
-  // links to other sites open in the normal browser
+  // study papers open in the system PDF viewer; links to other sites open in the normal browser
   win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('app://') && /\.pdf$/i.test(new URL(url).pathname)) { openPdf(url); return { action: 'deny' }; }
     if (!url.startsWith('app://')) { shell.openExternal(url); return { action: 'deny' }; }
     return { action: 'allow' };
   });
@@ -62,10 +73,6 @@ app.whenReady().then(() => {
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     { label: 'File', submenu: [{ role: 'reload' }, { role: 'forceReload' }, { type: 'separator' }, { role: 'quit' }] },
     { label: 'View', submenu: [{ role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' }, { role: 'togglefullscreen' }, { role: 'toggleDevTools' }] },
-    { label: 'Help', submenu: [
-      { label: 'Website', click: () => shell.openExternal(REMOTE) },
-      { label: 'Source code', click: () => shell.openExternal('https://github.com/shiroonigami23-ui/Toc-Suite') },
-    ] },
   ]));
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
